@@ -1,0 +1,16 @@
+[Config]
+project_name = G13
+# choose library type : [A_B, B_A]
+library_type = B_A
+
+database = /cygene/work/00.test/pipeline/TCR_AB_type_pipeline/database
+scripts = /cygene/work/00.test/pipeline/TCR_AB_type_pipeline/scripts
+
+# step1
+# 12, adapter = ATATCCAGAACCCTGACCCTGCCGTGTACCAGCTGAGAGACTCTAAATCCAGTGACACAAGTTTGTACAAAAAAGCAGGCTACC
+adapter = AGCCGGGGCGGTTCCGGAGCCACGAACTTCTCTCTGTTAAAGCAAGCAGGTGATGTGGAGGAAAATCCTGGACCG
+# choose merge_analysis : [True, False]
+merge_analysis = True
+#merge_analysis = False
+
+# 

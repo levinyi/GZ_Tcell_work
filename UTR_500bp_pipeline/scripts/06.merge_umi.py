@@ -1,0 +1,1 @@
+/cygene/work/10.ANCCR180494_PM-CR180494-05_2018-12-31/other_method/scripts/06.merge_umi.py
