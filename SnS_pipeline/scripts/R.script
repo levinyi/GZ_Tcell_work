@@ -1,0 +1,7 @@
+library(ggplot2)
+count <- read.table("count.txt.cut5", header=TRUE)
+order_a <- read.table("order_a.txt.cut5", header=TRUE)
+order_b <- read.table("order_b.txt.cut5", header=TRUE)
+count$TRA <- factor(count$TRA, levels = order_a[,1])
+count$TRB <- factor(count$TRB, levels = order_b[,1])
+ggplot(count, aes(TRA, TRB, color=log2Rd)) + geom_point(size=1) + scale_color_gradient(low="blue", high="red")
