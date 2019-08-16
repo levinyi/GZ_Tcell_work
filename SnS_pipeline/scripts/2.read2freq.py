@@ -36,12 +36,12 @@ def main():
     with open(output_file, "w") as op:
         for alpha in a_dict:
             for beta in a_dict[alpha]:
-                if alpha == beta:
-                    perfect_match += 1
+                if alpha.rstrip("a") == beta.rstrip("b"):
+                    perfect_match += int(a_dict[alpha][beta])
                 else:
-                    mispairing_match += 1
-                total_pairs += 1
-                op.write("{}\t{}\t{}\n".format(alpha, beta, a_dict[alpha][beta]))
+                    mispairing_match += int(a_dict[alpha][beta])
+                total_pairs += int(a_dict[alpha][beta])
+                op.write("{0}\t{1}\t{2}\n".format(alpha, beta, a_dict[alpha][beta]))
     print("{0}\t{1}\t{2}".format(total_pairs, perfect_match, mispairing_match))
 
 if __name__ == '__main__':
