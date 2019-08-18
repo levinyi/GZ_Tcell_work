@@ -4,4 +4,17 @@ order_a <- read.table("order_a.txt.cut5", header=TRUE)
 order_b <- read.table("order_b.txt.cut5", header=TRUE)
 count$TRA <- factor(count$TRA, levels = order_a[,1])
 count$TRB <- factor(count$TRB, levels = order_b[,1])
-ggplot(count, aes(TRA, TRB, color=log2Rd)) + geom_point(size=1) + scale_color_gradient(low="blue", high="red")
+#p = ggplot(count, aes(TRA, TRB, color=log2Rd,size=log2Rd)) + geom_point() + scale_color_gradient(low="blue", high="red")
+#p = ggplot(count, aes(TRA, TRB, color=Rd,)) + geom_point(size=0.5) + scale_color_gradient(low="blue", high="red")
+
+p1 = ggplot(count, aes(TRA, TRB, fill=Rd,)) + geom_raster() +
+  scale_fill_gradient(low="blue", high="red") + 
+  theme(axis.text=element_blank(),axis.ticks=element_blank(),legend.title=element_blank(),panel.border=element_rect(fill=NA,)) +
+  xlab("TRA clones") + ylab("TRB clones") 
+
+p2 = ggplot(count, aes(TRA, TRB, fill=log2Rd,)) + geom_raster() +
+  scale_fill_gradient(low="blue", high="red") + 
+  theme(axis.text=element_blank(),axis.ticks=element_blank(),legend.title=element_blank(),panel.border=element_rect(fill=NA,)) +
+  xlab("TRA clones") + ylab("TRB clones") 
+ggsave("final.Rd.pdf",p1)
+ggsave("final.log2Rd.pdf",p2)
