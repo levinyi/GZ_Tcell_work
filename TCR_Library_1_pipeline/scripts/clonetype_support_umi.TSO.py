@@ -7,7 +7,7 @@ import re
 
 def usage():
     """docstring for usage
-    python clonetype_support_umi.TSO.py G17E3L1.mixcr.out.clonotypes.TRA.txt <umi_fastq> G17E3L1.umi.count.aa.all.xls > G17E3L1.umi.count.aa.xls
+    python clonetype_support_umi.TSO.py G17E3L1.mixcr.out.clonotypes.TRA.txt <umi_fastq> G17E3L1.umi.count.aa.all.xls 
     """
 
 
@@ -24,16 +24,17 @@ def two_dim_dict(thedict, key_a, key_b, value):
 
 
 def deal_umi_file(fastq):
-    umi_dict = {}
+    fastq_umi_dict = {}
     try:
-        fq = gzip.open(fastq,"r")
-        for record in SeqIO.parse(fq,"fastq"):
-            umi_dict[record.id] = str(record.seq)[:8]
+        fq1 = gzip.open(fastq,"r")
+        for record in SeqIO.parse(fq1,"fastq"):
+            fastq_umi_dict[record.id] = str(record.seq)[:8]
+            # print record.id, str(record.seq)[:8]
     except IOError:
         sys.exit("error with fastq file during deal umi function")
     finally:
-        fq.close()
-    return umi_dict
+        fq1.close()
+    return fastq_umi_dict
 
 def main():
 
@@ -42,9 +43,11 @@ def main():
     
     fastq_with_umi_file = sys.argv[2]
 
+    print "start deal_umi_fastq"
     fastq_umi_dict = deal_umi_file(fastq_with_umi_file)
-    print "finished deal_umi_fastq"
-
+    print "finish deal_umi_fastq"
+    # print fastq_umi_dict
+    print "start deal mixcr file"
     umi_dict = {}
     cloneType_support_reads_dict = {}
     p = re.compile(r'^(TR.*)\*00\(.*')
@@ -64,17 +67,19 @@ def main():
 
             try:
                 fastq_file = project_name + '/' + project_name + '.' + cloneId + '_R2.fastq.gz'
+                fq = gzip.open(fastq_file, "r")
             except IOError:
                 fastq_file = project_name + '/' + project_name + '.' + cloneId + '.fastq.gz'
-            else:
                 fq = gzip.open(fastq_file, "r")
-                if float(cloneCount) >= 3 and V and J:
-                    for record in SeqIO.parse(fq, "fastq"):
-                        umi = fastq_umi_dict[record.id]
-                        two_dim_dict(umi_dict, V.group(1) + aaSeqCDR3 + J.group(1), umi, 1)
-                        two_dim_dict(cloneType_support_reads_dict, V.group(1) + aaSeqCDR3 + J.group(1), 'reads_number', 1)
-            finally:
-                fq.close()
+
+            print "the fastq file is %s" % fastq_file
+
+            if float(cloneCount) >= 3 and V and J:
+                for record in SeqIO.parse(fq, "fastq"):
+                    umi = fastq_umi_dict[record.id]
+                    two_dim_dict(umi_dict, V.group(1) + aaSeqCDR3 + J.group(1), umi, 1)
+                    two_dim_dict(cloneType_support_reads_dict, V.group(1) + aaSeqCDR3 + J.group(1), 'reads_number', 1)
+            fq.close()
 
     # writ to output.
     with open(sys.argv[3], "w") as output:
