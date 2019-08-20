@@ -11,19 +11,19 @@ for ( each_file in args[1:length(args)]) {
 	data = read.table(each_file, header=T)
 	#data  = subset(data1,readsNumber>=3)
 	p1 = ggplot(data,aes(x=readsNumber, y=..count..)) + geom_histogram(stat="count", color="black", fill="white") +
-		xlab("supporting reads") + ylab("UMI count")+
+		xlab("supporting reads") + ylab("Molecule")+
 		#scale_x_continuous(breaks=seq(0,1000,100), limits=c(0,1000)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		#scale_x_continuous(breaks=seq(0,100,10), limits=c(0,100)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		ggtitle(gene_name) + theme(plot.title = element_text(hjust = 0.5))  # 设置标题，并居中放置在图案上方。
 
 	p2 = ggplot(data,aes(x=readsNumber, y=..count..)) + geom_histogram(stat="count", color="black", fill="white") +
-		xlab("supporting reads") + ylab("UMI count")+
+		xlab("supporting reads") + ylab("Molecule")+
 		scale_x_continuous(breaks=seq(0,1000,100), limits=c(0,1000)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		#scale_x_continuous(breaks=seq(0,100,10), limits=c(0,100)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		ggtitle(gene_name) + theme(plot.title = element_text(hjust = 0.5)) # 设置标题，并居中放置在图案上方。
 	
 	p3 = ggplot(data,aes(x=readsNumber, y=..count..)) + geom_histogram(stat="count", color="black", fill="white") +
-		xlab("supporting reads") + ylab("UMI count")+
+		xlab("supporting reads") + ylab("Molecule")+
 		#scale_x_continuous(breaks=seq(0,1000,100), limits=c(0,1000)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		scale_x_continuous(breaks=seq(0,100,10), limits=c(0,100)) + # 设置x轴的坐标范围（limits），和间隔（breaks）
 		ggtitle(gene_name) + theme(plot.title = element_text(hjust = 0.5))  # 设置标题，并居中放置在图案上方。
