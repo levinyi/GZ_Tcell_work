@@ -1,12 +1,12 @@
 import sys
-import os
 
 
 def usage():
     '''
     usage: python M1_relaxed.py <M1 file> > M1_relaxed.xls
     example: python M1_relaxed.py /cygene/work/27.G13/G13AB/result/G13E3L8.pairs.freq.M1.xls > /cygene/work/27.G13/G13AB/result/G13E3L8.pairs.freq.relaxed.M1.xls
-    
+
+    2019-08-20: add headers for M1 table.
     2019-06-20: fix some bugs.
     '''
     pass
@@ -56,7 +56,6 @@ def compare(c, d):
     M1Score = float(M1AScore * M1BScore)
     merge_list = []
     merge_list.extend([Alpha, c[1], c[2], c[3], Beta, c[5], c[6], c[7], str(ReadCount), str(A_total_reads), str(B_total_reads), str(M1AScore), str(M1BScore), str(M1Score)])
-    
     return merge_list
 
 
@@ -75,6 +74,7 @@ def main():
             else:
                 new_pairs = compare(adict[pairs], l)
                 adict[pairs] = new_pairs
+    print("Alpha\tTRAV\tCDR3Alpha\tTRAJ\tBeta\tTRBV\tCDR3Beta\tTRBJ\tReadCount\tA_total_reads\tB_total_reads\tM1AScore\tM1BScore\tM1Score")
     for k in adict:
         print "\t".join(adict[k])
 
