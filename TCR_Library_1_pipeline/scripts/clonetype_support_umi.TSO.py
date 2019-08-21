@@ -65,21 +65,21 @@ def main():
             V = p.match(allVHitsWithScore)
             J = p.match(allJHitsWithScore)
 
-            try:
-                fastq_file = project_name + '/' + project_name + '.' + cloneId + '_R2.fastq.gz'
-                fq = gzip.open(fastq_file, "r")
-            except IOError:
-                fastq_file = project_name + '/' + project_name + '.' + cloneId + '.fastq.gz'
-                fq = gzip.open(fastq_file, "r")
-
-            print "the fastq file is %s" % fastq_file
-
             if float(cloneCount) >= 3 and V and J:
+                try:
+                    fastq_file = project_name + '/' + project_name + '.' + cloneId + '_R2.fastq.gz'
+                    fq = gzip.open(fastq_file, "r")
+                except IOError:
+                    fastq_file = project_name + '/' + project_name + '.' + cloneId + '.fastq.gz'
+                    fq = gzip.open(fastq_file, "r")
+
+                print "the fastq file is %s" % fastq_file
+
                 for record in SeqIO.parse(fq, "fastq"):
                     umi = fastq_umi_dict[record.id]
                     two_dim_dict(umi_dict, V.group(1) + aaSeqCDR3 + J.group(1), umi, 1)
                     two_dim_dict(cloneType_support_reads_dict, V.group(1) + aaSeqCDR3 + J.group(1), 'reads_number', 1)
-            fq.close()
+                fq.close()
 
     # writ to output.
     with open(sys.argv[3], "w") as output:
