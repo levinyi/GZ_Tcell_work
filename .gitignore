@@ -1,3 +1,9 @@
 # ignore
 
 *example
+*.nhr
+*.nin
+*.nog
+*.nsd
+*.nsi
+*.nsq
