@@ -1,4 +1,3 @@
-import sys
 import os
 import argparse
 
@@ -13,21 +12,16 @@ def _argparse():
     return parser.parse_args()
 
 
-def print_current_time():
-    time_stamp = datetime.datetime.now()
-    return time_stamp.strftime('%Y.%m.%d-%H:%M:%S')
-
-
 def main():
     parser = _argparse()
 
     logfile = parser.log_file
     result_dir = parser.result_dir
     # print parser.flag
-    if parser.flag == True:
-        print parser.flag
+    if parser.flag:
+        print "flag is : True"
     else:
-        print parser.flag
+        print "flag is : False"
     file_name = os.path.basename(logfile).split(".")[0]
 
     length_list = []
@@ -37,7 +31,7 @@ def main():
             c = line.split("\t")
             length_list.append(len(c))
             if len(c) == 4:  # no adapter in line
-                if parser.flag == True: # if flag=true,print to output.
+                if parser.flag:  # if flag=true,print to output.
                     OUT1.write("@%s\n%s\n+\n%s\n" % (c[0], c[2], c[3]))
             elif len(c) == 11:  # with adapter line
                 if len(c[4]) == 0:  # adapter starts from front.
@@ -50,6 +44,6 @@ def main():
             else:
                 print("Attention: your log file contains : %s columns." % len(c))
     print("finished")
-    
+
 if __name__ == '__main__':
     main()
