@@ -28,4 +28,14 @@ blastn -db ${database}/SplitCDR3JOligosA.CDR3.fa  -query $name.p2.TRA.fa  -out $
 blastn -db ${database}/SplitCDR3JOligosB.CDR3.fa  -query $name.p1.TRB.fa  -out $name.TRB.blast.out -outfmt 7 -num_threads 20 -max_hsps 1 -max_target_seqs 1
 
 #statistic
-python ${scripts}/export_pairs_table_from_blastout.py $name.TRA.blast.out $name.TRB.blast.out ${database}/SplitCDR3JOligos.zip.fa
+python ${scripts}/export_pairs_table_from_blastout.py $name.TRA.blast.out $name.TRB.blast.out ${database}/SplitCDR3JOligos.zip.fa $name.p1.zip.fa
+
+le export_pairs_table.out.xls |awk '$6==2' |grep -v "NULL" >pairs.awk6.eq2.zip.new.xls
+python $scripts/zip.distance.py  pairs.awk6.eq2.zip.new.xls >pairs.awk6.eq2.zip.new.with.distance.xls
+# draw plot in Rstudio
+
+
+#####################
+# check distance 0
+# le pairs.awk6.eq2.zip.new.with.distance.xls  |awk '$7==0' >pairs.awk6.eq2.distance.0.xls
+# python $scripts/check.primer.bug.py pairs.awk6.eq2.distance.0.xls ../database/No_used.A.341.txt ../database/No_used.B.341.txt >check.noused.xls
