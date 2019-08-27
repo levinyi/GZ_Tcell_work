@@ -92,5 +92,5 @@ if len(mixcr_report_list) != 0:
     print("""Sample\tTotal sequencing reads\tSuccessfully aligned reads\tTRA chains\tTRB chains""")
     for k, v in mixcr_report_dict.items():
         print('{0}\t{1}\t{2}\t{3}\t{4}'.format(
-            k, v.get('Total sequencing reads:',0), v.get('Successfully aligned reads:',0),
-            v.get('TRA chains:',0), v.get('TRB chains:',0)))
+            k, v.get('Total sequencing reads:', 0), v.get('Successfully aligned reads:', 0),
+            v.get('TRA chains:', 0), v.get('TRB chains:', 0)))
