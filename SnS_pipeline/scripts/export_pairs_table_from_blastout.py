@@ -1,22 +1,23 @@
 import sys
 from Bio import SeqIO
-import threading
-import Queue
+# import threading
+# import Queue
 import time
 
 
 def usage():
     """
-    python ../scripts/export_pairs_table_from_blastout.py G34E3L1.TRA.blast.out G34E3L1.TRB.blast.out ../database/SplitCDR3JOligos.zip.fa
+    python ../scripts/export_pairs_table_from_blastout.py G34E3L1.TRA.blast.out G34E3L1.TRB.blast.out G34E3L1.p1.zip.fa ../database/SplitCDR3JOligos.zip.fa
     """
 
 def deal_zip_file(zip_file):
     zip_dict = {}
     with open(zip_file, "r") as f:
         for record in SeqIO.parse(f,"fasta"):
-            name = str(record.id).rstrip(".zip")
+            name = str(record.id).rstrip(".zip") # for ref_zip file
             zip_dict[name] = str(record.seq)
     return zip_dict
+
 
 def deal_blast_out(blast_file):
     blast_out_dict = {}
@@ -30,17 +31,21 @@ def deal_blast_out(blast_file):
             blast_out_dict[query] = subject
     return blast_out_dict
 
+
 def main():
     blast_out_TRA = sys.argv[1]
     blast_out_TRB = sys.argv[2]
-    reference_zip = sys.argv[3] 
+    reads_for_zip = sys.argv[3]
+    reference_zip = sys.argv[4]
     output_file = open("export_pairs_table.out.xls", "w")
     log_file = open("blastn.pairs.log", "w")
-
     log_file.write("start time: {}\n".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) ))
+
     blast_out_dict_A = deal_blast_out(blast_out_TRA)
     blast_out_dict_B = deal_blast_out(blast_out_TRB)
     zip_dict = deal_zip_file(reference_zip)
+    read_zip = deal_zip_file(reads_for_zip)
+    # print(list(read_zip.items())[:5])  # debug
     log_file.write("end time :{}\n".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
     log_file.write("time consuming: XXX\n")
     
@@ -105,7 +110,7 @@ def main():
         else:
             flag = 0
 
-        output_file.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(each, name_A, name_B, zip_dict.get(name_A,"NULL"), zip_dict.get(name_B,"NULL"),flag))
+        output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(each, name_A, name_B, zip_dict.get(name_A,"NULL"), zip_dict.get(name_B,"NULL"), flag,read_zip.get(each,"NULL")))
 
     log_file.write("All finished at : {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) ))
     output_file.close()
