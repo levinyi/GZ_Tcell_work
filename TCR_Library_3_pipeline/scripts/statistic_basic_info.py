@@ -7,7 +7,7 @@ import re
 def usage():
     """
     docstring for usage
-    python statistic_basic_info.py  ./ >basic_info.xls
+    python statistic_basic_info.py  ./  >basic_info.xls
     """
 
 
@@ -30,12 +30,10 @@ def deal_cutadapt_file(file_list):
                 line = line.rstrip("\n")
                 c = re.match(r'(Total reads processed:)\s+(.*)', line)
                 if c:
-                    # print file_name, c.groups()
                     addtwodimdict(adict, file_name, c.group(1), c.group(2))
                 p = re.match(r'(Reads with adapters:)\s+(.*)', line)
                 if p:
                     addtwodimdict(adict, file_name, p.group(1), p.group(2))
-                    # print file_name, p.groups()
     return adict
 
 
@@ -52,19 +50,61 @@ def deal_mixcr_log(file_list):
                 c = re.match(r'(TRA chains:)(.*)', line)
                 d = re.match(r'(TRB chains:)(.*)', line)
                 if a:
-                    # print file_name, a.groups()
                     addtwodimdict(adict, file_name, a.group(1), a.group(2))
                 if b:
                     addtwodimdict(adict, file_name, b.group(1), b.group(2))
-                    # print file_name, b.groups()
                 if c:
                     addtwodimdict(adict, file_name, c.group(1), c.group(2))
-                    # print file_name, c.groups()
                 if d:
                     addtwodimdict(adict, file_name, d.group(1), d.group(2))
-                    # print file_name, d.groups()
     return adict
 
+def deal_umi_reshape_file(file_list):
+    """docstring for deal_molecule_file"""
+    adict = {}
+    for afile in file_list:
+        file_name = os.path.basename(afile).split(".")[0]
+        molecule = 0
+        reads_num = 0
+        clonotype = 0
+        with open(afile, "r") as f:
+            for line in f:
+                line = line.rstrip("\n")
+                if line.startswith("Clonotype"):
+                    continue
+                Clonotype, TRV, CDR3,TRJ,UMIcount,ReadsNumber = line.split("\t")
+                molecule += int(UMIcount)
+                reads_num += int(ReadsNumber)
+                clonotype +=1
+        addtwodimdict(adict, file_name,'Clonotype', clonotype)
+        addtwodimdict(adict, file_name,'Molecule', molecule)
+        addtwodimdict(adict, file_name,'Sup_reads', reads_num)
+    return adict
+
+
+def deal_merged_umi_file(file_list):
+    """docstring for deal_merged_umi_file"""
+    adict = {}
+    for afile in file_list:
+        file_name = os.path.basename(afile).split(".")[0]
+        molecule = 0
+        reads_num = 0
+        clonotype_list = []
+        with open(afile, "r") as f:
+            for line in f:
+                line = line.rstrip("\n")
+                if line.startswith("unique"):
+                    continue
+                Clonotype, UMI, ReadsNumber = line.split("\t")
+                molecule += 1
+                reads_num += int(ReadsNumber)
+                clonotype_list.append(Clonotype)
+        clonotype = len(set(clonotype_list))
+        addtwodimdict(adict, file_name,'Clonotype', clonotype)
+        addtwodimdict(adict, file_name,'Molecule', molecule)
+        addtwodimdict(adict, file_name,'Sup_reads', reads_num)
+    return adict
+    
 
 work_dir = sys.argv[1]
 result_dir = work_dir + '/' + 'result'
@@ -73,15 +113,20 @@ if not os.path.exists(result_dir):
 
 cutadapt_info_list = []
 mixcr_report_list = []
+umi_reshape_file_list = []
+merged_umi_file_list = []
 for name in os.listdir(result_dir):
     if name.endswith("cutadapt.stats"):
         cutadapt_info_list.append(result_dir + '/' + name)
     if name.endswith(".report"):
         mixcr_report_list.append(result_dir + '/' + name)
+    if name.endswith("merged.umi.count.reshape.xls"):
+        umi_reshape_file_list.append(result_dir + '/' + name)
+    if name.endswith("merged.umi.count.xls"):
+        merged_umi_file_list.append(result_dir + '/' + name)
 
 if len(cutadapt_info_list) != 0:
     cutadatp_info_dict = deal_cutadapt_file(cutadapt_info_list)
-
     print("sample\tTotal reads processed\tReads with adapters")
     for k, v in cutadatp_info_dict.items():
         print('{0}\t{1}\t{2}'.format(
@@ -94,3 +139,15 @@ if len(mixcr_report_list) != 0:
         print('{0}\t{1}\t{2}\t{3}\t{4}'.format(
             k, v.get('Total sequencing reads:', 0), v.get('Successfully aligned reads:', 0),
             v.get('TRA chains:', 0), v.get('TRB chains:', 0)))
+
+if len(umi_reshape_file_list) != 0:
+    umi_reshpe_dict = deal_umi_reshape_file(umi_reshape_file_list)
+    print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
+    for sample in umi_reshpe_dict:
+        print("{}\t{}\t{}\t{}".format(sample,umi_reshpe_dict[sample]['Clonotype'],umi_reshpe_dict[sample]['Molecule'],umi_reshpe_dict[sample]['Sup_reads']))
+elif len(merged_umi_file_list) != 0:
+    merged_umi_dict = deal_merged_umi_file(merged_umi_file_list)
+    print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
+    for sample in merged_umi_dict:
+        print("{}\t{}\t{}\t{}".format(sample,merged_umi_dict[sample]['Clonotype'],merged_umi_dict[sample]['Molecule'],merged_umi_dict[sample]['Sup_reads']))
+
