@@ -55,17 +55,23 @@ def main():
                 if 'TRD' in v_gene or 'TRD' in J_gene:
                     print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
                 else:
-                    sys.exit("NULL_J")
+                    print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
+                    # sys.exit("NULL_J")
+                    sys.stderr.write("This TRJ not in your dict: {}\n".format(clonotype))
             elif v_gene not in TRV_gene and J_gene in TRJ_gene:
                 if 'TRD' in v_gene or 'TRD' in J_gene:
                     print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
                 else:
-                    sys.exit("NULL_V")
+                    print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
+                    # sys.exit("NULL_V")
+                    sys.stderr.write("This TRV not in your dict: {}\n".format(clonotype))
             elif v_gene not in TRV_gene and J_gene not in TRJ_gene:
                 if 'TRD' in v_gene or 'TRD' in J_gene:
                     print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
                 else:
-                    sys.exit("NULL_VJ")
+                    print("%s\t%s\t%s\t%s\t%s\t%s" % (clonotype, v_gene, cdr3, J_gene, adict[clonotype]['uminumber'], adict[clonotype]['readsNumber']))
+                    sys.stderr.write("This TRV and TRJ are not in your dict: {}\n".format(clonotype))
+
 
 if __name__ == '__main__':
     main()
