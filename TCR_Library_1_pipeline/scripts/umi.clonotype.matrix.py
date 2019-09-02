@@ -1,18 +1,18 @@
 import sys
 
+
 def usage():
     """docstring for usage
     python $0 G33E1L1.umi.count.aa.all.xls >G33E1L1.umi.clonotype.matrix.reshape.3.xls
     """
 
-    
 
 def addtwodimdict(thedict, key_a, key_b, val):
     ''' this is a function to add two dimetion dict '''
     if key_a in thedict:
         thedict[key_a].update({key_b: val})
     else:
-        thedict.update({key_a:{key_b: val}})
+        thedict.update({key_a: {key_b: val}})
     return thedict
 
 adict = {}
@@ -21,7 +21,7 @@ clonotype_list = []
 rank_dict = {}
 umi_rank_dict = {}
 inputfile = sys.argv[1]
-with open(inputfile,"r") as f:
+with open(inputfile, "r") as f:
     for line in f:
         line = line.rstrip("\n")
         if line.startswith("unique"):
