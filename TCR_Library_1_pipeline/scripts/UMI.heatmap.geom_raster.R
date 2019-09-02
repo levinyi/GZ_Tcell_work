@@ -8,6 +8,6 @@ ggplot(data, aes(x=reorder(data$V1,-data$V4), y=reorder(data$V2,data$V5), fill=l
 	theme(legend.title = element_blank(),
 	      axis.text = element_blank(),
 	      )
-output = paste(name,".umi.raster.jpg",sep=".")
+output = paste(name,"umi.raster.jpg",sep=".")
 ggsave(output)
 print(output)
