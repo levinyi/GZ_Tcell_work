@@ -11,7 +11,7 @@ def deal_no_used(afile):
     with open(afile,"r") as f:
         for line in f:
             line =  line.rstrip("\n")
-            name,seq = line.split("\t")
+            name, seq = line.split("\t")
             name = name.rstrip(("a|b"))
             noused_list.append(name)
     return noused_list
@@ -19,9 +19,12 @@ def deal_no_used(afile):
 No_used_A = deal_no_used(sys.argv[2])
 No_used_B = deal_no_used(sys.argv[3])
 
-with open(sys.argv[1],"r") as f:
+with open(sys.argv[1], "r") as f:
     for line in f:
         line = line.rstrip("\n")
+        if line.startswith("Read_Id"):
+            print(line)
+            continue
         c = line.split("\t")
         if c[1] in No_used_A:
             flag = "YES"
