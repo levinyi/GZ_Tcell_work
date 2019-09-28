@@ -1,5 +1,7 @@
 import sys
 from itertools import islice
+import math
+
 def usage():
     """docstring for usage"""
     """
@@ -25,6 +27,6 @@ with open(input_file, "r") as f:
 
 
 new_dict = dict_freqency(a_dict)
-
+print("Clonotype\tReads_frequency\tlog10")
 for k in new_dict:
-    print("{a}\t{b}".format(a=k,b=new_dict[k]))
+    print("{}\t{}\t{}".format(k, new_dict[k], math.log(new_dict[k], 10)))
