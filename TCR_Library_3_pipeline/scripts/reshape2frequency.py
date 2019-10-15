@@ -27,6 +27,6 @@ with open(input_file, "r") as f:
 
 
 new_dict = dict_freqency(a_dict)
-print("Clonotype\tReads_frequency\tlog10")
+print("Clonotype\tReads\tReads_frequency\tlog10")
 for k in new_dict:
-    print("{}\t{}\t{}".format(k, new_dict[k], math.log(new_dict[k], 10)))
+    print("{}\t{}\t{}\t{}".format(k, a_dict[k], new_dict[k], math.log(new_dict[k], 10)))
