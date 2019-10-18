@@ -59,6 +59,7 @@ def deal_mixcr_log(file_list):
                     addtwodimdict(adict, file_name, d.group(1), d.group(2))
     return adict
 
+
 def deal_umi_reshape_file(file_list):
     """docstring for deal_molecule_file"""
     adict = {}
@@ -72,13 +73,13 @@ def deal_umi_reshape_file(file_list):
                 line = line.rstrip("\n")
                 if line.startswith("Clonotype"):
                     continue
-                Clonotype, TRV, CDR3,TRJ,UMIcount,ReadsNumber = line.split("\t")
+                Clonotype, TRV, CDR3, TRJ, UMIcount, ReadsNumber = line.split("\t")
                 molecule += int(UMIcount)
                 reads_num += int(ReadsNumber)
-                clonotype +=1
-        addtwodimdict(adict, file_name,'Clonotype', clonotype)
-        addtwodimdict(adict, file_name,'Molecule', molecule)
-        addtwodimdict(adict, file_name,'Sup_reads', reads_num)
+                clonotype += 1
+        addtwodimdict(adict, file_name, 'Clonotype', clonotype)
+        addtwodimdict(adict, file_name, 'Molecule',  molecule)
+        addtwodimdict(adict, file_name, 'Sup_reads', reads_num)
     return adict
 
 
@@ -100,11 +101,11 @@ def deal_merged_umi_file(file_list):
                 reads_num += int(ReadsNumber)
                 clonotype_list.append(Clonotype)
         clonotype = len(set(clonotype_list))
-        addtwodimdict(adict, file_name,'Clonotype', clonotype)
-        addtwodimdict(adict, file_name,'Molecule', molecule)
-        addtwodimdict(adict, file_name,'Sup_reads', reads_num)
+        addtwodimdict(adict, file_name, 'Clonotype', clonotype)
+        addtwodimdict(adict, file_name, 'Molecule',  molecule)
+        addtwodimdict(adict, file_name, 'Sup_reads', reads_num)
     return adict
-    
+
 
 work_dir = sys.argv[1]
 result_dir = work_dir + '/' + 'result'
