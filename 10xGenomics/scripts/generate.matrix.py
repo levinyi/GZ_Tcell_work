@@ -6,4 +6,6 @@ feature_file = sys.argv[2]
 matrixs_file = sys.argv[3]
 
 
-with open(sys)
+with open(barcode_file, "r") as f:
+    for line in f:
+        line = line.rstrip("\n")
