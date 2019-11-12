@@ -19,13 +19,17 @@ def deal_file(afile):
             barcode,is_cell,contig_id,high_confidence,length,chain,v_gene,d_gene,j_gene,c_gene,full_length,productive,cdr3,cdr3_nt,reads,umis,raw_clonotype_id,raw_consensus_id = line.split(",")
             if is_cell == "True" and cdr3 != "None" and productive == "True":
                 if chain =="TRA":
-                    clonotype = v_gene+cdr3+j_gene
-                    addtwodimdict(TCR_dict,barcode, 'TRA_clone', clonotype)
-                    addtwodimdict(TCR_dict,barcode, 'Clone_A_reads', reads)
-                    addtwodimdict(TCR_dict,barcode, 'Clone_A_umi', umis)
+                    # clonotype = v_gene.replace("/","")+cdr3+j_gene
+                    addtwodimdict(TCR_dict, barcode, 'TRAJ', j_gene)
+                    addtwodimdict(TCR_dict, barcode, 'CDR3Alpha', cdr3)
+                    addtwodimdict(TCR_dict, barcode, 'TRAV', v_gene.replace("/",""))
+                    addtwodimdict(TCR_dict, barcode, 'Clone_A_reads', reads)
+                    addtwodimdict(TCR_dict, barcode, 'Clone_A_umi', umis)
                 elif chain == "TRB":
-                    clonotype = v_gene+cdr3+j_gene
-                    addtwodimdict(TCR_dict, barcode, 'TRB_clone',clonotype)
+                    # clonotype = v_gene.replace("/","")+cdr3+j_gene
+                    addtwodimdict(TCR_dict, barcode, 'TRBV',v_gene.replace("/",""))
+                    addtwodimdict(TCR_dict, barcode, 'CDR3Beta',cdr3)
+                    addtwodimdict(TCR_dict, barcode, 'TRBJ',j_gene)
                     addtwodimdict(TCR_dict, barcode, 'Clone_B_reads', reads)
                     addtwodimdict(TCR_dict, barcode, 'Clone_B_umi', umis)
                 else:
@@ -36,4 +40,6 @@ if __name__ == '__main__':
     contig_file = sys.argv[1]
     TCR_dict = deal_file(contig_file)
     for b in TCR_dict:
-        print b,TCR_dict[b].get('TRA_clone',None),TCR_dict[b].get('TRB_clone',None),TCR_dict[b].get('Clone_A_reads',None),TCR_dict[b].get('Clone_A_umi',None),TCR_dict[b].get('Clone_B_reads',None),TCR_dict[b].get('Clone_B_umi',None)
+        print b,TCR_dict[b].get('TRAV',None),TCR_dict[b].get('CDR3Alpha',None),TCR_dict[b].get('TRAJ',None),\
+        TCR_dict[b].get('TRBV',None),TCR_dict[b].get('CDR3Beta',None),TCR_dict[b].get('TRBJ',None),\
+        TCR_dict[b].get('Clone_A_reads',None),TCR_dict[b].get('Clone_A_umi',None),TCR_dict[b].get('Clone_B_reads',None),TCR_dict[b].get('Clone_B_umi',None)
