@@ -4,9 +4,11 @@ import argparse
 def usage():
     """
     try me:
-    # this is for Library3 method. input file should be readsfile
-    python .py mixcr.result <readdir>
+    # this is for Library3 method. input file should be reads file.
+    python mixcr2clonotype.umi.py mixcr.result <read dir>
     
+    20200107: modify format.
+    xxx: created.
     """
     
 
