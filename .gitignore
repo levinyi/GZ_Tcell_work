@@ -7,3 +7,5 @@
 *.nsd
 *.nsi
 *.nsq
+*.gz
+database
