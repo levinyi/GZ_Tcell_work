@@ -9,3 +9,4 @@
 *.nsq
 *.gz
 database
+*database*
