@@ -1,5 +1,10 @@
 import sys
 
+def usage():
+    """
+    python diff_vcf.py vcf1 vcf2
+    """
+
 def deal_with_xls(afile):
     adict = {}
     alist = []
@@ -31,8 +36,8 @@ def deal_vcf_file(avcf):
 
 
 
-
-file0 = "CR001001.filtered.liftOver.vcf"
+file0 = sys.argv[1]
+# file0 = "CR001001.filtered.liftOver.vcf"
 file1 = "/cygene/work/P0000-Blackbird/CR001-GA001_ByNovogene/CR001001_TU_gDNA.merged.xls"
 
 output1 = open("shared_but_not_pass.xls", "w")
