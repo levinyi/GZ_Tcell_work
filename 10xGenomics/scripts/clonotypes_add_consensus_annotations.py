@@ -11,8 +11,10 @@ def usage():
         python {0} clonotypes.csv consensus_annotations.csv > xxx/clonotypes_add_consensus_annotations.csv
     
     Update:
+    20200605: optimized code: if there is no input file, default search  clonotypes.csv and consensus_annotations.csv in current directory.
     20200529: add RNA-seq data info.
     """.format(os.path.basename(sys.argv[0])))
+
 
 def read_clonotypes(file1):
 	adict = {}
@@ -64,12 +66,17 @@ def read_consensus(file2):
 def main():
 	# file1 = "GB001002E1L1_TCRseq/clonotypes.csv"
 	# file2 = "GB001002E1L1_TCRseq/consensus_annotations.csv"
-        if len(sys.argv) != 3:
+        if len(sys.argv) == 1:
+            file1 = "./clonotypes.csv"
+            file2 = "./consensus_annotations.csv"
+        elif len(sys.argv) == 3:
+            file1 = sys.argv[1]
+            file2 = sys.argv[2]
+        else:
             usage()
             sys.exit()
-        file1 = sys.argv[1]
-	file2 = sys.argv[2]
-	clonotype_dict = read_clonotypes(file1)
+	
+        clonotype_dict = read_clonotypes(file1)
 	len_dict, detail_dict = read_consensus(file2)
 	# print(json.dumps(detail_dict, indent=4))
 	print("clonotype_id,consensus_id,length,chain,v_gene,d_gene,j_gene,c_gene,full_length,productive,cdr3,cdr3_nt,reads,umis,consensus_id,length,chain,v_gene,d_gene,j_gene,c_gene,full_length,productive,cdr3,cdr3_nt,reads,umis,frequency, proportion")
@@ -90,8 +97,7 @@ def main():
 				print("{},{},{},{},{}".format(each+".4",",".join(detail_dict[each]['TRA_1']),",".join(detail_dict[each]['TRB']),clonotype_dict[each]['freq'],clonotype_dict[each]['prop']))			
 			# print(each,len_dict[each],len(len_dict[each]))
 
+
 if __name__ == '__main__':
 	main()
-
-
 
