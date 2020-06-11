@@ -7,7 +7,10 @@ def usage():
         python {0} [file1] [file2] [file3]
     example:
         python {0} all_contig_annotations.csv clonotypes_add_consensus_annotations.csv Gene_expressed.count.csv >xxx.csv
-
+    
+    if you don't have Gene_expressed.count.csv. please use feature_bc_matrix2csv.R to generate it first.
+    if you don't have clonotypes_add_consensus_annotations.csv. please use clonotypes_add_consensus_annotations.py to generate it first.
+    
     Update:
     20200529: created.
     """.format(os.path.basename(sys.argv[0])))
@@ -67,22 +70,24 @@ def main():
     with open(clonotype_file, "r") as f:
         for line in f:
             line = line.rstrip("\n")
-            if line.startswith("raw_clonotype_id"):
+            if line.startswith("clonotype_id"):
+                print("{},CD4_transcript_count,[CD8A+CD8B]_count,PDCD1_count".format(line))
                 continue
             a = line.split(",")
-            clonotype = a[0]
+            clonotype = a[0].split(".")[0]
             cell_barcodes = clone2barcode_dict[clonotype]
             CD8_max = 0
             CD4_max = 0
             PDCD1_max = 0
             for each in cell_barcodes:
-                if express_dict[each]['CD8'] > CD8_max:
-                    CD8_max = express_dict[each]['CD8']
-                if express_dict[each]['CD4'] > CD4_max:
-                    CD8_max = express_dict[each]['CD4']
-                if express_dict[each]['PDCD1'] > PDCD1_max:
-                    CD8_max = express_dict[each]['PDCD1']
-            print(line,CD4_max,CD8_max,PDCD1_max)
+                if each in express_dict:
+                    if express_dict[each]['CD8'] > CD8_max:
+                        CD8_max = express_dict[each]['CD8']
+                    if express_dict[each]['CD4'] > CD4_max:
+                        CD4_max = express_dict[each]['CD4']
+                    if express_dict[each]['PDCD1'] > PDCD1_max:
+                        PDCD1_max = express_dict[each]['PDCD1']
+            print("{},{},{},{}".format(line, CD4_max, CD8_max, PDCD1_max))
 
 if __name__ == '__main__':
     main()
