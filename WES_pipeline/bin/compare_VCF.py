@@ -2,7 +2,7 @@ import sys
 
 def usage():
     """
-    compare two vcf file . ignore line where filter is not PASS.
+    compare  vcf file and a xls file.  ignore line where filter is not PASS.
 
     python diff_vcf.py vcf1 vcf2
     
