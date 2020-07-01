@@ -4,6 +4,7 @@ import re
 import pandas as pd
 from Bio import SeqIO
 
+
 def usage():
     print("""
 Usage:
@@ -11,7 +12,7 @@ Usage:
 Example:
     python {0} 
 Notes:
-    This script is used for extract minigene from a pep file by a position.
+    This script is used for extract minigene from a cds file by a position.
     maf file without annotation line (drop lines which contains #).
     Function:
         1. filter useless sites.
@@ -19,46 +20,56 @@ Notes:
             Silent_Mutation may used for check mutation position in transcription sequence.
         2. filter useless annotation items. 
             Mandatory fields: Hugo_Symbol, Chromosome, Start_Position, End_Position, Reference_Allele, Tumor_Seq_Allele2, Variant_Classification, Variant_Type and Tumor_Sample_Barcode.
-        3. standardization output format to a xls or csv format.
+        3. standardization output format to a xls format.
 
 Updates:
     20200628    Created.
     """.format(os.path.basename(sys.argv[0])))
 
 
-def get_codon_minigene(seq, cDNA_Change, prog):
+def get_codon_minigene(seq, cDNA_Change):
     # c.1518_1519insAAACAGACCA
     # c.2953_2972delCTAAATCACACTCCTGTATC
     # c.4113delG
     # c.3335A>G
+    cDNA_Change = cDNA_Change.lstrip("c.")
+
     if "ins" in cDNA_Change:
-        pass
-    elif "del" in cDNA_Change:
-        pass
-    elif ">" in cDNA_Change:
-        pass
-    
-        start, end = result.group(1).split("-")
+        position_components, insertion_seq = cDNA_Change.split("ins") 
+        start, end = position_components.split("_")
         start = int(start)
         end = int(end)
 
-        codon = seq[start-1 : end]
-        minigene = seq[start-1-42: end+42]
+        minigene = seq[:] + seq[:]
+        new_minigene = seq[:] + insertion_seq + seq[:]
+    elif "del" in cDNA_Change:
+        position_components, deletion_seq = cDNA_Change.split("del")
+        deletion_length = len(deletion_seq) # interger.
+        if "_" in position_components:
+            start, end = position_components.split("_")
+            start = int(start)
+            end = int(end)
 
-        # for 
-        change = result.group(2)
-        if change.endswith("fs"):
-            mutated_minigene = seq[start-1-42: start] + "fs"
-        elif change.endswith("del"):
-            mutated_minigene = seq[start-1-42: start] + seq[end:end+42]
+            minigene = seq[:]
+            new_minigene = seq[:]
         else:
-            a, b = change.split(">")
-            if len(b) >= 42:
-                mutated_minigene = seq[start-1-42: start-1] + b[:42]
-            else:
-                mutated_minigene = seq[start-1-42: start-1] +b + seq[end: end + 42 + len(a) -len(b)]
+            start = position_components
+            start = int(start)
 
-    return codon, minigene, mutated_minigene
+            minigene = seq[:]
+            new_minigene = seq[:]
+    elif ">" in cDNA_Change:
+        position_components, mutation = cDNA_Change.split(">")
+        start = position_components[:-1]
+        start = int(start)
+        before_mutation = position_components[-1]
+
+        minigene = seq[:]
+        new_minigene = seq[:]
+    else:
+        print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
+    
+    return minigene, new_minigene
 
 
 def translate(dna):
@@ -88,6 +99,7 @@ def translate(dna):
         aa = gencode.get(codon.upper(),'X') #当指定键的值不存在时，返回X
         amino_acid_sequence = amino_acid_sequence + aa
     return(amino_acid_sequence)
+
 
 def main():
     if len(sys.argv) == 1:
@@ -128,29 +140,28 @@ def main():
         "In_Frame_Ins": 1,
     }
 
-
-    prog = re.compile(r'c\.\((.*)\)(.*)') # regix
     for index, row in maf_data.iterrows():
         if row["Variant_Classification"] in saved_Variant_Classification and row["Protein_Change"] != "NA" :
             if row["Annotation_Transcript"] in adict:
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
-                check, minigene, mutated_minigene = get_codon_minigene(seq, cDNA_Change, prog)
-                minigene_aa = translate(minigene)
-                mutated_minigene_aa = translate(mutated_minigene)
-                print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                # minigene, new_minigene = get_codon_minigene(seq, cDNA_Change)
+                # minigene_aa = translate(minigene)
+                # new_minigene_aa = translate(new_minigene)
+                print("{}\t{}\t{}\t{}\t{}\t".format(
                     row["Hugo_Symbol"], 
                     row["Transcript_Strand"],
                     cDNA_Change,
                     row["Codon_Change"], 
                     row["Protein_Change"],
-                    check,
-                    minigene,
-                    mutated_minigene,
-                    minigene_aa,
-                    mutated_minigene_aa)
+                    # minigene,
+                    # new_minigene,
+                    # minigene_aa,
+                    # new_minigene_aa,
+                    )
                 )
 
 
 if __name__ == '__main__':
     main()
+
