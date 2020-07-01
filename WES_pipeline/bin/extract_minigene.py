@@ -3,7 +3,10 @@ import os
 import re
 import pandas as pd
 from Bio import SeqIO
-from Bio import Seq
+from Bio.Seq import Seq
+import warnings
+from Bio import BiopythonWarning
+warnings.simplefilter('ignore', BiopythonWarning)
 
 
 def usage():
@@ -29,29 +32,20 @@ Updates:
 
 
 def get_codon_minigene(seq, cDNA_Change, Protein_Change):
+    # Four examples of cDNA_Change item:
     # c.1518_1519insAAACAGACCA 
     # c.2953_2972delCTAAATCACACTCCTGTATC 
     # c.4113delG 
     # c.3335A>G 
     cDNA_Change = cDNA_Change.lstrip("c.")
-    protein_pattern1 = re.compile(r'p\.(\d+)\_(\d+)\w+')
-    protein_pattern2 = re.compile(r'p\.\w+(\d+)\w+')
-
-    if protein_pattern1.match(Protein_Change):
-        result = protein_pattern1.match(Protein_Change)
-    else:
-        result = protein_pattern2.match(Protein_Change)
-    aa_position = int(result.group(1))
-
-    seq_aa = Seq.Seq(seq, IUPAC.unambiguous_dna).translate()
-    old_minigene = seq_aa[aa_position-14:aa_position] + seq_aa[aa_position+14+1:]
 
     if "ins" in cDNA_Change:
         position_components, insertion_seq = cDNA_Change.split("ins") 
+        # c.204_205insT   c.(205-207)tttfs        p.E70fs 
         start, end = position_components.split("_")
         start = int(start)
         end = int(end)
-        new_seq = seq[:start] + insertion_seq + seq[end:]
+        new_seq = seq[:start] + insertion_seq + seq[end-1:]
     elif "del" in cDNA_Change:
         position_components, deletion_seq = cDNA_Change.split("del")
         deletion_length = len(deletion_seq) # interger.
@@ -65,7 +59,7 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
             start = int(start)
             new_seq = seq[:start-1] +seq[start:]
     elif ">" in cDNA_Change:
-        # 3335A>G 
+        # c.26G   >   C
         position_components, after_mutation = cDNA_Change.split(">")
         start = position_components[:-1]
         start = int(start)
@@ -73,39 +67,25 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
         new_seq = seq[:start-1] + after_mutation + seq[start:]
     else:
         print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
-    new_seq_aa = Seq.Seq(new_seq, IUPAC.unambiguous_dna).translate()
-    new_minigene = new_seq_aa[aa_position-14:aa_position] + new_seq_aa[aa_position +14 +1:]
+
+    # Four examples of Protein_Change item:
+    # p.C725*
+    # p.I373fs
+    # p.299_300insGLD
+    # p.LQREKLQREK1479del
+    result = re.findall(r'\d+', Protein_Change)
+    aa_position = int(result[0])
+    seq_aa = Seq(seq).translate()
+    new_seq_aa = Seq(new_seq).translate()
     
-    return old_minigene, new_minigene
+    if aa_position < 14:
+        old_minigene = seq_aa[: aa_position] + seq_aa[aa_position: aa_position + 14]
+        new_minigene = new_seq_aa[: aa_position] + new_seq_aa[aa_position: aa_position + 14]
+    else:
+        old_minigene = seq_aa[aa_position -1 - 14: aa_position] + seq_aa[aa_position: aa_position + 14]
+        new_minigene = new_seq_aa[aa_position -1 - 14: aa_position] + new_seq_aa[aa_position: aa_position + 14]
 
-
-def translate(dna):
-    gencode = {
-    'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',
-    'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',
-    'AAC':'N', 'AAT':'N', 'AAA':'K', 'AAG':'K',
-    'AGC':'S', 'AGT':'S', 'AGA':'R', 'AGG':'R',
-    'CTA':'L', 'CTC':'L', 'CTG':'L', 'CTT':'L',
-    'CCA':'P', 'CCC':'P', 'CCG':'P', 'CCT':'P',
-    'CAC':'H', 'CAT':'H', 'CAA':'Q', 'CAG':'Q',
-    'CGA':'R', 'CGC':'R', 'CGG':'R', 'CGT':'R',
-    'GTA':'V', 'GTC':'V', 'GTG':'V', 'GTT':'V',
-    'GCA':'A', 'GCC':'A', 'GCG':'A', 'GCT':'A',
-    'GAC':'D', 'GAT':'D', 'GAA':'E', 'GAG':'E',
-    'GGA':'G', 'GGC':'G', 'GGG':'G', 'GGT':'G',
-    'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S',
-    'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
-    'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
-    'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
-    }
-
-    amino_acid_sequence = ""
-    for start in range(0,len(dna) - 2, 3):
-        stop = start + 3
-        codon = dna[start:stop]
-        aa = gencode.get(codon.upper(),'X') #当指定键的值不存在时，返回X
-        amino_acid_sequence = amino_acid_sequence + aa
-    return(amino_acid_sequence)
+    return old_minigene, new_minigene, aa_position
 
 
 def main():
@@ -115,27 +95,25 @@ def main():
 
     cds_file = open(sys.argv[1], "r")
     maf_file = sys.argv[2]
+    output_file = open(sys.argv[3], "w") 
 
     adict = {}
     for record in SeqIO.parse(cds_file, "fasta"):
         adict[str(record.id)] = str(record.seq)
+    cds_file.close()
 
     # read maf file as a dataframe and first line stored as header.
-    # print("yes")
-
     maf_data = pd.read_table(maf_file, sep="\t",).fillna(value="NA")
-    # print(maf_data.head())
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
-        "Start_Position", "End_Position", "Strand", "Variant_Classification",
-        "Variant_Type", "Reference_Allele", "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", 
-        "dbSNP_RS", "Genome_Change","Annotation_Transcript", "Transcript_Strand", 
-        "Transcript_Exon", "Transcript_Position", "cDNA_Change", "Codon_Change", 
-        "Protein_Change","Refseq_mRNA_Id","tumor_f", "t_alt_count", 
-        "t_ref_count", "n_alt_count", "n_ref_count", "DP",
+        "Start_Position", "End_Position", "Strand", "Variant_Classification", "Variant_Type", 
+        "Reference_Allele", "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change",
+        "Annotation_Transcript", "Transcript_Strand", "Transcript_Exon", "Transcript_Position", "cDNA_Change", 
+        "Codon_Change", "Protein_Change","Refseq_mRNA_Id","tumor_f", "t_alt_count",
+        "t_ref_count", "n_alt_count", "n_ref_count", "DP", "aa_position", 
+        "Wild-Type_Minigene","Mutated_Minigene",
     ]
-    # maf_data_filter_column = maf_data.loc[:,contain_fields].fillna(value="NA")
-    # print(maf_data_filter_column.head())
+    output_file.write("{}\n".format("\t".join(contain_fields)))
 
     saved_Variant_Classification = {
         "Splice_Site": 1,
@@ -152,21 +130,20 @@ def main():
             if row["Annotation_Transcript"] in adict:
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
-                old_minigene, new_minigene = get_codon_minigene(seq, cDNA_Change, Protein_Change)
-                print("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
-                    row["Hugo_Symbol"], 
-                    row["Transcript_Strand"],
-                    cDNA_Change,
-                    row["Codon_Change"], 
-                    row["Protein_Change"],
-                    old_minigene,
-                    # new_minigene,
-                    # minigene_aa,
-                    new_minigene,
+                Protein_Change = row["Protein_Change"]
+                old_minigene, new_minigene,aa_position = get_codon_minigene(seq, cDNA_Change, Protein_Change)
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                    row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
+                    row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], 
+                    row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
+                    row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], row["Transcript_Position"], cDNA_Change,
+                    row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"],
+                    row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], aa_position,
+                    old_minigene, new_minigene,
                     )
                 )
+    output_file.close()
 
 
 if __name__ == '__main__':
     main()
-
