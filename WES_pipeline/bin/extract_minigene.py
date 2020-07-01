@@ -3,6 +3,7 @@ import os
 import re
 import pandas as pd
 from Bio import SeqIO
+from Bio import Seq
 
 
 def usage():
@@ -27,21 +28,30 @@ Updates:
     """.format(os.path.basename(sys.argv[0])))
 
 
-def get_codon_minigene(seq, cDNA_Change):
-    # c.1518_1519insAAACAGACCA
-    # c.2953_2972delCTAAATCACACTCCTGTATC
-    # c.4113delG
-    # c.3335A>G
+def get_codon_minigene(seq, cDNA_Change, Protein_Change):
+    # c.1518_1519insAAACAGACCA 
+    # c.2953_2972delCTAAATCACACTCCTGTATC 
+    # c.4113delG 
+    # c.3335A>G 
     cDNA_Change = cDNA_Change.lstrip("c.")
+    protein_pattern1 = re.compile(r'p\.(\d+)\_(\d+)\w+')
+    protein_pattern2 = re.compile(r'p\.\w+(\d+)\w+')
+
+    if protein_pattern1.match(Protein_Change):
+        result = protein_pattern1.match(Protein_Change)
+    else:
+        result = protein_pattern2.match(Protein_Change)
+    aa_position = int(result.group(1))
+
+    seq_aa = Seq.Seq(seq, IUPAC.unambiguous_dna).translate()
+    old_minigene = seq_aa[aa_position-14:aa_position] + seq_aa[aa_position+14+1:]
 
     if "ins" in cDNA_Change:
         position_components, insertion_seq = cDNA_Change.split("ins") 
         start, end = position_components.split("_")
         start = int(start)
         end = int(end)
-
-        minigene = seq[:] + seq[:]
-        new_minigene = seq[:] + insertion_seq + seq[:]
+        new_seq = seq[:start] + insertion_seq + seq[end:]
     elif "del" in cDNA_Change:
         position_components, deletion_seq = cDNA_Change.split("del")
         deletion_length = len(deletion_seq) # interger.
@@ -49,27 +59,24 @@ def get_codon_minigene(seq, cDNA_Change):
             start, end = position_components.split("_")
             start = int(start)
             end = int(end)
-
-            minigene = seq[:]
-            new_minigene = seq[:]
+            new_seq = seq[:start-1] + seq[end:]
         else:
             start = position_components
             start = int(start)
-
-            minigene = seq[:]
-            new_minigene = seq[:]
+            new_seq = seq[:start-1] +seq[start:]
     elif ">" in cDNA_Change:
-        position_components, mutation = cDNA_Change.split(">")
+        # 3335A>G 
+        position_components, after_mutation = cDNA_Change.split(">")
         start = position_components[:-1]
         start = int(start)
         before_mutation = position_components[-1]
-
-        minigene = seq[:]
-        new_minigene = seq[:]
+        new_seq = seq[:start-1] + after_mutation + seq[start:]
     else:
         print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
+    new_seq_aa = Seq.Seq(new_seq, IUPAC.unambiguous_dna).translate()
+    new_minigene = new_seq_aa[aa_position-14:aa_position] + new_seq_aa[aa_position +14 +1:]
     
-    return minigene, new_minigene
+    return old_minigene, new_minigene
 
 
 def translate(dna):
@@ -145,19 +152,17 @@ def main():
             if row["Annotation_Transcript"] in adict:
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
-                # minigene, new_minigene = get_codon_minigene(seq, cDNA_Change)
-                # minigene_aa = translate(minigene)
-                # new_minigene_aa = translate(new_minigene)
-                print("{}\t{}\t{}\t{}\t{}\t".format(
+                old_minigene, new_minigene = get_codon_minigene(seq, cDNA_Change, Protein_Change)
+                print("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
                     row["Hugo_Symbol"], 
                     row["Transcript_Strand"],
                     cDNA_Change,
                     row["Codon_Change"], 
                     row["Protein_Change"],
-                    # minigene,
+                    old_minigene,
                     # new_minigene,
                     # minigene_aa,
-                    # new_minigene_aa,
+                    new_minigene,
                     )
                 )
 
