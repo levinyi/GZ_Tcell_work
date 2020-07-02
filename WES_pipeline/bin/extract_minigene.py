@@ -60,6 +60,7 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
             new_seq = seq[:start-1] +seq[start:]
     elif ">" in cDNA_Change:
         # c.26G   >   C
+        # c.11119_11120CC>AT
         position_components, after_mutation = cDNA_Change.split(">")
         start = position_components[:-1]
         start = int(start)
@@ -85,7 +86,8 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
         old_minigene = seq_aa[aa_position -1 - 14: aa_position] + seq_aa[aa_position: aa_position + 14]
         new_minigene = new_seq_aa[aa_position -1 - 14: aa_position] + new_seq_aa[aa_position: aa_position + 14]
 
-    return old_minigene, new_minigene, aa_position
+    return old_minigene, new_minigene
+    # return old_minigene, new_minigene, aa_position
 
 
 def main():
@@ -106,12 +108,11 @@ def main():
     maf_data = pd.read_table(maf_file, sep="\t",).fillna(value="NA")
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
-        "Start_Position", "End_Position", "Strand", "Variant_Classification", "Variant_Type", 
-        "Reference_Allele", "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change",
-        "Annotation_Transcript", "Transcript_Strand", "Transcript_Exon", "Transcript_Position", "cDNA_Change", 
-        "Codon_Change", "Protein_Change","Refseq_mRNA_Id","tumor_f", "t_alt_count",
-        "t_ref_count", "n_alt_count", "n_ref_count", "DP", "aa_position", 
-        "Wild-Type_Minigene","Mutated_Minigene",
+        "Start_Position", "Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
+        "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change", "Annotation_Transcript", 
+        "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
+        "Refseq_mRNA_Id","tumor_f", "t_alt_count", "t_ref_count", "n_alt_count", 
+        "n_ref_count", "DP", "Wild-Type_Minigene","Mutated_Minigene",
     ]
     output_file.write("{}\n".format("\t".join(contain_fields)))
 
@@ -131,15 +132,14 @@ def main():
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
                 Protein_Change = row["Protein_Change"]
-                old_minigene, new_minigene,aa_position = get_codon_minigene(seq, cDNA_Change, Protein_Change)
-                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                old_minigene, new_minigene = get_codon_minigene(seq, cDNA_Change, Protein_Change)
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
-                    row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], 
-                    row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
-                    row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], row["Transcript_Position"], cDNA_Change,
+                    row["Start_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
+                    row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
+                    row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], cDNA_Change,
                     row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"],
-                    row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], aa_position,
-                    old_minigene, new_minigene,
+                    row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], old_minigene, new_minigene,
                     )
                 )
     output_file.close()
