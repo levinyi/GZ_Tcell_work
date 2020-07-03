@@ -27,6 +27,7 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT
     20200628    Created.
     """.format(os.path.basename(sys.argv[0])))
 
@@ -36,7 +37,7 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
     # c.1518_1519insAAACAGACCA 
     # c.2953_2972delCTAAATCACACTCCTGTATC 
     # c.4113delG 
-    # c.3335A>G 
+    # c.3335A>G , c.11119_11120CC>AT
     cDNA_Change = cDNA_Change.lstrip("c.")
 
     if "ins" in cDNA_Change:
@@ -62,10 +63,16 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
         # c.26G   >   C
         # c.11119_11120CC>AT
         position_components, after_mutation = cDNA_Change.split(">")
-        start = position_components[:-1]
-        start = int(start)
-        before_mutation = position_components[-1]
-        new_seq = seq[:start-1] + after_mutation + seq[start:]
+        starts = re.findall(r'\d+', position_components)
+        if len(starts) == 2:
+            start = int(starts[0])
+            end = int(starts[1])
+            new_seq = seq[:start-1] + after_mutation + seq[end:]
+        elif len(starts) == 1:
+            start = int(starts[0])
+            new_seq = seq[:start-1] + after_mutation + seq[start:]
+        else:
+            print("Ops! Unexpected format in cDNA_Change: {}".format(cDNA_Change))
     else:
         print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
 
