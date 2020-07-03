@@ -8,7 +8,6 @@ import configparser
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
     parser.add_argument('-c', '--config', action='store', dest='config', default='config.txt', help="this is config file")
-    # parser.add_argument('-l', '--list', action='store', dest='data', default='data.xls', help="this is data list file")
     return parser.parse_args()
 
 
@@ -52,9 +51,7 @@ def main():
 
     # generate shell
     shell_name = project_dir + '/work.' + config_dict['project_name'] + '.sh'
-    #shell_name = shell_dir + '/work.' + config_dict['project_name'] + '.sh'
     # only open a file so use try:finally to close.
-    # rawdata_dict = deal_rawdata(parser.data, data_dir)
 
     with open(shell_name,"w") as f:
         # align
