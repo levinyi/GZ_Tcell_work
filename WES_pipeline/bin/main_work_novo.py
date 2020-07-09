@@ -55,9 +55,11 @@ def main():
         'bwa_threads' : cf.get("Config","bwa_threads"),
         'samtools': cf.get('Config', 'samtools'),
         'samtools_threads': cf.get('Config', 'samtools_threads'),
+        'scripts_dir': cf.get('Config', 'scripts_dir'),
         
-        # 'database' : cf.get('Config', 'database'),
+        # database
         'ref_fasta': cf.get('Config', 'ref_fasta'),
+        'cds_fasta': cf.get('Config', 'cds_fasta'),
         'project_name' : cf.get("Config", "project_name"),
         'sample_name'  : cf.get("Config", "sample_name"),
         'tumor_fastq'  : cf.get('Config', "tumor_fastq"),
@@ -69,7 +71,7 @@ def main():
     print("# Create work directory")
 
     # generate shell
-    shell_name = project_dir + '/work.' + config_dict['project_name'] + '.sh'
+    shell_name = project_dir + '/work.' + config_dict['project_name'] + '.WES.sh'
     #shell_name = shell_dir + '/work.' + config_dict['project_name'] + '.sh'
     # only open a file so use try:finally to close.
     # rawdata_dict = deal_rawdata(parser.data, data_dir)
@@ -79,7 +81,7 @@ def main():
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Normal\\tSM:Normal\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {normal_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Normal.sortedByCoord.bam - \n".format(**config_dict))
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Tumor\\tSM:Tumor\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {tumor_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Tumor.sortedByCoord.bam - \n".format(**config_dict))
         # MarkDuplicates
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\ 
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
             MarkDuplicates \\
             --INPUT {sample_name}.Normal.sortedByCoord.bam \\
             --OUTPUT {sample_name}.Normal.duplicates_marked.bam \\
@@ -88,7 +90,7 @@ def main():
             --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \\
             --ASSUME_SORT_ORDER \"queryname\" \\
             --CREATE_MD5_FILE true \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
             MarkDuplicates \\
             --INPUT {sample_name}.Tumor.sortedByCoord.bam \\
             --OUTPUT {sample_name}.Tumor.duplicates_marked.bam \\
@@ -116,13 +118,13 @@ def main():
             --CREATE_INDEX true \\
             --CREATE_MD5_FILE false \n""".format(**config_dict))
         f.write("""{gatk} SetNmMdAndUqTags \\
-            --INPUT  {sample_name}.Tumor.duplicates_marked_sorted.bam\\
+            --INPUT  {sample_name}.Tumor.duplicates_marked_sorted.bam \\
             --OUTPUT {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam \\
             --CREATE_INDEX true \\
             --CREATE_MD5_FILE true \\
             --REFERENCE_SEQUENCE {ref_fasta} \n""".format(**config_dict))
         # # BaseRecalibrator
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
             BaseRecalibrator \\
             -R {ref_fasta} \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
@@ -130,22 +132,22 @@ def main():
             -O {sample_name}.Normal.recal_data.csv \\
             --known-sites {known_dbSNP_vcf} \\
             --known-sites {known_indel_sites_VCF} \\
-            --known-sites {known_hapmap_vcf} \\ 
+            --known-sites {known_hapmap_vcf} \\
             --known-sites {known_omni_vcf} \\
-            --known-sites {known_1000G_phase1_snps_vcf} \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
+            --known-sites {known_1000G_phase1_snps_vcf}\n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
             BaseRecalibrator \\
             -R {ref_fasta} \\
-            -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam  \\
+            -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam \\
             --use-original-qualities \\
-            -O {sample_name}.Tumor.recal_data.csv  \\
+            -O {sample_name}.Tumor.recal_data.csv \\
             --known-sites {known_dbSNP_vcf} \\
             --known-sites {known_indel_sites_VCF} \\
-            --known-sites {known_hapmap_vcf} \\ 
+            --known-sites {known_hapmap_vcf} \\
             --known-sites {known_omni_vcf} \\
-            --known-sites {known_1000G_phase1_snps_vcf} \n""".format(**config_dict))
+            --known-sites {known_1000G_phase1_snps_vcf}\n""".format(**config_dict))
         # # ApplylyBQSR
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
             ApplyBQSR \\
             -R {ref_fasta} \\
             -I  {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
@@ -157,12 +159,12 @@ def main():
             --static-quantized-quals 30 \\
             --add-output-sam-program-record \\
             --use-original-qualities \\
-            --create-output-bam-md5 true \n""".format(**config_dict))
+            --create-output-bam-md5 true\n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
             ApplyBQSR \\
             -R {ref_fasta} \\
             -I  {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam  \\
-            -O  {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam  \\
+            -O  {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             -bqsr {sample_name}.Tumor.recal_data.csv  \\
             --static-quantized-quals 10 \\
             --static-quantized-quals 20 \\
@@ -231,9 +233,10 @@ def main():
             --remove-filtered-variants true \\
             --add-output-vcf-command-line true \\
             --annotation-default normal_barcode:Normal \\
-            --annotation-default tumor_barcode:Tumor 
-            --annotation-default Center:rootpath \n""".format(**config_dict))
-
+            --annotation-default tumor_barcode:Tumor \\
+            --annotation-default Center:RootPath \n""".format(**config_dict))
+        f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
+        f.write('''python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls \n'''.format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
