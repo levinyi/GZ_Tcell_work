@@ -234,9 +234,10 @@ def main():
             --add-output-vcf-command-line true \\
             --annotation-default normal_barcode:Normal \\
             --annotation-default tumor_barcode:Tumor \\
-            --annotation-default Center:RootPath \n""".format(**config_dict))
+            --annotation-default Center:RootPath\n""".format(**config_dict))
         f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
-        f.write('''python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls \n'''.format(**config_dict))
+        f.write("""python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls\n""".format(**config_dict))
+        f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{print$5"\\t"$6-1"\\t"$7}}' > {sample_name}.snp.checked.bed\n""".format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
