@@ -27,7 +27,8 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
-    20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT
+    20200709    Add "End_Position" field to result.
+    20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT.
     20200628    Created.
     """.format(os.path.basename(sys.argv[0])))
 
@@ -115,7 +116,7 @@ def main():
     maf_data = pd.read_table(maf_file, sep="\t",).fillna(value="NA")
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
-        "Start_Position", "Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
+        "Start_Position", "End_Position","Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
         "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change", "Annotation_Transcript", 
         "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
         "Refseq_mRNA_Id","tumor_f", "t_alt_count", "t_ref_count", "n_alt_count", 
@@ -140,9 +141,9 @@ def main():
                 cDNA_Change = row["cDNA_Change"]
                 Protein_Change = row["Protein_Change"]
                 old_minigene, new_minigene = get_codon_minigene(seq, cDNA_Change, Protein_Change)
-                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
-                    row["Start_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
+                    row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
                     row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
                     row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], cDNA_Change,
                     row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"],
