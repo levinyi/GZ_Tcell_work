@@ -120,7 +120,7 @@ def main():
         "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change", "Annotation_Transcript", 
         "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
         "Refseq_mRNA_Id","tumor_f", "t_alt_count", "t_ref_count", "n_alt_count", 
-        "n_ref_count", "DP", "Wild-Type_Minigene","Mutated_Minigene",
+        "n_ref_count", "DP", "Mutated_Minigene", "Wild-Type_Minigene",
     ]
     output_file.write("{}\n".format("\t".join(contain_fields)))
 
@@ -147,7 +147,7 @@ def main():
                     row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
                     row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], cDNA_Change,
                     row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"],
-                    row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], old_minigene, new_minigene,
+                    row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], new_minigene, old_minigene,
                     )
                 )
     output_file.close()
