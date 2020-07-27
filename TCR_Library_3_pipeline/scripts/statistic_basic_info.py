@@ -5,10 +5,15 @@ import re
 
 
 def usage():
-    """
-    docstring for usage
+    print("""Usage
+    python {0} <path>
+
+Example:
     python statistic_basic_info.py  ./  >basic_info.xls
-    """
+
+Updates:
+    20200610    optimized code.
+    """.format(os.path.basename(sys.argv[0])))
 
 
 def addtwodimdict(thedict, key_a, key_b, val):
@@ -107,48 +112,54 @@ def deal_merged_umi_file(file_list):
     return adict
 
 
-work_dir = sys.argv[1]
-result_dir = work_dir + '/' + 'result'
-if not os.path.exists(result_dir):
-    result_dir = './'
+def main():
+    if len(sys.argv) == 1:
+        usage()
+        sys.exit("Error: Wrong input file.")
+    work_dir = sys.argv[1]
+    result_dir = work_dir + '/' + 'result'
+    if not os.path.exists(result_dir):
+        result_dir = './'
 
-cutadapt_info_list = []
-mixcr_report_list = []
-umi_reshape_file_list = []
-merged_umi_file_list = []
-for name in os.listdir(result_dir):
-    if name.endswith("cutadapt.stats"):
-        cutadapt_info_list.append(result_dir + '/' + name)
-    if name.endswith(".report"):
-        mixcr_report_list.append(result_dir + '/' + name)
-    if name.endswith("merged.umi.count.reshape.xls"):
-        umi_reshape_file_list.append(result_dir + '/' + name)
-    if name.endswith("merged.umi.count.xls"):
-        merged_umi_file_list.append(result_dir + '/' + name)
+    cutadapt_info_list = []
+    mixcr_report_list = []
+    umi_reshape_file_list = []
+    merged_umi_file_list = []
+    for name in os.listdir(result_dir):
+        if name.endswith("cutadapt.stats"):
+            cutadapt_info_list.append(result_dir + '/' + name)
+        if name.endswith(".report"):
+            mixcr_report_list.append(result_dir + '/' + name)
+        if name.endswith("merged.umi.count.reshape.xls"):
+            umi_reshape_file_list.append(result_dir + '/' + name)
+        if name.endswith("merged.umi.count.xls"):
+            merged_umi_file_list.append(result_dir + '/' + name)
 
-if len(cutadapt_info_list) != 0:
-    cutadatp_info_dict = deal_cutadapt_file(cutadapt_info_list)
-    print("sample\tTotal reads processed\tReads with adapters")
-    for k, v in cutadatp_info_dict.items():
-        print('{0}\t{1}\t{2}'.format(
-            k, v['Total reads processed:'], v['Reads with adapters:']))
+    if len(cutadapt_info_list) != 0:
+        cutadatp_info_dict = deal_cutadapt_file(cutadapt_info_list)
+        print("sample\tTotal reads processed\tReads with adapters")
+        for k, v in cutadatp_info_dict.items():
+            print('{0}\t{1}\t{2}'.format(
+                k, v['Total reads processed:'], v['Reads with adapters:']))
 
-if len(mixcr_report_list) != 0:
-    mixcr_report_dict = deal_mixcr_log(mixcr_report_list)
-    print("""Sample\tTotal sequencing reads\tSuccessfully aligned reads\tTRA chains\tTRB chains""")
-    for k, v in mixcr_report_dict.items():
-        print('{0}\t{1}\t{2}\t{3}\t{4}'.format(
-            k, v.get('Total sequencing reads:', 0), v.get('Successfully aligned reads:', 0),
-            v.get('TRA chains:', 0), v.get('TRB chains:', 0)))
+    if len(mixcr_report_list) != 0:
+        mixcr_report_dict = deal_mixcr_log(mixcr_report_list)
+        print("""Sample\tTotal sequencing reads\tSuccessfully aligned reads\tTRA chains\tTRB chains""")
+        for k, v in mixcr_report_dict.items():
+            print('{0}\t{1}\t{2}\t{3}\t{4}'.format(
+                k, v.get('Total sequencing reads:', 0), v.get('Successfully aligned reads:', 0),
+                v.get('TRA chains:', 0), v.get('TRB chains:', 0)))
 
-if len(umi_reshape_file_list) != 0:
-    umi_reshpe_dict = deal_umi_reshape_file(umi_reshape_file_list)
-    print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
-    for sample in umi_reshpe_dict:
-        print("{}\t{}\t{}\t{}".format(sample,umi_reshpe_dict[sample]['Clonotype'],umi_reshpe_dict[sample]['Molecule'],umi_reshpe_dict[sample]['Sup_reads']))
-elif len(merged_umi_file_list) != 0:
-    merged_umi_dict = deal_merged_umi_file(merged_umi_file_list)
-    print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
-    for sample in merged_umi_dict:
-        print("{}\t{}\t{}\t{}".format(sample,merged_umi_dict[sample]['Clonotype'],merged_umi_dict[sample]['Molecule'],merged_umi_dict[sample]['Sup_reads']))
+    if len(umi_reshape_file_list) != 0:
+        umi_reshpe_dict = deal_umi_reshape_file(umi_reshape_file_list)
+        print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
+        for sample in umi_reshpe_dict:
+            print("{}\t{}\t{}\t{}".format(sample,umi_reshpe_dict[sample]['Clonotype'],umi_reshpe_dict[sample]['Molecule'],umi_reshpe_dict[sample]['Sup_reads']))
+    elif len(merged_umi_file_list) != 0:
+        merged_umi_dict = deal_merged_umi_file(merged_umi_file_list)
+        print("Sample\tClonotypes\tMolecules\tSupporting_Reads")
+        for sample in merged_umi_dict:
+            print("{}\t{}\t{}\t{}".format(sample,merged_umi_dict[sample]['Clonotype'],merged_umi_dict[sample]['Molecule'],merged_umi_dict[sample]['Sup_reads']))
 
+if __name__ == "__main__":
+    main()
