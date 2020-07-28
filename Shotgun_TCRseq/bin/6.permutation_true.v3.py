@@ -4,12 +4,16 @@ import sys,os
 
 def usage():
     print('''Usage:
-    python3 {0} <permutation file> <total pairs> <5000> > <output file>
+    python3 {0} <permutation result file> <total pairs file> <CellNumber> > <output file name>
+
 Example:
     python3 {0} \\
             permutation_test_10000.out.txt \\
-            Total.pairs.FromA2B.0317.threshold.50.xls 5000 > Total.pairs.FromA2B.0317.threshold.50.add.xls
+            Total.pairs.FromA2B.0317.threshold.50.xls 5000  Total.pairs.FromA2B.0317.threshold.50.add.xls
+Note:
+    CellNumber is a int number that calculated by each wells multiplied by number of wells. such as (145 cells x 48 wells = 6960)
 Updates:
+    20200610: 2 bits to float for results.
     20200317: filtered data: p2<0.1 && shared_wells >= 5.
     20200317: update input file format. more 8 columns added.
     20200316: use sys to import input file.
@@ -44,7 +48,8 @@ def main():
             TRB_dropout = (Theore_WellNum - int(TRB_wells)) / float(Theore_WellNum)
             Theore_WellNum_freq = Theore_WellNum / float(cell_number)
             
-            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{:.2f}\t{}\t{:.2f}\t{:.2f}\t{:.2f}".format(
+            # print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{:.2f}\t{}\t{:.2f}\t{:.2f}\t{:.2f}".format(
+            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
                 TRA_cloneId, acount, TRA_wells, TRB_cloneId,bcount,
                 TRB_wells, shared_wells, p, ratio, p_min,
                 cell_num_Freq, Theore_WellNum, TRA_dropout, TRB_dropout,
