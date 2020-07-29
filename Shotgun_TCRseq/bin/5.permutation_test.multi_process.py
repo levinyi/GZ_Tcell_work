@@ -46,10 +46,10 @@ def deal_raw_data(afile):
                 TRB_level_list.append(int(level))
             else:
                 sys.exit("clone type don't match 'TRA/TRB'!")
-    column_length = len(line.split(","))-2
-    # print(column_length)
+    column_length = len(line.split(",")) - 2
+    # print(column_length). This represents "total well number(w)".
     # fix by shiyi.
-    for each in range(1, column_length+1):
+    for each in range(1, column_length + 1):
         TRA_level_dict[each] = TRA_level_list.count(each)
         TRB_level_dict[each] = TRB_level_list.count(each)
     return TRA_level_dict, TRB_level_dict, column_length
@@ -94,16 +94,16 @@ def main():
     """docstring for main"""
     if len(sys.argv) != 3:
         usage()
-        sys.exit("Error: Wrong input file")
+        sys.exit("Error: Wrong input files")
 
     input_file = sys.argv[1]
     TRA_level_dict, TRB_level_dict, w = deal_raw_data(input_file)
-    # w = 96
+    # w = 96  # calculated from data not fixed.
     # main_work(w, TRB_level_dict)
     
     pool = Pool(w)
     for i in range(1, 10001):
-        pool.apply_async(main_work, args=(w, TRB_level_dict,),callback=mycallback)
+        pool.apply_async(main_work, args=(w, TRB_level_dict,), callback=mycallback)
     pool.close()
     pool.join()
 
