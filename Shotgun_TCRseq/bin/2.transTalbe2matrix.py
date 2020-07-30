@@ -39,7 +39,7 @@ def deal_table(input_file):
     with open(input_file, "r") as f:
         for line in f:
             cloneid, readid, barcode = line.split()
-            well = barcode.rstrip("\n")[3:]
+            well = barcode.rstrip("\n")[4:]
             two_dim_dict(read_count_dict,cloneid,well,1)
             if well not in barcode_list:
                 barcode_list.append(well)
