@@ -40,11 +40,13 @@ def main():
         'tra_sample_name'  : cf.get("Config", "tra_sample_name"),
         'trb_sample_name'  : cf.get("Config", "trb_sample_name"),
         'merged_sample_name' : cf.get("Config", "merged_sample_name"),
+        'well_number': cf.get("Config", "well_number"),
         'expected_cell_number': cf.get("Config", "expected_cell_number"),
 
         # alignment
         'mixcr': cf.get('Config', "mixcr"),
         'scripts_dir': cf.get('Config', "scripts_dir"),
+        # 'database_dir': cf.get('Config', "database_dir"),
     }
     #make directories:
     project_dir = os.path.abspath(".") + '/' + config_dict['project_name']
@@ -65,17 +67,24 @@ def main():
 
         f.write("python3 {scripts_dir}/0.read2barcode.py {tra_barcode_file} {tra_fastq_rd1} {tra_sample_name}\n".format(**config_dict))
         f.write("python3 {scripts_dir}/0.read2barcode.py {trb_barcode_file} {trb_fastq_rd1} {trb_sample_name}\n".format(**config_dict))
-        
-        f.write("python3 {scripts_dir}/1.mixcr2barcode.py {tra_sample_name}.barcode.read.txt {tra_sample_name}.mixcr.out.clonotypes.TRA.txt TRA\n".format(**config_dict))
-        f.write("python3 {scripts_dir}/1.mixcr2barcode.py {trb_sample_name}.barcode.read.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.txt TRB\n".format(**config_dict))
+        f.write("less {tra_sample_name}.barcode.total.rate.xls |head -{well_number} | awk '{{print$1\"\\t\"$2}}' >{tra_sample_name}.barcode.txt \n".format(**config_dict))
+        f.write("less {trb_sample_name}.barcode.total.rate.xls |head -{well_number} | awk '{{print$1\"\\t\"$2}}' >{trb_sample_name}.barcode.txt \n".format(**config_dict))
+        f.write("mv {tra_sample_name}.barcode.total.rate.xls {tra_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
+        f.write("mv {trb_sample_name}.barcode.total.rate.xls {trb_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/0.read2barcode.py {tra_sample_name}.barcode.txt {tra_fastq_rd1} {tra_sample_name}\n".format(**config_dict))
+        f.write("python3 {scripts_dir}/0.read2barcode.py {trb_sample_name}.barcode.txt {trb_fastq_rd1} {trb_sample_name}\n".format(**config_dict))
+
+        f.write("python {scripts_dir}/1.mixcr2barcode.py {tra_sample_name}.barcode.read.txt {tra_sample_name}.mixcr.out.clonotypes.TRA.txt TRA\n".format(**config_dict))
+        f.write("python {scripts_dir}/1.mixcr2barcode.py {trb_sample_name}.barcode.read.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.txt TRB\n".format(**config_dict))
+        f.write("cat {tra_sample_name}.TRA.clone.reads.barcode.txt {trb_sample_name}.TRB.clone.reads.barcode.txt  >Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
 
         ##########################
-        f.write("cat {tra_sample_name}.TRA.clone.reads.barcode.txt {trb_sample_name}.TRB.clone.reads.barcode.txt  >Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
         f.write("python3 {scripts_dir}/2.transTalbe2matrix.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt\n".format(**config_dict))
         f.write("python3 {scripts_dir}/2.1.optional_filter_median.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/2.2.draw.readCount.plot.R *.csv \n".format(**config_dict))
+
         f.write("python3 {scripts_dir}/5.permutation_test.multi_process.py Total.{merged_sample_name}.TRAB.wells.boole.matrix.Filtered.csv  {merged_sample_name}.permutation_test.10000.out.Filtered.txt \n".format(**config_dict))
         f.write("mkdir -p {merged_sample_name}_Shotgun/FromA2B {merged_sample_name}_Shotgun/FromB2A \n\n".format(**config_dict))
-        
         ######################### FromA2B
         f.write("python3 {scripts_dir}/3.calculate.p-value.FromA2B.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.Filtered.txt 50 >{merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/3.calculate.p-value.FromA2B.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.Filtered.txt 10 >{merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.10.xls \n".format(**config_dict))
