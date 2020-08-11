@@ -142,8 +142,8 @@ def main():
             if cloneid + '_' + well in rid_list: 
                 continue
             #######################################
-            if cloneid == 'b0' or cloneid == 'b3':
-                continue
+            #if cloneid == 'b0' or cloneid == 'b3':
+            #    continue
             #######################################
             out3.write("{}\t{}\t{}\n".format(cloneid, readid, barcode))
 
