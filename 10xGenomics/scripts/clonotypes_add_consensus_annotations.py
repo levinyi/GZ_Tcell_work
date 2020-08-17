@@ -9,8 +9,10 @@ def usage():
     
     example: 
         python {0} clonotypes.csv consensus_annotations.csv > xxx/clonotypes_add_consensus_annotations.csv
+        python3 {0} > clonotypes_add_consensus_annotations.csv
     
     Update:
+    20200709: Add an example for no input file situation.
     20200605: optimized code: if there is no input file, default search  clonotypes.csv and consensus_annotations.csv in current directory.
     20200529: add RNA-seq data info.
     """.format(os.path.basename(sys.argv[0])))
