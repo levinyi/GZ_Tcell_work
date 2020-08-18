@@ -4,14 +4,22 @@ import re
 
 def usage():
     """docstring for usage
-    python mixcr2frequency.noUMI.py GXXX.mixcr.out.clonotypes.TRA.txt > xxx.raw.freq.xls
+    python mixcr2frequency.noUMI.py GXXX.mixcr.out.clonotypes.TRA.txt > xxx.mixcr.out.clonotypes.TRA.count.txt
 
+    20200817: add a new colume named clonotype id.
     20200107: created
     """
 
 def deal_mixcr_file(mixcr_file):
+    if "TRA" in mixcr_file:
+        clone_type = "a"
+    elif "TRB" in mixcr_file:
+        clone_type = "b"
+    else:
+        sys.exit("Error: Wrong input file!")
+
     """docstring for deal_mixcr_file"""
-    print("Clonotype\tTRV\tCDR3\tTRJ\tReadsNumber")
+    print("CloneId\tClonotype\tTRV\tCDR3\tTRJ\tReadsNumber")
     with open(mixcr_file, "r") as f:
         for line in f:
             line = line.rstrip("\n")
@@ -28,7 +36,7 @@ def deal_mixcr_file(mixcr_file):
             if V and J:
                 clonotype = V.group(1) + aaSeqCDR3 + J.group(1)
                 if float(cloneCount) >= 3:
-                    print("{}\t{}\t{}\t{}\t{}".format(clonotype, V.group(1), aaSeqCDR3, J.group(1), cloneCount))
+                    print("{}{}\t{}\t{}\t{}\t{}\t{}".format(clone_type, cloneId, clonotype, V.group(1), aaSeqCDR3, J.group(1), cloneCount))
 
 
 def main():
