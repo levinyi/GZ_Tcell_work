@@ -1,6 +1,8 @@
 #!/usr/bin/pythn3 
 import sys,os
 from collections import Counter
+import numpy as np
+import argparse
 
 
 def usage():
@@ -9,8 +11,12 @@ def usage():
 
 example:
     python3 {0} Total.G87E2.TRAB.clone.reads.barcode.txt
+    python3 {0} -i Total.G208E1.TRAB.clone.reads.barcode.txt --cloneCountThreshold 19 --overallThreshold 5 --column_median 10 --row_median 10
+
     
 Updates:
+
+    20200818: redesign the structure. output for 5 files. and add 4 kinds of filtering parmarters.
     20200607: optimized code. replace output file name "Total.TRAB.96wells.boole.matrix.csv" to "Total.TRAB.wells.boole.matrix.csv".
     20200315: output read counts to a csv file.
     20200304: fix format from .txt to .csv to save more memory.
@@ -20,12 +26,13 @@ Updates:
 
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
-    parser.add_argument('-i', '--input', action='store', dest='input_file',help="input file")
-    parser.add_argument('-ff', '--filter_full_wells', action='store',dest='',help='')
-    parser.add_argument('-mc', '--mixcr_clone', action='store',dest='',help='')
-    parser.add_argument('-or', '--overall', action='store',dest='',help='')
-    parser.add_argument('-cm', '--colum_mean', action='store',dest='',help='')
-    parser.add_argument('-rm', '--row_mean', action='store',dest='',help='')
+    parser.add_argument('-i', '--input', action='store', dest='input_file', help="input file")
+    # parser.add_argument('-ff', '--filter_full_wells', action='store_true',dest='print_full_wells', default=False, help='print full wells clonotype id and info.')
+    parser.add_argument('-a', '--cloneCountThreshold', action='store',dest='cloneCountThreshold', default=3, type=int, help='mixcr filtering clonotypes.')
+    parser.add_argument('-b', '--overallThreshold', action='store',dest='overall_threshold',default=5,type=int,help='number of filtering clonotype by overall.')
+    parser.add_argument('-c', '--column_median', action='store',dest='column_median',default=10, type=int,help='10 means 10%')
+    parser.add_argument('-d', '--row_median', action='store',dest='row_median',default=10, type=int, help='10 means 10%')
+    return parser.parse_args()
 
 
 def two_dim_dict(thedict, key_a, key_b, value):
@@ -40,17 +47,35 @@ def two_dim_dict(thedict, key_a, key_b, value):
     return thedict
 
 
+def addtwodimdict(thedict, key_a, key_b, value):
+    if key_a in thedict:
+        thedict[key_a].update({key_b: value})
+    else:
+        thedict.update({key_a:{key_b:value}})
+    return thedict
+
+
 def deal_table(input_file):
     """docstring for deal_table"""
     clonotype_dict = {}
     barcode_list = []  # for check barcode number!
     cloneid_list = []  # should equal to the input file column 1 unique
     read_count_dict = {}
+    tra_barcode_dict = {}
+    trb_barcode_dict = {}
     with open(input_file, "r") as f:
         for line in f:
             cloneid, readid, barcode = line.split()
             well = barcode.rstrip("\n")[4:]
-            two_dim_dict(read_count_dict,cloneid,well,1)
+            two_dim_dict(read_count_dict, cloneid, well, 1)
+
+            if cloneid.startswith("a"):
+                two_dim_dict(tra_barcode_dict, well, cloneid, 1)
+            elif cloneid.startswith("b"):
+                two_dim_dict(trb_barcode_dict, well, cloneid, 1)
+            else:
+                sys.exit("Error: clone id error, check your input file!")
+
             if well not in barcode_list:
                 barcode_list.append(well)
             if cloneid not in cloneid_list:
@@ -60,46 +85,117 @@ def deal_table(input_file):
                     clonotype_dict.setdefault(cloneid, []).append(well)
             else:
                 clonotype_dict.setdefault(cloneid, []).append(well)
-    return clonotype_dict, barcode_list, cloneid_list, read_count_dict
+    return clonotype_dict, barcode_list, cloneid_list, read_count_dict, tra_barcode_dict, trb_barcode_dict
 
 
 def main():
     """docstring for main"""
+    '''
     if len(sys.argv) != 2:
         usage()
         sys.exit("Error: Put your input file here")
+    '''
+    parser = _argparse()
+    
+    input_file = parser.input_file
+    column_median = parser.column_median
+    row_median = parser.row_median
+    cloneCountThreshold = parser.cloneCountThreshold
+    overall_threshold = parser.overall_threshold
 
-    input_file = sys.argv[1] # Total.G112E1.TRAB.clone.reads.barcode.txt
-    clonotype_dict, barcode_list, cloneid_list, read_count_dict = deal_table(input_file)
+    #############################################################
+    # deal with input file, generate dicts.
+    clonotype_dict, barcode_list, cloneid_list, read_count_dict, tra_barcode_dict, trb_barcode_dict = deal_table(input_file)
+    barcode_number = len(barcode_list)
     print("Barcode numbers: {}".format(len(barcode_list)))
 
     prefix = input_file.split(".")[1]
-    outfile1 = "Total."+prefix+".TRAB.wells.boole.matrix.csv"
-    outfile2 = "Total."+prefix+".TRAB.wells.count.matrix.csv"
+    outfile1 = "Total." + prefix + ".TRAB.wells.boole.matrix.Raw.csv"
+    outfile2 = "Total." + prefix + ".TRAB.wells.count.matrix.Raw.csv"
+    outfile3 = "Total." + prefix + ".TRAB.wells.boole.matrix.Filtered.csv"
+    outfile4 = "Total." + prefix + ".TRAB.wells.count.matrix.Filtered.csv"
+    outfile5 = "Total." + prefix + ".TRAB.clone.reads.barcode.Filtered.csv"
 
-    with open(outfile1, "w") as out1, open(outfile2, "w") as out2: 
-        out1.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
-        out2.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
-        for clone in cloneid_list:
+    
+    ###############################################################
+    # create three dict for calculate row median and column median and cloneCoun.
+    row_median_dict = {}
+    clone_count_dict = {}
+    for cloneid in cloneid_list:
+        count_list = [int(value) for value in read_count_dict[cloneid].values()]
+        cloneCount = np.sum(count_list)
+        cloneid_in_row_median = np.median(count_list) / row_median
+        row_median_dict[cloneid] = cloneid_in_row_median
+        clone_count_dict[cloneid] = cloneCount
+
+    column_median_dict = {}
+    for barcode in barcode_list:
+        alist = [int(value) for value in tra_barcode_dict[barcode].values()]
+        blist = [int(value) for value in trb_barcode_dict[barcode].values()]
+        tra_median = np.median(alist) / column_median
+        trb_median = np.median(blist) / column_median
+        addtwodimdict(column_median_dict, barcode, 'TRA', tra_median)
+        addtwodimdict(column_median_dict, barcode, 'TRB', trb_median)
+
+    ################################################################
+    # print result 
+    # with open(outfile1, "w") as out1, open(outfile2, "w") as out2: 
+    out1 = open(outfile1, "w")
+    out2 = open(outfile2, "w")
+    out3 = open(outfile3, "w")
+    out4 = open(outfile4, "w")
+    out5 = open(outfile5, "w")
+    out1.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
+    out2.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
+    out3.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
+    out4.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
+
+    rid_clone_list = []
+    for clone in cloneid_list:
+        if clone_count_dict[clone] >= cloneCountThreshold:
             if clone.startswith('a'):
                 clone_type = "TRA"
             elif clone.startswith('b'):
                 clone_type = "TRB"
+
             out1.write("{},{}".format(clone, clone_type))
             out2.write("{},{}".format(clone, clone_type))
             for barcode in barcode_list:
                 if barcode in read_count_dict[clone]:
                     read_count = read_count_dict[clone][barcode]
-                    out2.write(",{}".format(read_count))
-                else:
-                    out2.write(",0")
-                if barcode in clonotype_dict[clone]:
                     out1.write(",1")
+                    out2.write(",{}".format(read_count))
+                    if read_count >= row_median_dict[clone] and read_count >= column_median_dict[barcode][clone_type] and read_count >= overall_threshold:
+                        out3.write(",1")
+                        out4.write(",{}".format(read_count))
+                    else:
+                        rid_clone_list.append("{}_{}".format(clone, barcode))
                 else:
                     out1.write(",0")
+                    out2.write(",0")
+                    out3.write(",0")
+                    out4.write(",0")
             out1.write("\n")
             out2.write("\n")
-    print("output files: {}, {}".format(outfile1, outfile2))
+        else:
+            rid_clone_list.append("{}_{}".format(clone, barcode))
+
+    ###############################################################################
+    # print filtered file.
+    with open(input_file, "r") as f:
+        for line in f:
+            cloneid, readid, barcode = line.split()
+            well = barcode.rstrip("\n")[4:]
+            if cloneid + '_' + well in rid_clone_list:
+                continue
+            out5.write("{}\t{}\t{}\n".format(cloneid, readid, barcode))
+
+    out5.close()
+    out4.close()
+    out3.close()
+    out2.close()
+    out1.close()
+    print("output files: {}\n{}\n{}\n{}\n{}\n,".format(outfile1, outfile2, outfile3, outfile4, outfile5))
 
 if __name__ == '__main__':
     main()
