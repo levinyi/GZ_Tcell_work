@@ -21,7 +21,11 @@ Updates:
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
     parser.add_argument('-i', '--input', action='store', dest='input_file',help="input file")
-    parser.add_argument('-fc', ''
+    parser.add_argument('-ff', '--filter_full_wells', action='store',dest='',help='')
+    parser.add_argument('-mc', '--mixcr_clone', action='store',dest='',help='')
+    parser.add_argument('-or', '--overall', action='store',dest='',help='')
+    parser.add_argument('-cm', '--colum_mean', action='store',dest='',help='')
+    parser.add_argument('-rm', '--row_mean', action='store',dest='',help='')
 
 
 def two_dim_dict(thedict, key_a, key_b, value):
