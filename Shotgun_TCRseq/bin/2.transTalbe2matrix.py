@@ -27,11 +27,11 @@ Updates:
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
     parser.add_argument('-i', '--input', action='store', dest='input_file', help="input file")
-    # parser.add_argument('-ff', '--filter_full_wells', action='store_true',dest='print_full_wells', default=False, help='print full wells clonotype id and info.')
     parser.add_argument('-a', '--cloneCountThreshold', action='store',dest='cloneCountThreshold', default=3, type=int, help='mixcr filtering clonotypes.')
     parser.add_argument('-b', '--overallThreshold', action='store',dest='overall_threshold',default=5,type=int,help='number of filtering clonotype by overall.')
     parser.add_argument('-c', '--column_median', action='store',dest='column_median',default=10, type=int,help='10 means 10%')
     parser.add_argument('-d', '--row_median', action='store',dest='row_median',default=10, type=int, help='10 means 10%')
+    parser.add_argument('-f', '--filter_noise_wells', action='store_true',dest='filter_noise_wells', default=False, help='filter out all 1 rows.')
     return parser.parse_args()
 
 
@@ -102,6 +102,7 @@ def main():
     row_median = parser.row_median
     cloneCountThreshold = parser.cloneCountThreshold
     overall_threshold = parser.overall_threshold
+    filterNoise = parser.filter_noise_wells
 
     #############################################################
     # deal with input file, generate dicts.
@@ -114,7 +115,7 @@ def main():
     outfile2 = "Total." + prefix + ".TRAB.wells.count.matrix.Raw.csv"
     outfile3 = "Total." + prefix + ".TRAB.wells.boole.matrix.Filtered.csv"
     outfile4 = "Total." + prefix + ".TRAB.wells.count.matrix.Filtered.csv"
-    outfile5 = "Total." + prefix + ".TRAB.clone.reads.barcode.Filtered.csv"
+    outfile5 = "Total." + prefix + ".TRAB.clone.reads.barcode.Filtered.txt"
 
     
     ###############################################################
@@ -127,7 +128,7 @@ def main():
         cloneid_in_row_median = np.median(count_list) / row_median
         row_median_dict[cloneid] = cloneid_in_row_median
         clone_count_dict[cloneid] = cloneCount
-
+    # print(clone_count_dict)
     column_median_dict = {}
     for barcode in barcode_list:
         alist = [int(value) for value in tra_barcode_dict[barcode].values()]
@@ -137,27 +138,31 @@ def main():
         addtwodimdict(column_median_dict, barcode, 'TRA', tra_median)
         addtwodimdict(column_median_dict, barcode, 'TRB', trb_median)
 
-    ################################################################
-    # print result 
-    # with open(outfile1, "w") as out1, open(outfile2, "w") as out2: 
+    ################################################################     
     out1 = open(outfile1, "w")
     out2 = open(outfile2, "w")
     out3 = open(outfile3, "w")
     out4 = open(outfile4, "w")
     out5 = open(outfile5, "w")
+    # write header to each file.
     out1.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
     out2.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
     out3.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
     out4.write("clone_id,clone_type,{}\n".format(",".join(barcode_list)))
 
+
+    ###############################################################
+    # print out1, out2, these two files are raw data. 
     rid_clone_list = []
+    last_boole_filtered_dict = {}
+    last_count_filtered_dict ={}
+
     for clone in cloneid_list:
         if clone_count_dict[clone] >= cloneCountThreshold:
             if clone.startswith('a'):
                 clone_type = "TRA"
             elif clone.startswith('b'):
                 clone_type = "TRB"
-
             out1.write("{},{}".format(clone, clone_type))
             out2.write("{},{}".format(clone, clone_type))
             for barcode in barcode_list:
@@ -166,19 +171,45 @@ def main():
                     out1.write(",1")
                     out2.write(",{}".format(read_count))
                     if read_count >= row_median_dict[clone] and read_count >= column_median_dict[barcode][clone_type] and read_count >= overall_threshold:
-                        out3.write(",1")
-                        out4.write(",{}".format(read_count))
+                        addtwodimdict(last_boole_filtered_dict, clone, barcode, 1)
+                        addtwodimdict(last_count_filtered_dict, clone, barcode, read_count)
                     else:
+                        addtwodimdict(last_boole_filtered_dict, clone, barcode, 0)
+                        addtwodimdict(last_count_filtered_dict, clone, barcode, 0)
                         rid_clone_list.append("{}_{}".format(clone, barcode))
                 else:
                     out1.write(",0")
                     out2.write(",0")
-                    out3.write(",0")
-                    out4.write(",0")
+                    addtwodimdict(last_boole_filtered_dict, clone, barcode, 0)
+                    addtwodimdict(last_count_filtered_dict, clone, barcode, 0)
             out1.write("\n")
             out2.write("\n")
         else:
             rid_clone_list.append("{}_{}".format(clone, barcode))
+    ##############################################################################
+    # print out3, out4 : These two files are filtered data: filter out 1) all the 0 rows and 2) all the 1 rows(if --filter_noise_wells selected).
+    for clone in cloneid_list:
+        if clone in last_boole_filtered_dict:
+            if np.sum([value for value in last_boole_filtered_dict[clone].values()]) == 0:
+                #print("Filtered: {} 0 in all rows.".format(clone))
+                continue
+            if filterNoise:
+                if np.sum([value for value in last_boole_filtered_dict[clone].values()]) == barcode_number:
+                    for barcode in last_boole_filtered_dict[clone].keys():
+                        rid_clone_list.append("{}_{}".format(clone, barcode))
+                    print("Filtered: {} 1 in all rows.".format(clone))
+                    continue
+            if clone.startswith('a'):
+                clone_type = "TRA"
+            elif clone.startswith("b"):
+                clone_type = "TRB"
+            out3.write("{},{}".format(clone, clone_type))
+            out4.write("{},{}".format(clone, clone_type))
+            for barcode in barcode_list:
+                out3.write(",{}".format(last_boole_filtered_dict[clone][barcode]))
+                out4.write(",{}".format(last_count_filtered_dict[clone][barcode]))
+            out3.write("\n")
+            out4.write("\n")
 
     ###############################################################################
     # print filtered file.
@@ -195,7 +226,7 @@ def main():
     out3.close()
     out2.close()
     out1.close()
-    print("output files: {}\n{}\n{}\n{}\n{}\n,".format(outfile1, outfile2, outfile3, outfile4, outfile5))
+    print("output files: {}\n{}\n{}\n{}\n{}\n".format(outfile1, outfile2, outfile3, outfile4, outfile5))
 
 if __name__ == '__main__':
     main()
