@@ -79,8 +79,11 @@ def main():
         f.write("cat {tra_sample_name}.TRA.clone.reads.barcode.txt {trb_sample_name}.TRB.clone.reads.barcode.txt  >Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
 
         ##########################
-        f.write("python3 {scripts_dir}/2.transTalbe2matrix.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt\n".format(**config_dict))
-        f.write("python3 {scripts_dir}/2.1.optional_filter_median.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/mixcr_filter_clonotype_counts.py {tra_sample_name}.mixcr.out.clonotypes.TRA.txt > {tra_sample_name}.mixcr.out.clonotypes.TRA.count.txt \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/mixcr_filter_clonotype_counts.py {trb_sample_name}.mixcr.out.clonotypes.TRB.txt > {trb_sample_name}.mixcr.out.clonotypes.TRB.count.txt \n".format(**config_dict))
+        
+        f.write("python3 {scripts_dir}/2.transTalbe2matrix.py -i Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt --cloneCountThreshold 19 --overallThreshold 5 --column_median 10 --row_median 10 --filter_noise_wells \n".format(**config_dict))
+        # f.write("python3 {scripts_dir}/2.1.optional_filter_median.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
         f.write("Rscript {scripts_dir}/2.2.draw.readCount.plot.R *.csv \n".format(**config_dict))
 
         f.write("python3 {scripts_dir}/5.permutation_test.multi_process.py Total.{merged_sample_name}.TRAB.wells.boole.matrix.Filtered.csv  {merged_sample_name}.permutation_test.10000.out.Filtered.txt \n".format(**config_dict))
