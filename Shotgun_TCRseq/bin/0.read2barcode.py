@@ -5,14 +5,13 @@ from Bio import SeqIO
 
 def usage():
     print("""
-    usage:
+usage:
         python {0} <barcode_file> <reads_file> <result_file_prefix>  
         
-    example:
+example:
         python {0} /cygene/work/00.test/pipeline/Shotgun_TCRseq/database/Shotgun_TCRseq.TRB.Barcodes.txt\
                 reads_file 
-q
-    update:
+update:
     20200723: change output format, add a new column for Barcode seq.
     20200604: updated.
     20200302: created.
