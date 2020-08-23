@@ -51,6 +51,7 @@ def main():
     if len(sys.argv) != 4:
         usage()
         sys.exit("Error: You must put 3 input arguments.")
+
     bc_readsId_file = sys.argv[1]
     mixcr_result_file = sys.argv[2]  # G84E2L2.mixcr.out.TR[A|B].txt
     tcr_type = sys.argv[3]    # TRA or TRB
