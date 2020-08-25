@@ -9,7 +9,8 @@ def usage():
     """docstring for usage
 
     python mixcr2frequency.noUMI.py G67E1L1.mixcr.out.clonotypes.TRA.count.txt > G67E1L1.filtered2reads.freq.xlsx
-
+    
+    20200818: added first column(clonotype id)
     20200109: added scater chart.
     20200108: created
     """
@@ -38,7 +39,7 @@ def deal_file(count_file):
     with open(count_file, "r") as f:
         for line in islice(f, 1, None):  # skip header line.
             line = line.rstrip("\n")
-            Clonotype, TRV, CDR3, TRJ, ReadsNumber = line.split("\t")
+            cloneId, Clonotype, TRV, CDR3, TRJ, ReadsNumber = line.split("\t")
             a_dict[Clonotype] = ReadsNumber
 
     transformated_dict = dict_freqency(a_dict)
