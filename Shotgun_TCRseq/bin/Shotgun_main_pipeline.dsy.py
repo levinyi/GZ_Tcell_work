@@ -72,19 +72,23 @@ def main():
         f.write("mv {tra_sample_name}.barcode.total.rate.xls {tra_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
         f.write("mv {trb_sample_name}.barcode.total.rate.xls {trb_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/0.read2barcode.py {tra_sample_name}.barcode.txt {tra_fastq_rd1} {tra_sample_name}\n".format(**config_dict))
-        f.write("python3 {scripts_dir}/0.read2barcode.py {trb_sample_name}.barcode.txt {trb_fastq_rd1} {trb_sample_name}\n".format(**config_dict))
+        f.write("python3 {scripts_dir}/0.read2barcode.py {trb_sample_name}.barcode.txt {trb_fastq_rd1} {trb_sample_name}\n\n".format(**config_dict))
 
         f.write("python {scripts_dir}/1.mixcr2barcode.py {tra_sample_name}.barcode.read.txt {tra_sample_name}.mixcr.out.clonotypes.TRA.txt TRA\n".format(**config_dict))
         f.write("python {scripts_dir}/1.mixcr2barcode.py {trb_sample_name}.barcode.read.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.txt TRB\n".format(**config_dict))
-        f.write("cat {tra_sample_name}.TRA.clone.reads.barcode.txt {trb_sample_name}.TRB.clone.reads.barcode.txt  >Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
+        f.write("cat {tra_sample_name}.TRA.clone.reads.barcode.txt {trb_sample_name}.TRB.clone.reads.barcode.txt  >Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n\n".format(**config_dict))
 
         ##########################
         f.write("python3 {scripts_dir}/mixcr_filter_clonotype_counts.py {tra_sample_name}.mixcr.out.clonotypes.TRA.txt > {tra_sample_name}.mixcr.out.clonotypes.TRA.count.txt \n".format(**config_dict))
-        f.write("python3 {scripts_dir}/mixcr_filter_clonotype_counts.py {trb_sample_name}.mixcr.out.clonotypes.TRB.txt > {trb_sample_name}.mixcr.out.clonotypes.TRB.count.txt \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/mixcr_filter_clonotype_counts.py {trb_sample_name}.mixcr.out.clonotypes.TRB.txt > {trb_sample_name}.mixcr.out.clonotypes.TRB.count.txt \n\n".format(**config_dict))
         
-        f.write("python3 {scripts_dir}/2.transTalbe2matrix.py -i Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt --cloneCountThreshold 19 --overallThreshold 5 --column_median 10 --row_median 10 --filter_noise_wells \n".format(**config_dict))
-        # f.write("python3 {scripts_dir}/2.1.optional_filter_median.py Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt \n".format(**config_dict))
-        f.write("Rscript {scripts_dir}/2.2.draw.readCount.plot.R *.csv \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/2.transTalbe2matrix.py -i Total.{merged_sample_name}.TRAB.clone.reads.barcode.txt --cloneCountThreshold 20 --overallThreshold 5 --column_median 10 --row_median 10 --filter_noise_wells \n".format(**config_dict))
+        f.write("perl {scripts_dir}/fishInWinter.pl -bf table -ff table {merged_sample_name}.Clones.in.all.Wells.txt {tra_sample_name}.mixcr.out.clonotypes.TRA.count.txt >{merged_sample_name}.tra.Clones.in.all.Wells.txt\n".format(**config_dict))
+        f.write("perl {scripts_dir}/fishInWinter.pl -bf table -ff table {merged_sample_name}.Clones.in.all.Wells.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.count.txt >{merged_sample_name}.trb.Clones.in.all.Wells.txt\n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/2.1.draw.readsPerWell.boxplot.R Total.{merged_sample_name}.TRAB.wells.count.matrix.Filtered.csv \n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/2.2.draw.readCount.plot.R Total.{merged_sample_name}.TRAB.wells.boole.matrix.Raw.csv Total.{merged_sample_name}.TRAB.wells.count.matrix.Raw.csv Total.{merged_sample_name}.TRAB.wells.boole.matrix.Filtered.csv Total.{merged_sample_name}.TRAB.wells.count.matrix.Filtered.csv \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/2.3.draw.read.in.clone.vs.wells.py Total.{merged_sample_name}.TRAB.wells.count.matrix.Raw.csv {tra_sample_name}.mixcr.out.clonotypes.TRA.count.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.count.txt > Raw.reads.in.wells.mixcr.xls \n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/2.3.draw.read.in.clone.vs.wells.R Raw.reads.in.wells.mixcr.xls \n\n".format(**config_dict))
 
         f.write("python3 {scripts_dir}/5.permutation_test.multi_process.py Total.{merged_sample_name}.TRAB.wells.boole.matrix.Filtered.csv  {merged_sample_name}.permutation_test.10000.out.Filtered.txt \n".format(**config_dict))
         f.write("mkdir -p {merged_sample_name}_Shotgun/FromA2B {merged_sample_name}_Shotgun/FromB2A \n\n".format(**config_dict))
@@ -112,8 +116,11 @@ def main():
         f.write("python3 {scripts_dir}/9.compare.A2B.v3.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.10.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.10.add.filtered.sharedwells.3.xls > {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.10.sharedwells.3.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/9.compare.A2B.v3.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.50.add.filtered.sharedwells.3.xls > {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/10.merge.A2B.B2A.v1.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.10.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.10.add.filtered.sharedwells.3.xls  {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.10.sharedwells.3.new.xlsx \n".format(**config_dict))
-        f.write("python3 {scripts_dir}/10.merge.A2B.B2A.v1.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.50.add.filtered.sharedwells.3.xls  {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.new.xlsx \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/10.merge.A2B.B2A.v1.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.50.add.filtered.sharedwells.3.xls  {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.new.xlsx \n\n".format(**config_dict))
 
+        f.write("python3 {scripts_dir}/statistic_unique_pairs_Shotgun.py {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.xls >statistic_unique_pairs.threshold.50.xls\n".format(**config_dict))
+        f.write("python3 {scripts_dir}/statistic_unique_pairs_Shotgun.py {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.10.sharedwells.3.xls >statistic_unique_pairs.threshold.10.xls\n\n".format(**config_dict))
+    
     print("all finished!")
 
 
