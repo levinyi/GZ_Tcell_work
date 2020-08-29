@@ -64,6 +64,8 @@ def main():
         f.write("mkdir -p {tra_sample_name} {trb_sample_name} \n".format(**config_dict))
         f.write("{mixcr} exportReadsForClones -s {tra_sample_name}.mixcr.out.clna {tra_sample_name}/{tra_sample_name}.\n".format(**config_dict))
         f.write("{mixcr} exportReadsForClones -s {trb_sample_name}.mixcr.out.clna {trb_sample_name}/{trb_sample_name}.\n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/0.draw.cloneFraction.R {tra_sample_name}.mixcr.out.clonotypes.TRA.txt\n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/0.draw.cloneFraction.R {trb_sample_name}.mixcr.out.clonotypes.TRB.txt\n\n".format(**config_dict))
 
         f.write("python3 {scripts_dir}/0.read2barcode.py {tra_barcode_file} {tra_fastq_rd1} {tra_sample_name}\n".format(**config_dict))
         f.write("python3 {scripts_dir}/0.read2barcode.py {trb_barcode_file} {trb_fastq_rd1} {trb_sample_name}\n".format(**config_dict))
@@ -72,7 +74,9 @@ def main():
         f.write("mv {tra_sample_name}.barcode.total.rate.xls {tra_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
         f.write("mv {trb_sample_name}.barcode.total.rate.xls {trb_sample_name}.barcode.total.rate.raw.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/0.read2barcode.py {tra_sample_name}.barcode.txt {tra_fastq_rd1} {tra_sample_name}\n".format(**config_dict))
-        f.write("python3 {scripts_dir}/0.read2barcode.py {trb_sample_name}.barcode.txt {trb_fastq_rd1} {trb_sample_name}\n\n".format(**config_dict))
+        f.write("python3 {scripts_dir}/0.read2barcode.py {trb_sample_name}.barcode.txt {trb_fastq_rd1} {trb_sample_name}\n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/0.0.read.distribution.R {tra_sample_name}.barcode.total.rate.xls\n".format(**config_dict))
+        f.write("Rscript {scripts_dir}/0.0.read.distribution.R {trb_sample_name}.barcode.total.rate.xls\n\n".format(**config_dict))
 
         f.write("python {scripts_dir}/1.mixcr2barcode.py {tra_sample_name}.barcode.read.txt {tra_sample_name}.mixcr.out.clonotypes.TRA.txt TRA\n".format(**config_dict))
         f.write("python {scripts_dir}/1.mixcr2barcode.py {trb_sample_name}.barcode.read.txt {trb_sample_name}.mixcr.out.clonotypes.TRB.txt TRB\n".format(**config_dict))
@@ -118,6 +122,7 @@ def main():
         f.write("python3 {scripts_dir}/10.merge.A2B.B2A.v1.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.10.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.10.add.filtered.sharedwells.3.xls  {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.10.sharedwells.3.new.xlsx \n".format(**config_dict))
         f.write("python3 {scripts_dir}/10.merge.A2B.B2A.v1.py {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.add.filtered.sharedwells.3.xls {merged_sample_name}_Shotgun/FromB2A/Total.pairs.FromB2A.threshold.50.add.filtered.sharedwells.3.xls  {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.new.xlsx \n\n".format(**config_dict))
 
+        f.write("Rscript {scripts_dir}/10.draw.p1.p2.R {merged_sample_name} {merged_sample_name}_Shotgun/FromA2B/Total.pairs.FromA2B.threshold.50.xls \n".format(**config_dict))
         f.write("python3 {scripts_dir}/statistic_unique_pairs_Shotgun.py {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.50.sharedwells.3.xls >statistic_unique_pairs.threshold.50.xls\n".format(**config_dict))
         f.write("python3 {scripts_dir}/statistic_unique_pairs_Shotgun.py {merged_sample_name}_Shotgun/A2B_B2A_detail.threshold.10.sharedwells.3.xls >statistic_unique_pairs.threshold.10.xls\n\n".format(**config_dict))
     
