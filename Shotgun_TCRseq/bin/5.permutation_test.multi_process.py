@@ -98,6 +98,11 @@ def main():
 
     input_file = sys.argv[1]
     TRA_level_dict, TRB_level_dict, w = deal_raw_data(input_file)
+    print("barcode_number: {}".format(w))
+
+    # check output file exsits. remove and replace it.
+    if os.path.exists(sys.argv[2]):
+        os.remove(sys.argv[2])
     # w = 96  # calculated from data not fixed.
     # main_work(w, TRB_level_dict)
     
