@@ -36,20 +36,21 @@ def dict_freqency(adict):
 def deal_file(count_file):
     """docstring for deal_file"""
     a_dict = {}
+    b_dict = {}
     with open(count_file, "r") as f:
         for line in islice(f, 1, None):  # skip header line.
             line = line.rstrip("\n")
             cloneId, Clonotype, TRV, CDR3, TRJ, ReadsNumber = line.split("\t")
-            a_dict[Clonotype] = ReadsNumber
+            a_dict[cloneId] = ReadsNumber
+            b_dict[cloneId] = Clonotype
 
     transformated_dict = dict_freqency(a_dict)
-    '''
-    print("Clonotype\tSupporting_Reads\tReads_Frequency\tFrequency_Log10")
+    # print("CloneId\tClonotype\tSupporting_Reads\tReads_Frequency\tFrequency_Log10")
 
-    for k in transformated_dict:
-        print("{}\t{}\t{}\t{}".format(k, a_dict[k], transformated_dict[k], math.log(transformated_dict[k], 10)))
-    '''
-    return a_dict, transformated_dict
+    # for k in transformated_dict:
+    #     print("{}\t{}\t{}\t{}\t{}".format(k, b_dict[k], a_dict[k], transformated_dict[k], math.log(transformated_dict[k], 10)))
+
+    return a_dict, b_dict, transformated_dict
 
 
 def process_worksheet(sheet, a_dict, t_dict):
@@ -91,7 +92,7 @@ def main():
 
     count_file = sys.argv[1]
     file_name = os.path.basename(count_file).split(".")[0]
-    a_dict, transformated_dict = deal_file(count_file)
+    a_dict, b_dict, transformated_dict = deal_file(count_file)
 
     # write to excel
     work_book = openpyxl.Workbook()
@@ -103,6 +104,12 @@ def main():
     chart_type = 'Line'
     create_charts(sheet, chart_type)
     work_book.save(file_name + '.filtered2reads.freq.xlsx')
+
+    # write to txt
+    with open(file_name + ".filtered2reads.freq.xls", "w") as f:
+        f.write("CloneId\tClonotype\tSupporting_Reads\tReads_Frequency\tFrequency_Log10\n")
+        for k in transformated_dict:
+            f.write("{}\t{}\t{}\t{}\t{}\n".format(k, b_dict[k], a_dict[k], transformated_dict[k], math.log(transformated_dict[k], 10)))
 
 
 if __name__ == '__main__':
