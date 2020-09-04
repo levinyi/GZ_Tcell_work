@@ -27,7 +27,7 @@ def test():
             Gini_Simpson_index_1, inverse_Simpson_index_1, evenness_index_1))
 
 def main():
-    print("Sample_name\tShannon_index(pi*ln*pi)\tdiversity_index(Ds)\tGini–Simpson_index(D's=1-Ds)\tinverse_Simpson’s_index(D-1s=1/Ds)\tevenness(E=D-1s/K)")
+    print("Sample_name\tShannon_index(pi*ln*pi)\tdiversity_index(Ds)\tGini-Simpson_index(D's=1-Ds)\tinverse_Simpson's_index(D-1s=1/Ds)\tevenness(E=D-1s/K)")
     for each_file in sys.argv[1:]:
         sample_name = os.path.basename(each_file).split(".")[0]  # RPG527P2-G164E1L1.mixcr.out.clonotypes.TRA.txt
 
