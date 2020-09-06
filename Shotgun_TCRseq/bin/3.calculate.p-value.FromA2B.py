@@ -1,4 +1,5 @@
 import sys
+import os
 import scipy.special
 
 
@@ -8,6 +9,7 @@ def usage():
 Example:
     time python3 {0} Total.G87E2.TRAB.clone.reads.barcode.txt 10 >Total.G87E2.pairs.unique.3.xls
 Updates:
+    20200819    automatically find W (Total well number).
     20200312    fix bugs.(calculate all min(b).see: line 87.)
     20200309    created
     """.format(os.path.basename(sys.argv[0])))
@@ -79,12 +81,11 @@ def main():
 
     input_file = sys.argv[1]  # Total.G87E2.TRAB.clone.reads.barcode.txt
     threshold = eval(sys.argv[2]) # should be an integer.
-    W = 48  # may be modified every time.
-    p_value_dict = calculate_p_value(W)
 
     TRA_dict = {}
     TRB_dict = {}
     count_dict = {}
+    barcode_list = []
     with open(input_file, "r") as f:
         for line in f:
             line = line.rstrip("\n")
@@ -93,13 +94,21 @@ def main():
                 count_dict[clone_id] = 1
             else:
                 count_dict[clone_id] = count_dict[clone_id] + 1
-            if barcode[2:3] == 'A':
-                add2dict(TRA_dict, clone_id, barcode[3:])
-            elif barcode[2:3] == 'B':
-                add2dict(TRB_dict, clone_id, barcode[3:])
+            
+            well = barcode[4:]
+            if well not in barcode_list:
+                barcode_list.append(well)
+            if clone_id.startswith("a"):
+                add2dict(TRA_dict, clone_id, well)
+            elif clone_id.startswith("b"):
+                add2dict(TRB_dict, clone_id, well)
             else:
                 sys.exit("barcode error.")
 
+    W = len(barcode_list)  # fix by shiyi at 20200819.
+    # print("W = len(barcode_list) : {}".format(W))
+    p_value_dict = calculate_p_value(W)
+    
     clonotype2p_dict = {}
     clonotype2wells_dict = {}
     shared_wells_dict = {}
