@@ -9,7 +9,8 @@ def usage():
     python3 {0} <reads_barcode_file>
 
 example:
-    python3 {0} Total.G87E2.TRAB.clone.reads.barcode.txtpython3 /cygene/work/00.test/pipeline/Shotgun_TCRseq/bin/2.1.optional_filter_median.py Total.G125E2.TRAB.clone.reads.barcode.txt
+    python3 {0} Total.G87E2.TRAB.clone.reads.barcode.txt
+    python3 {0} Total.G125E2.TRAB.clone.reads.barcode.txt
 
 Updates:
     20200724: change median.
