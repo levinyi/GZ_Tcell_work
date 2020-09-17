@@ -19,17 +19,16 @@ def usage():
 
 
 def read_clonotypes(file1):
-	adict = {}
-	with open(file1,"r") as f1:
-		for line in f1:
-			line = line.rstrip("\n")
-			if line.startswith("clonotype_id"):
-				continue
-			clonotype_id,frequency, proportion,cdr3s_aa,cdr3s_nt = line.split(",")
-			
-			adict.setdefault(clonotype_id,{})['freq'] = frequency
-			adict.setdefault(clonotype_id,{})['prop'] = proportion
-	return adict
+    adict = {}
+    with open(file1,"r") as f1:
+        for line in f1:
+            line = line.rstrip("\n")
+            if line.startswith("clonotype_id"):
+                continue
+            clonotype_id,frequency, proportion,cdr3s_aa,cdr3s_nt = line.split(",")
+            adict.setdefault(clonotype_id,{})['freq'] = frequency
+            adict.setdefault(clonotype_id,{})['prop'] = proportion
+    return adict
 
 
 def two_dim_dict(thedict, key_a, key_b, value):
