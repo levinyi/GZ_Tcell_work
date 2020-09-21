@@ -134,6 +134,9 @@ def main():
             out2.write("\n")
     print("output files: {}, {}, {}\n".format(outfile1, outfile2, outfile3))
 
+    # last filter.
+    # filter clonotype id:
+    # filtered_id = ['']
     with open(input_file, "r") as f, open(outfile3, "w") as out3:
         for line in f:
             cloneid, readid, barcode = line.split()
