@@ -6,19 +6,25 @@ TRJ_gene = ["TRAJ1","TRAJ10","TRAJ11","TRAJ12","TRAJ13","TRAJ14","TRAJ15","TRAJ1
 
 adict= {}
 c = re.compile(r'(TR[AB]V[0-9]+-?[0-9]?(DV\d)?)(.*)(TR[ABD]J.*)')
+
+
 with open(sys.argv[1],"r") as f:
     for line in f:
         line = line.rstrip("\n")
         if line.startswith("unique"):
             continue
-        a = line.split("\t")
-        clonotype = a[0]
-        other = a[1:]
-        p = c.match(clonotype)
-        if p:
-            v_gene = p.group(1)
-            cdr3 = p.group(3)
-            J_gene = p.group(4)
+        clonotype_tra, clonotype_trb = line.split("_")
+        p1 = c.match(clonotype_tra)
+        p2 = c.match(clonotype_trb)
+        if p1 and p2:
+            v_gene_1 = p1.group(1)
+            cdr3_1 = p1.group(3)
+            J_gene_1 = p1.group(4)
+            v_gene_2 = p2.group(1)
+            cdr3_2 = p2.group(3)
+            J_gene_2 = p2.group(4)
+            print("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(line, v_gene_1, cdr3_1, J_gene_1, v_gene_2, cdr3_2, J_gene_2))
+            '''
             if v_gene in TRV_gene and J_gene in TRJ_gene:
                 print("%s\t%s\t%s\t%s\t%s"%(clonotype, v_gene,cdr3,J_gene,'\t'.join(other)))
             elif v_gene in TRV_gene and J_gene not in TRJ_gene :
@@ -28,17 +34,3 @@ with open(sys.argv[1],"r") as f:
             elif v_gene not in TRV_gene and J_gene not in TRJ_gene :
                 print("%s\t%s\t%s\t%s\t%s\tNULL_VJ"%(clonotype, v_gene,cdr3,J_gene,'\t'.join(other)))
             '''
-            if v_gene in TRV_gedne:
-                if v_gene not in adict:
-                    adict[v_gene] = 1
-                else:
-                    adict[v_gene] = adict[v_gene] +1
-            else:
-                print("not found",v_gene)
-            '''
-        # else:
-        #     print("one not match!",line)
-
-
-# for k in adict:
-#     print("%s\t%s"%(k,adict[k]))
