@@ -37,7 +37,7 @@ def main():
         fastq_file.close()
 
     for barcode in barcode_list_dict:
-        if len(barcode_list_dict[barcode]) >5000:
+        if len(barcode_list_dict[barcode]) >3000:
             with open(barcode + "_S1_L001_R1_001.fastq", "w") as f1, open(barcode + "_S1_L001_R2_001.fastq", "w") as f2:
                 for read_id in barcode_list_dict[barcode]:
                     SeqIO.write(rd1_dict[read_id], f1, "fastq")
