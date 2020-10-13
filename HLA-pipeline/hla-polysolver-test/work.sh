@@ -1,0 +1,1 @@
+sudo docker run  --name my_test4 -v /cygene/work/00.test/pipeline/HLA-pipeline/example:/home/docker sachet/polysolver:v4 bash /home/polysolver/scripts/shell_call_hla_type /home/docker/GB001001.Normal.duplicates_marked_sorted_fixed.BQSR.bam Unknown 1 hg38 STDFQ 0 /home/docker
