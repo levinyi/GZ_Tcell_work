@@ -13,3 +13,5 @@ database
 *.bam
 *.bai
 *.md5
+*.fastq
+
