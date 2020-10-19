@@ -14,4 +14,4 @@ database
 *.bai
 *.md5
 *.fastq
-
+*.bin
