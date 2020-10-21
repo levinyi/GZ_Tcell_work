@@ -10,8 +10,17 @@
 *.gz
 database
 *database*
+
 *.bam
 *.bai
+*.sam
+*.sai
+
 *.md5
+
 *.fastq
+*.fq
+
+*.fa
+*.fasta
 *.bin
