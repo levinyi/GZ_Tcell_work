@@ -1,0 +1,1 @@
+/cygene/software/biosoftware/HLAreporter.v103/mytest/four_digit_prediction/exon23_high_resolution_multi_ref.fa.pac
