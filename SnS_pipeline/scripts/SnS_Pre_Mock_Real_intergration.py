@@ -40,6 +40,7 @@ def main():
     if not cf.has_section('data'):
         os.exit("Error: your config file is not correct.")
     project_name = parser.project
+    output = open(project_name + '.csv', "w")
 
     config_dict = {
         'pre_samples' : cf.get('data','Pre'),
@@ -80,26 +81,26 @@ def main():
     
     # print header first. 
     header = []
-    header.append("real_union_id")
+    header.append("TCR_id(Real_samples_union)")
     for each in pre_sample_list:
-        header.append(each+"_count(pre)")
-        header.append(each+"_freq(pre)")
+        header.append(each+"_count(Pre)")
+        header.append(each+"_freq(Pre)")
     for each in mock_sample_list:
-        header.append(each+"_count(mock)")
-        header.append(each+"_freq(mock)")
+        header.append(each+"_count(Mock)")
+        header.append(each+"_freq(Mock)")
     for each in real_sample_list:
-        header.append(each+"_count(real)")
-        header.append(each+"_freq(real)")
+        header.append(each+"_count(Real)")
+        header.append(each+"_freq(Real)")
     for i in mock_sample_list:
         for j in pre_sample_list:
-            header.append("Mock/Pre("+i+"/"+j+")")
+            header.append("Mock/Pre(" + i + "/" + j + ")")
     for i in real_sample_list:
         for j in pre_sample_list:
-            header.append("Real/Pre(" + i+"/"+j+")")
+            header.append("Real/Pre(" + i + "/" + j + ")")
     for i in real_sample_list:
         for j in mock_sample_list:
-            header.append("Real/Mock("+i+"/"+j+")")
-    print("{}".format(",".join(header)))
+            header.append("Real/Mock("+ i + "/" + j + ")")
+    output.write("{}\n".format(",".join(header)))
 
     ##########################
     for each_id in real_sample_union_id:
@@ -119,25 +120,30 @@ def main():
         # calculate mock/pre:
         foldchange_content = []
         for i in sample_index_dict['mock']:
+            # print("mock index begin:{}".format(i))
             for j in sample_index_dict['pre']:
+                # print("pre index begin:{}".format(j))
+                # print("here is the content index {} and {},content is : {} and {}".format(i,j, print_content[i], print_content[j]))
+                # print("but actually the content index is {} {},content is {} {}".format(i*2,j*2,print_content[i*2], print_content[j*2]))
                 try:
-                    foldchange_content.append(str(float(print_content[i])/float(print_content[j])))
+                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
                     foldchange_content.append('0')
         for i in sample_index_dict['real']:
             for j in sample_index_dict['pre']:
                 try:
-                    foldchange_content.append(str(float(print_content[i])/float(print_content[j])))
+                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
                     foldchange_content.append('0')
         for i in sample_index_dict['real']:
             for j in sample_index_dict['mock']:
                 try:
-                    foldchange_content.append(str(float(print_content[i])/float(print_content[j])))
+                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
                     foldchange_content.append('0')
         # print(foldchange_content)
-        print("{},{}".format(",".join(print_content), ",".join(foldchange_content)))
+        output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
+    output.close()
         
 
 if __name__ == '__main__':
