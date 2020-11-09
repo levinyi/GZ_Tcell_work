@@ -69,7 +69,10 @@ def main():
         sample_file = [each for each in files if each.startswith(sample+'.pair.acc_freq')]
         if len(sample_file) > 1:
             sys.exit("Error!")
-        sample_file = sample_file[0]
+        try:
+            sample_file = sample_file[0]
+        except IndexError:
+            sys.exit("Error: Wrong sample name in your config file: {}. Could not find {}.pair.acc_freq*.txt".format(sample,sample))
         adict = read_freq_file(sample_file)
         big_dict[sample] = adict
     
