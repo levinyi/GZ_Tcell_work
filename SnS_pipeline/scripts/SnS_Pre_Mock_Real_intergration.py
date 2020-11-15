@@ -131,19 +131,19 @@ def main():
                 try:
                     foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
-                    foldchange_content.append('0')
+                    foldchange_content.append('0.0000001')
         for i in sample_index_dict['real']:
             for j in sample_index_dict['pre']:
                 try:
                     foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
-                    foldchange_content.append('0')
+                    foldchange_content.append('0.0000001')
         for i in sample_index_dict['real']:
             for j in sample_index_dict['mock']:
                 try:
                     foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
                 except ZeroDivisionError:
-                    foldchange_content.append('0')
+                    foldchange_content.append('0.0000001')
         # print(foldchange_content)
         output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
     output.close()
