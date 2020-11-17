@@ -36,9 +36,11 @@ def main():
 
     # read config file:
     config_dict = {
+        # script dir
+        'script_dir' : cf.get('config', 'script_dir'),
         # reference database
         'kneaddata_ref': cf.get('config', 'kneaddata_ref'),
-        'kraken2_db': cf.get('config', 'kraken2_db')
+        'kraken2_db': cf.get('config', 'kraken2_db'),
         # software.
         'kneaddata' : cf.get('config', 'kneaddata'),
         'kraken2' : cf.get('config', 'kraken2'),
@@ -57,12 +59,12 @@ def main():
     project_dir = os.path.abspath(".") + '/' + config_dict['project_name']
     make_dir(project_dir)
     kneaddata_dir = os.path.abspath(project_dir) + '/kneaddata_result'
-    taxonomic_dir = os.path.abspath(project_dir) + '/kraken2'
-    functional_dir = os.path.abspath(project_dir) + '/functional_result'
+    taxonomic_dir = os.path.abspath(project_dir) + '/kraken2_result'
+    humann2_dir = os.path.abspath(project_dir) +'/humann2_result'
     megahit_dir   = os.path.abspath(project_dir) + '/megahit_result'
     
-    config_dict.update({"project_dir":project_dir,"kneaddata_dir":kneaddata_dir,"taxonomic_dir":taxonomic_dir,"functional_dir":functional_dir,"megahit_dir":megahit_dir})
-    make_dir(kneaddata_dir, taxonomic_dir, functional_dir, megahit_dir)
+    config_dict.update({"project_dir":project_dir,"kneaddata_dir":kneaddata_dir,"taxonomic_dir":taxonomic_dir,"humann2_dir":humann2_dir,"megahit_dir":megahit_dir})
+    make_dir(kneaddata_dir, taxonomic_dir, humann2_dir)
     print("# Create work directory")
     # print(config_dict)
 
@@ -73,23 +75,24 @@ def main():
     with open(shell_name, "w") as f:
         # step1: filtering
         for each_sample in fastq_data_dict:
-            f.write("{kneaddata} --input {} --reference-db {kneaddata_ref} --output {kneaddata_dir}\n".format(fastq_data_dict[each_sample],**config_dict))
+            f.write("{kneaddata} --input {0} --reference-db {kneaddata_ref} --output {kneaddata_dir}  --output-prefix {1}.kneaddata \n".format(fastq_data_dict[each_sample], each_sample, **config_dict))
         # step2:
-            f.write("{kraken2} --db {kraken2_db}  --threads 50  --report ./{}.report --output ./{}.output  {}eaddata.fastq 2>log\n".format(**config_dict))
-            f.write("{bracken} -d {kraken2_db} -i {}.report -o {}.S.bracken -w {}.S.bracken.report -r 150 -l S \n".format(each_sample, **config_dict))
-            f.write("{kreport2mpa} -r {}.S.bracken.report   -o {}.new.report\n".format(each_sample, **config_dict))
+            f.write("{kraken2} --db {kraken2_db}  --threads 50  --report {taxonomic_dir}/{0}.kraken2.report --output {taxonomic_dir}/{0}.kraken2.output {kneaddata_dir}/{0}.kneaddata.fastq 2>{taxonomic_dir}/{0}.kraken2.log\n".format(each_sample, **config_dict))
+            f.write("{bracken} -d {kraken2_db} -i {taxonomic_dir}/{0}.kraken2.report -o {taxonomic_dir}/{0}.S.bracken -w {taxonomic_dir}/{0}.S.bracken.report -r 150 -l S \n".format(each_sample, **config_dict))
+            f.write("{kreport2mpa} -r {taxonomic_dir}/{0}.S.bracken.report -o {taxonomic_dir}/{0}.S.kreport2mpa.report\n".format(each_sample, **config_dict))
 
             # step3:
-            f.write("humann2\n".format(**config_dict))
+            f.write("{humann2} --verbose --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
+            # will generate a megahit_dir.
+            f.write("{megahit} -r {kneaddata_dir}/{0}.kneaddata.fastq -o {megahit_dir}/{0} --out-prefix {0}.megahit.final \n".format(each_sample, **config_dict))
+            f.write("{quast} {megahit_dir}/{0}/{0}.megahit.final.contigs.fa -o {megahit_dir}/{0}/{0}.megahit-quast-report \n".format(each_sample, **config_dict))
 
-            f.write("{megahit} -r {}.kneaddata.fastq -o {} --out-prefix {}.megahit.final \n".format(each_sample, **config_dict))
-            f.write("{quast} {outdir}/{}.megahit.final.contigs.fa -o combined-report \n".format(**config_dict))
+            f.write("# \n".format(**config_dict))
 
-            f.write("metaquast\n".format(**config_dict))
-
-            f.write("prokka\n".format(**config_dict))
+            f.write("{prokka} {megahit_dir}/{0}.megahit.final.contigs.fa --outdir {project_dir}/prokka_annotation --force --prefix {0} --metagenome --kingdom Bacteria \n".format(each_sample, **config_dict))
 
             f.write("salmon\n".format(**config_dict))
+        f.write("{script_dir}/kneaddata_read_count_table --input {kneaddata_dir} --output Summary.kneadata.results.xls".format(**config_dict))
 
     print("all finished!")
 
