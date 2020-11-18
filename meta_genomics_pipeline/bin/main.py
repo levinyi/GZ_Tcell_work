@@ -64,7 +64,7 @@ def main():
     megahit_dir   = os.path.abspath(project_dir) + '/megahit_result'
     
     config_dict.update({"project_dir":project_dir,"kneaddata_dir":kneaddata_dir,"taxonomic_dir":taxonomic_dir,"humann2_dir":humann2_dir,"megahit_dir":megahit_dir})
-    make_dir(kneaddata_dir, taxonomic_dir, humann2_dir)
+    make_dir(kneaddata_dir, taxonomic_dir, humann2_dir, megahit_dir)
     print("# Create work directory")
     # print(config_dict)
 
@@ -82,17 +82,19 @@ def main():
             f.write("{kreport2mpa} -r {taxonomic_dir}/{0}.S.bracken.report -o {taxonomic_dir}/{0}.S.kreport2mpa.report\n".format(each_sample, **config_dict))
 
             # step3:
-            f.write("{humann2} --verbose --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
+            f.write("# {humann2} --verbose --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
             # will generate a megahit_dir.
             f.write("{megahit} -r {kneaddata_dir}/{0}.kneaddata.fastq -o {megahit_dir}/{0} --out-prefix {0}.megahit.final \n".format(each_sample, **config_dict))
             f.write("{quast} {megahit_dir}/{0}/{0}.megahit.final.contigs.fa -o {megahit_dir}/{0}/{0}.megahit-quast-report \n".format(each_sample, **config_dict))
 
             f.write("# \n".format(**config_dict))
 
-            f.write("{prokka} {megahit_dir}/{0}.megahit.final.contigs.fa --outdir {project_dir}/prokka_annotation --force --prefix {0} --metagenome --kingdom Bacteria \n".format(each_sample, **config_dict))
+            f.write("{prokka} {megahit_dir}/{0}/{0}.megahit.final.contigs.fa --outdir {project_dir}/prokka_annotation --force --prefix {0} --metagenome --kingdom Bacteria \n".format(each_sample, **config_dict))
 
-            f.write("salmon\n".format(**config_dict))
-        f.write("{script_dir}/kneaddata_read_count_table --input {kneaddata_dir} --output Summary.kneadata.results.xls".format(**config_dict))
+            f.write("# salmon\n".format(**config_dict))
+        f.write("{script_dir}/kneaddata_read_count_table --input {kneaddata_dir} --output Summary.kneadata.results.xls \n".format(**config_dict))
+        f.write("{script_dir}/summary_kraken_count_table.py --input {taxonomic_dir} --output Summary.kraken2.results.xls \n".format(**config_dict))
+        f.write("# {script_dir}/merge_metaphlan_tables.py {humann2_dir}/*/*.tsv > ")
 
     print("all finished!")
 
