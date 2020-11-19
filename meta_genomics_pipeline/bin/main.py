@@ -81,8 +81,11 @@ def main():
             f.write("{bracken} -d {kraken2_db} -i {taxonomic_dir}/{0}.kraken2.report -o {taxonomic_dir}/{0}.S.bracken -w {taxonomic_dir}/{0}.S.bracken.report -r 150 -l S \n".format(each_sample, **config_dict))
             f.write("{kreport2mpa} -r {taxonomic_dir}/{0}.S.bracken.report -o {taxonomic_dir}/{0}.S.kreport2mpa.report\n".format(each_sample, **config_dict))
 
-            # step3:
-            f.write("# {humann2} --verbose --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
+            # step3: see: https://github.com/biobakery/biobakery/wiki/humann2  3.1, 3.2
+            f.write("{humann2} --verbose --remove-temp-output --nucleotide-database /cygene/software/biosoftware/metagenomics/humann2_data/chocophlan --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
+            f.write("{script_dir}/humann2_rename_table --input {humann2_dir}/{0}_genefamilies.tsv --output {humann2_dir}/{0}_genefamilies-names.tsv --names uniref90\n".format(each_sample, **config_dict))
+            # Normalizing RPKs to relative abundance
+            f.write("{script_dir}/humann2_renorm_table --input {humann2_dir}/{0}_genefamilies.tsv --output {humann2_dir}/{0}_genefamilies-cpm.tsv --units cpm --update-snames\n".format(each_sample, **config_dict))
             # will generate a megahit_dir.
             f.write("{megahit} -r {kneaddata_dir}/{0}.kneaddata.fastq -o {megahit_dir}/{0} --out-prefix {0}.megahit.final \n".format(each_sample, **config_dict))
             f.write("{quast} {megahit_dir}/{0}/{0}.megahit.final.contigs.fa -o {megahit_dir}/{0}/{0}.megahit-quast-report \n".format(each_sample, **config_dict))
@@ -94,7 +97,8 @@ def main():
             f.write("# salmon\n".format(**config_dict))
         f.write("{script_dir}/kneaddata_read_count_table --input {kneaddata_dir} --output Summary.kneadata.results.xls \n".format(**config_dict))
         f.write("{script_dir}/summary_kraken_count_table.py --input {taxonomic_dir} --output Summary.kraken2.results.xls \n".format(**config_dict))
-        f.write("# {script_dir}/merge_metaphlan_tables.py {humann2_dir}/*/*.tsv > ")
+        f.write("{script_dir}/merge_metaphlan_tables.py {humann2_dir}/*/*.tsv > Summary.metaphlan.results.xls\n".format(**config_dict))
+        f.write("{script_dir}/humann2_join_tables --input {humann2_dir} --output Summary.humann2.results.xls\n".format(**config_dict))
 
     print("all finished!")
 
