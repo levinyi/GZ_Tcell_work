@@ -35,23 +35,30 @@ def read_freq_file(freq_file):
 
 def main():
     parser = _argparse()
-    cf = configparser.ConfigParser(allow_no_value=True)
+    cf = configparser.ConfigParser(allow_no_value=True, )
     cf.read(parser.config)
     if not cf.has_section('data'):
         os.exit("Error: your config file is not correct.")
     project_name = parser.project
     output = open(project_name + '.csv', "w")
-
+    '''
+    for section in cf.sections():
+        print(section)
+        for option in cf.options(section):
+            value = cf.get(section, option)
+            print(option, value, type(value))
+    print(cf.items('data'))
+    '''
     config_dict = {
         'pre_samples' : cf.get('data','Pre'),
         'mock_samples' : cf.get('data', 'Mock'),
         'real_samples' : cf.get('data', 'Real'),
         }
-    
     pre_sample_list = config_dict['pre_samples'].split(",")
     mock_sample_list = config_dict['mock_samples'].split(",")
     real_sample_list = config_dict['real_samples'].split(",")
     all_sample_list = pre_sample_list + mock_sample_list + real_sample_list
+    print("your input sample names are: {}".format(all_sample_list))
     l1 = len(pre_sample_list)
     l2 = len(mock_sample_list)
     l3 = len(real_sample_list)
@@ -60,13 +67,14 @@ def main():
     sample_index_dict.setdefault('pre',  [x for x in range(1, l1+1)])
     sample_index_dict.setdefault('mock', [x for x in range(l1+1, l1+l2+1)])
     sample_index_dict.setdefault('real', [x for x in range(l1+l2+1, l1+l2+l3+1)])
-    # print(sample_index_dict)
-    # sample_index_dict: {'pre': [1, 2], 'mock': [3, 4], 'real': [5, 6]}
+    print("your sample_index dict: {}".format(sample_index_dict))
+    print("sample_index_dict should be: {'pre': [1, 2], 'mock': [3, 4], 'real': [5, 6]}")
 
     files = os.listdir(path='.')
     big_dict = {}
     for sample in all_sample_list:
         sample_file = [each for each in files if each.startswith(sample+'.pair.acc_freq')]
+        print("detected file: {}".format(sample_file))
         if len(sample_file) > 1:
             sys.exit("Error!")
         try:
@@ -75,13 +83,13 @@ def main():
             sys.exit("Error: Wrong sample name in your config file: {}. Could not find {}.pair.acc_freq*.txt".format(sample,sample))
         adict = read_freq_file(sample_file)
         big_dict[sample] = adict
-    
+    # print(big_dict)
     real_sample_union_id = []
     for sample in real_sample_list:
         tcrid = big_dict[sample].keys()
         real_sample_union_id += tcrid
     real_sample_union_id = set(real_sample_union_id)
-    
+    # print(real_sample_union_id)
     # print header first. 
     header = []
     header.append("TCR_id(Real_samples_union)")
@@ -104,7 +112,7 @@ def main():
         for j in mock_sample_list:
             header.append("Real/Mock("+ i + "/" + j + ")")
     output.write("{}\n".format(",".join(header)))
-
+    # print("finished write header")
     ##########################
     for each_id in real_sample_union_id:
         print_content = []
@@ -147,7 +155,7 @@ def main():
         # print(foldchange_content)
         output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
     output.close()
-        
+
 
 if __name__ == '__main__':
     main()
