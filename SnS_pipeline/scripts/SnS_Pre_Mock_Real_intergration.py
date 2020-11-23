@@ -114,18 +114,19 @@ def main():
     output.write("{}\n".format(",".join(header)))
     # print("finished write header")
     ##########################
+    min_freq = '0.0000001'
     for each_id in real_sample_union_id:
         print_content = []
         print_content.append(each_id)
         for pre_sample in pre_sample_list:
-            print_content.append(big_dict[pre_sample].get(each_id, {'perfect_count':'0'})['perfect_count'])
-            print_content.append(big_dict[pre_sample].get(each_id, {'perfect_freq' :'0'})['perfect_freq'])
+            print_content.append(big_dict[pre_sample].get(each_id, {'perfect_count': '0'})['perfect_count'])
+            print_content.append(big_dict[pre_sample].get(each_id, {'perfect_freq' : min_freq})['perfect_freq'])
         for mock_sample in mock_sample_list:
-            print_content.append(big_dict[mock_sample].get(each_id, {'perfect_count':'0'})['perfect_count'])
-            print_content.append(big_dict[mock_sample].get(each_id, {'perfect_freq' :'0'})['perfect_freq'])
+            print_content.append(big_dict[mock_sample].get(each_id, {'perfect_count': '0'})['perfect_count'])
+            print_content.append(big_dict[mock_sample].get(each_id, {'perfect_freq' : min_freq})['perfect_freq'])
         for real_sample in real_sample_list:
-            print_content.append(big_dict[real_sample].get(each_id, {'perfect_count':'0'})['perfect_count'])
-            print_content.append(big_dict[real_sample].get(each_id, {'perfect_freq' :'0'})['perfect_freq'])
+            print_content.append(big_dict[real_sample].get(each_id, {'perfect_count': '0'})['perfect_count'])
+            print_content.append(big_dict[real_sample].get(each_id, {'perfect_freq' : min_freq})['perfect_freq'])
         # print(print_content)
 
         # calculate mock/pre:
@@ -133,28 +134,31 @@ def main():
         for i in sample_index_dict['mock']:
             # print("mock index begin:{}".format(i))
             for j in sample_index_dict['pre']:
-                # print("pre index begin:{}".format(j))
-                # print("here is the content index {} and {},content is : {} and {}".format(i,j, print_content[i], print_content[j]))
-                # print("but actually the content index is {} {},content is {} {}".format(i*2,j*2,print_content[i*2], print_content[j*2]))
-                try:
-                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
-                except ZeroDivisionError:
-                    foldchange_content.append('0.0000001')
+                FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                foldchange_content.append(FC_value)
         for i in sample_index_dict['real']:
             for j in sample_index_dict['pre']:
-                try:
-                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
-                except ZeroDivisionError:
-                    foldchange_content.append('0.0000001')
+                FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                foldchange_content.append(FC_value)
         for i in sample_index_dict['real']:
             for j in sample_index_dict['mock']:
-                try:
-                    foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
-                except ZeroDivisionError:
-                    foldchange_content.append('0.0000001')
-        # print(foldchange_content)
+                FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                foldchange_content.append(FC_value)
         output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
     output.close()
+
+def calculate_division(a,b):
+    a = float(a)
+    b = float(b)
+    if a == 0 and b == 0:
+        v = str('0')
+    elif a == 0 and b != 0:
+        v = str(0.0000001/b)
+    elif a != 0 and b == 0:
+        v = str(a/0.0000001)
+    elif a != 0 and b !=0:
+        v = str(a/b)
+    return v
 
 
 if __name__ == '__main__':
