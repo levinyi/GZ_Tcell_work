@@ -20,7 +20,7 @@ def addtwodimdict(thedict, key_a, key_b, val):
     return thedict
 
 
-def read_freq_file(freq_file):
+def read_freq_file(freq_file, min_freq):
     adict = {}
     with open(freq_file, "r") as f:
         for line in f:
@@ -28,8 +28,11 @@ def read_freq_file(freq_file):
                 continue
             line = line.rstrip("\n")
             pair, cdr3acc,cdr3freq, perfect_count, perfect_freq = line.split()
+            if float(perfect_freq) == 0:
+                addtwodimdict(adict, pair, 'perfect_freq', min_freq)
+            else:
+                addtwodimdict(adict, pair, 'perfect_freq', perfect_freq)
             addtwodimdict(adict, pair, 'perfect_count', perfect_count)
-            addtwodimdict(adict, pair, 'perfect_freq', perfect_freq)
     return adict
 
 
@@ -70,6 +73,7 @@ def main():
     print("your sample_index dict: {}".format(sample_index_dict))
     print("sample_index_dict should be: {'pre': [1, 2], 'mock': [3, 4], 'real': [5, 6]}")
 
+    min_freq = '0.0000001'
     files = os.listdir(path='.')
     big_dict = {}
     for sample in all_sample_list:
@@ -81,7 +85,7 @@ def main():
             sample_file = sample_file[0]
         except IndexError:
             sys.exit("Error: Wrong sample name in your config file: {}. Could not find {}.pair.acc_freq*.txt".format(sample,sample))
-        adict = read_freq_file(sample_file)
+        adict = read_freq_file(sample_file, min_freq)
         big_dict[sample] = adict
     # print(big_dict)
     real_sample_union_id = []
@@ -114,7 +118,6 @@ def main():
     output.write("{}\n".format(",".join(header)))
     # print("finished write header")
     ##########################
-    min_freq = '0.0000001'
     for each_id in real_sample_union_id:
         print_content = []
         print_content.append(each_id)
@@ -134,16 +137,19 @@ def main():
         for i in sample_index_dict['mock']:
             # print("mock index begin:{}".format(i))
             for j in sample_index_dict['pre']:
-                FC_value = calculate_division(print_content[i*2], print_content[j*2])
-                foldchange_content.append(FC_value)
+                # FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                # foldchange_content.append(FC_value)
+                foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
         for i in sample_index_dict['real']:
             for j in sample_index_dict['pre']:
-                FC_value = calculate_division(print_content[i*2], print_content[j*2])
-                foldchange_content.append(FC_value)
+                # FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                # foldchange_content.append(FC_value)
+                foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
         for i in sample_index_dict['real']:
             for j in sample_index_dict['mock']:
-                FC_value = calculate_division(print_content[i*2], print_content[j*2])
-                foldchange_content.append(FC_value)
+                # FC_value = calculate_division(print_content[i*2], print_content[j*2])
+                # foldchange_content.append(FC_value)
+                foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
         output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
     output.close()
 
