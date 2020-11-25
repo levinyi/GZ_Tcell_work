@@ -1,0 +1,8 @@
+[config]
+software:
+
+database:
+
+[data]
+samples:xxx.fastq,xxx.fastq
+sample:
