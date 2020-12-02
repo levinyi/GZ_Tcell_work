@@ -29,7 +29,9 @@ with open(tcr_list, "r") as f:
         if line.startswith("TCR_id"):
             continue
         tcr_id, CFS = line.split()
-        tcr_dict[tcr_id] = CFS
+        #tcr_dict[tcr_id] = CFS
+        #######
+        tcr_dict.setdefault(tcr_id,[]).append(CFS)
         tcr_id_fix = tcr_id.split(".")[0]
         total_tcr += 1
         if tcr_id_fix in clonotype2barcode_dict:
@@ -43,7 +45,7 @@ with gzip.open(barcodes_file, "rb") as f:
         barcode = line.rstrip("\n")
         if barcode in barcode2clonotype_dict:
             tcr_id = barcode2clonotype_dict[barcode]
-            print("{},{},{},Known".format(barcode,tcr_id,tcr_dict[tcr_id]))
+            print("{},{},{},Known".format(barcode,tcr_id,";".join(tcr_dict[tcr_id])))
         else:
             print("{},,,Not_detected".format(barcode))
 '''
