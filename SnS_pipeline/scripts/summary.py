@@ -1,1 +1,0 @@
-/cygene2/work/59.others/SnS_statistics/summary.py
