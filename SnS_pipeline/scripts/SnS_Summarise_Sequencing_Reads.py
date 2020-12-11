@@ -6,7 +6,7 @@ if len(sys.argv) == 1:
 else:
     workpath = sys.argv[1]
 
-output1 = open("Total.Count.UMI.info.summary.csv","w")
+output1 = open("Summary_of_Total_Count_UMI_info.csv","w")
 #output1.write("sample,total,match_A,match_B,six_total,match_perfect,percent\n")
 adict = {}
 content = []
