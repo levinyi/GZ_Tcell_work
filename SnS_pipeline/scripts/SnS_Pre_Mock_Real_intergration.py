@@ -38,40 +38,46 @@ def read_freq_file(freq_file, min_freq):
 
 def main():
     parser = _argparse()
-    cf = configparser.ConfigParser(allow_no_value=True, )
+    cf = configparser.ConfigParser(allow_no_value=False, )
     cf.read(parser.config)
     if not cf.has_section('data'):
         os.exit("Error: your config file is not correct.")
     project_name = parser.project
     output = open(project_name + '.csv', "w")
-    '''
-    for section in cf.sections():
-        print(section)
-        for option in cf.options(section):
-            value = cf.get(section, option)
-            print(option, value, type(value))
-    print(cf.items('data'))
-    '''
+
     config_dict = {
         'pre_samples' : cf.get('data','Pre'),
         'mock_samples' : cf.get('data', 'Mock'),
         'real_samples' : cf.get('data', 'Real'),
         }
-    pre_sample_list = config_dict['pre_samples'].split(",")
-    mock_sample_list = config_dict['mock_samples'].split(",")
-    real_sample_list = config_dict['real_samples'].split(",")
+
+    if len(config_dict['pre_samples']) == 0:
+        pre_sample_list = []
+    else:
+        pre_sample_list = config_dict['pre_samples'].rstrip(",").split(",")
+
+    if len(config_dict['mock_samples']) == 0:
+        mock_sample_list = []
+    else:
+        mock_sample_list = config_dict['mock_samples'].rstrip(",").split(",")
+
+    if len(config_dict['real_samples']) == 0:
+        real_sample_list = []
+    else:
+        real_sample_list = config_dict['real_samples'].rstrip(",").split(",")
+
     all_sample_list = pre_sample_list + mock_sample_list + real_sample_list
     print("your input sample names are: {}".format(all_sample_list))
     l1 = len(pre_sample_list)
     l2 = len(mock_sample_list)
     l3 = len(real_sample_list)
-    
+    print("pre_sample : {}\t mock_sample : {}\t Real_sample : {}".format(l1, l2, l3))
     sample_index_dict = {}
     sample_index_dict.setdefault('pre',  [x for x in range(1, l1+1)])
     sample_index_dict.setdefault('mock', [x for x in range(l1+1, l1+l2+1)])
     sample_index_dict.setdefault('real', [x for x in range(l1+l2+1, l1+l2+l3+1)])
     print("your sample_index dict: {}".format(sample_index_dict))
-    print("sample_index_dict should be: {'pre': [1, 2], 'mock': [3, 4], 'real': [5, 6]}")
+    # print("sample_index_dict should be: {'pre': [1, 2], 'mock': [3, 4], 'real': [5, 6]}")
 
     min_freq = '0.0000001'
     files = os.listdir(path='.')
@@ -152,6 +158,7 @@ def main():
                 foldchange_content.append(str(float(print_content[i*2])/float(print_content[j*2])))
         output.write("{},{}\n".format(",".join(print_content), ",".join(foldchange_content)))
     output.close()
+    print("all done!")
 
 def calculate_division(a,b):
     a = float(a)
