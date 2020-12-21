@@ -202,6 +202,14 @@ def main():
             -R {ref_fasta} \\
             --segments {sample_name}.Normal.modelFinal.seg \\
             -O {sample_name}.Normal.modelFinal.seg.funcotated.tsv \n\n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
+        FuncotateSegments \\
+            --data-sources-path {funcotator_dataSources} \\
+            --ref-version {funcotator_ref_version} \\
+            --output-file-format SEG \\
+            -R {ref_fasta} \\
+            --segments {sample_name}.Tumor.modelFinal.seg \\
+            -O {sample_name}.Tumor.modelFinal.seg.funcotated.tsv \n\n""".format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
