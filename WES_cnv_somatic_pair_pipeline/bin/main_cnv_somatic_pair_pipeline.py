@@ -183,6 +183,13 @@ def main():
             --sequence-dictionary {ref_fasta}.dict \\
             --output ./ \\
             --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
+        f.write("""{gatk} \\
+        PlotModeledSegments \\
+            --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \\
+            --segments {sample_name}.Tumor.modelFinal.seg \\
+            --sequence-dictionary {ref_fasta}.dict \\
+            --output ./ \\
+            --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
         PlotModeledSegments \\
             --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
