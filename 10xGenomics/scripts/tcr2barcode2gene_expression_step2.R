@@ -48,7 +48,8 @@ sub_HC = subset(HC, cells =cell.use)
 # convert a sparse matrix to a data frame like this:
 gene_expression_matrix = as.data.frame(sub_HC@assays$RNA@counts)
 # filter gene by 0 line.
-gene_expression_matrix_filtered = gene_expression_matrix[which(rowSums(gene_expression_matrix)>0),]
+# gene_expression_matrix_filtered = gene_expression_matrix[which(rowSums(gene_expression_matrix)>0),]
+gene_expression_matrix_filtered = gene_expression_matrix
 # rbind barcode info to matrix. 
 info.use = TCR_barcode_info[which(TCR_barcode_info$expansion =="Known"),]
 info.use.t = t(info.use)
