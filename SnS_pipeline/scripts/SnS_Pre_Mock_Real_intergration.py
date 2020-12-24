@@ -3,6 +3,14 @@ import sys
 import argparse
 import configparser
 
+def usage():
+    '''
+    Usage:
+        python3 SnS_Pre_Mock_Real_intergration.py -c SnS_Pre_Mock_Real_intergration.Comp-CR13-CD8T.config  -p Comp-CR13-CD8T
+
+    Updated:
+    20201222: fix a bug. when config file add space between two samples.
+    '''
 
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
@@ -54,17 +62,17 @@ def main():
     if len(config_dict['pre_samples']) == 0:
         pre_sample_list = []
     else:
-        pre_sample_list = config_dict['pre_samples'].rstrip(",").split(",")
+        pre_sample_list = config_dict['pre_samples'].replace(" ","").rstrip(",").split(",")
 
     if len(config_dict['mock_samples']) == 0:
         mock_sample_list = []
     else:
-        mock_sample_list = config_dict['mock_samples'].rstrip(",").split(",")
+        mock_sample_list = config_dict['mock_samples'].replace(" ","").rstrip(",").split(",")
 
     if len(config_dict['real_samples']) == 0:
         real_sample_list = []
     else:
-        real_sample_list = config_dict['real_samples'].rstrip(",").split(",")
+        real_sample_list = config_dict['real_samples'].replace(" ","").rstrip(",").split(",")
 
     all_sample_list = pre_sample_list + mock_sample_list + real_sample_list
     print("your input sample names are: {}".format(all_sample_list))
