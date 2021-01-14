@@ -1,0 +1,43 @@
+###For more options see: http://boevalab.com/FREEC/tutorial.html#CONFIG ###
+
+[general]
+chrLenFile = /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/Control-FREEC_for_CNV/Homo_sapiens_assembly38.fasta.fai
+window = 0
+ploidy = 2
+outputDir = ./
+
+#sex=XY
+breakPointType=4
+chrFiles =  /cygene/database/GATK_resource_bundle/hg38/Homo_sapiens_assembly38.fasta
+
+maxThreads=50
+
+breakPointThreshold=1.2
+noisyData=TRUE
+printNA=FALSE
+
+readCountThreshold=50
+
+[sample]
+
+mateFile = /cygene2/work/P0000-Blackbird/2103-CR001/CR001004/analysis/CR001004_WES_RNAseq/CR001004.Tumor.duplicates_marked_sorted_fixed.BQSR.bam
+inputFormat = BAM
+mateOrientation = FR
+
+[control]
+
+mateFile = /cygene2/work/P0000-Blackbird/2103-CR001/CR001004/analysis/CR001004_WES_RNAseq/CR001004.Normal.duplicates_marked_sorted_fixed.BQSR.bam
+inputFormat = BAM
+
+# 0 (for single ends), RF (Illumina mate-pairs), FR (Illumina paired-ends), FF (SOLiD mate-pairs)
+mateOrientation = FR
+
+[BAF]
+
+# SNPfile = /bioinfo/users/vboeva/Desktop/annotations/hg19_snp131.SingleDiNucl.1based.txt
+# minimalCoveragePerPosition = 5
+
+[target]
+
+captureRegions = /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list
+
