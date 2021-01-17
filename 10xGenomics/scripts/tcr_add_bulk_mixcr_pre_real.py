@@ -33,4 +33,4 @@ with open(tcr_file, "r") as f:
         TRA_clonotype = c[4].split("*")[0].replace("/","") + c[10] + c[6].split("*")[0].replace("/","")
         TRB_clonotype = c[17].split("*")[0].replace("/","") + c[23] + c[19].split("*")[0].replace("/","")
         #print(TRA_clonotype, TRB_clonotype)
-        print("{},{},{}".format(",".join(c),tra_dict.get(TRA_clonotype,",".join(['0']*9)),trb_dict.get(TRB_clonotype, ",".join(['0']*9))))
+        print("{},{},{}".format(",".join(c),tra_dict.get(TRA_clonotype,",".join(['0']*13)),trb_dict.get(TRB_clonotype, ",".join(['0']*13))))
