@@ -18,13 +18,14 @@ with open(freq_file, "r") as f:
 # pattern = re.compile(r'.*\.(clonotype.*)\.[ATCG]{8}.*')
 # pattern = re.compile(r'.*\.(.*)\.[ATCG]{12}.*')
 with open(sum_file, "r") as f:
-    print("Molecule\tCDR3aJ.Identity\tCDR3aJ.Coverage%\tCDR3aJ.Mutation\tCDR3aJ.InDel\tconA.Identity\tconA.Coverage%\tconA.Mutation\tconA.InDel\tTRAV.Identity\tTRAV.Coverage%\tTRAV.Mutation\tTRAV.InDel\tCDR3bJ.Identity\tCDR3bJ.Coverage%\tCDR3bJ.Mutation\tCDR3bJ.InDel\tconB.Identity\tconB.Coverage%\tconB.Mutation\tconB.InDel\tTRBV.Identity\tTRBV.Coverage%\tTRBV.Mutation\tTRBV.InDel\tSum.of.5\tTCR_freq")
+    print("Molecule\tCDR3aJ.Identity\tCDR3aJ.Coverage%\tCDR3aJ.Mutation\tCDR3aJ.InDel\tconA.Identity\tconA.Coverage%\tconA.Mutation\tconA.InDel\tTRAV.Identity\tTRAV.Coverage%\tTRAV.Mutation\tTRAV.InDel\tCDR3bJ.Identity\tCDR3bJ.Coverage%\tCDR3bJ.Mutation\tCDR3bJ.InDel\tconB.Identity\tconB.Coverage%\tconB.Mutation\tconB.InDel\tTRBV.Identity\tTRBV.Coverage%\tTRBV.Mutation\tTRBV.InDel\tSum.of.5.TRA\tSum.of.5.TRB\tTCR_freq")
     for line in f:
         if line.startswith(("Molecule","molecule")):
             continue
         line = line.rstrip("\n")
         c = line.split()
-        sum5 = int(c[3])+int(c[4])+int(c[7])+int(c[8])+int(c[11])+int(c[12])+int(c[15])+int(c[16])+int(c[19])+int(c[20])
+        sum5_TRA = int(c[3])+int(c[4])+int(c[7])+int(c[8])+int(c[11])+int(c[12])+int(c[15])+int(c[16])+int(c[19])+int(c[20])
+        sum5_TRB = int(c[3])+int(c[4])+int(c[7])+int(c[8])+int(c[23])+int(c[24])+int(c[15])+int(c[16])+int(c[19])+int(c[20])
         # match = pattern.match(c[0])
         # print(match.group(1))
         # tcr_freq = adict[match.group(1)]
@@ -32,4 +33,4 @@ with open(sum_file, "r") as f:
         match = ".".join(c[0].split(".")[1:-2])
         tcr_freq = adict[match]
 
-        print("{}\t{}\t{}".format("\t".join(c),sum5,tcr_freq))
+        print("{}\t{}\t{}\t{}".format("\t".join(c),sum5_TRA,sum5_TRB,tcr_freq))
