@@ -1,6 +1,18 @@
 import sys
 import os
 
+def usage():
+    '''
+    this script only used for XXX.exon.gene_name.counts.txt.TPM.txt file.
+
+    usage:
+    python merge.tpm.py /cygene2/work/Tumor_Expression_Data/*.TPM.txt >test.txt
+
+    update:
+    20210204. added usage description.
+    2020xxxx. created.
+    '''
+    pass
 
 def addtwodimdict(thedict, key_a, key_b, val):
     ''' this is a function to add two dimetion dict '''
