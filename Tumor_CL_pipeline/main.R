@@ -304,13 +304,17 @@ write.table(t(tumor_CL_cor) %>% as.data.frame() %>% rownames_to_column("ccle_nam
     file="tumor_CL_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
 write.table(t(tumor_CL_my_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"), 
     file="tumor_CL_my_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
-
+# select Rootpath tumor and root path cell line.
+rootpath_tumor_cor = tumor_CL_my_cor[rownames(RootPath_CL_file),rownames(RootPath_Tumor_file)]
+write.table(t(rootpath_rumor_cor) &>& as.data.frame() %>% rownames_to_column("ccle_name"),
+  file="tumor_CL_select.transit.csv", sep=",", row.names= FALSE, quote =FALSE)
 # fig3
 get_cell_line_tumor_class <- function(tumor_CL_cor, alignment) {
   cl_tumor_classes <- apply(tumor_CL_cor, 2, function(x) cell_line_tumor_class(x, tumor_CL_cor, alignment)) %>% as.character()
   names(cl_tumor_classes) <- colnames(tumor_CL_cor)
   return(cl_tumor_classes)
 }
+source(here::here('src', 'Figure3.R'))
 cl_tumor_classes = get_cell_line_tumor_class(tumor_CL_cor, alignment)
 cell_line_tumor_class_plot(cl_tumor_classes, alignment, tumor_CL_cor, "Fig3a.myheatmap.png")
 cl_tumor_classes2 = get_cell_line_tumor_class(tumor_CL_my_cor, alignment2)
