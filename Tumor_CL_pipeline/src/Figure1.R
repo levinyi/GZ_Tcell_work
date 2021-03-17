@@ -8,41 +8,16 @@ source(here::here('src', 'global_params.R'))
 # TCGA_mat source: https://xenabrowser.net/datapages/?dataset=TumorCompendium_v10_PolyA_hugo_log2tpm_58581genes_2019-07-25.tsv&host=https%3A%2F%2Fxena.treehouse.gi.ucsc.edu%3A443
 # CCLE_mat source: depmap.org DepMap Public 19Q4 CCLE_expression_full.csv
 # using genes that are common to both datasets, except genes labeled as 'non-coding RNA' or 'pseudogene' by HGNC
-plot_uncorrected_data <- function(CCLE_mat, TCGA_mat) {
-  
-  comb_ann <- cbind.data.frame(`sampleID` = c(rownames(TCGA_mat), rownames(CCLE_mat)),
-                               `type` = c(rep('tumor', nrow(TCGA_mat)), rep("CL", nrow(CCLE_mat))))
-  
+plot_uncorrected_data <- function(CCLE_mat, TCGA_mat, comb_ann) {
   # using Seurat object to run cPCA and UMAP
-  original_combined_obj <-  Seurat::CreateSeuratObject(t(rbind(TCGA_mat,
-                                                               CCLE_mat)),
-                                                       min.cells = 0,
-                                                       min.features = 0,
-                                                       meta.data = comb_ann %>%
-                                                         magrittr::set_rownames(comb_ann$sampleID))
+  original_combined_obj <-  Seurat::CreateSeuratObject(t(rbind(TCGA_mat,CCLE_mat)), min.cells = 0, min.features = 0,
+                                                       metadata = comb_ann %>% magrittr::set_rownames(comb_ann$sampleID))
+  original_combined_obj <- Seurat::ScaleData(original_combined_obj, features = rownames(Seurat::GetAssayData(original_combined_obj)), do.scale = F)
+  original_combined_obj %<>% Seurat::RunPCA(assay='RNA',features = rownames(Seurat::GetAssayData(original_combined_obj)), npcs = global$n_PC_dims, verbose = F)
+  original_combined_obj %<>% Seurat::RunUMAP(assay = 'RNA', dims = 1:global$n_PC_dims,reduction = 'pca',n.neighbors = global$umap_n_neighbors,min.dist = global$umap_min_dist,metric = global$distance_metric,verbose=F)
   
-  original_combined_obj <- Seurat::ScaleData(original_combined_obj, 
-                                             features = rownames(Seurat::GetAssayData(original_combined_obj)), 
-                                             do.scale = F)
-  
-  original_combined_obj %<>% Seurat::RunPCA(assay='RNA',
-                                            features = rownames(Seurat::GetAssayData(original_combined_obj)),
-                                            npcs = global$n_PC_dims,
-                                            verbose = F)
-  
-  original_combined_obj %<>% Seurat::RunUMAP(assay = 'RNA', dims = 1:global$n_PC_dims,
-                                             reduction = 'pca',
-                                             n.neighbors = global$umap_n_neighbors,
-                                             min.dist = global$umap_min_dist,
-                                             metric = global$distance_metric,
-                                             verbose=F)
-  
-  uncorrected_alignment <- Seurat::Embeddings(original_combined_obj, reduction = 'umap') %>%
-    as.data.frame() %>%
-    set_colnames(c('UMAP_1', 'UMAP_2')) %>%
-    rownames_to_column(var = 'sampleID') %>%
-    left_join(comb_ann, by = 'sampleID')
-  
+  uncorrected_alignment <- Seurat::Embeddings(original_combined_obj, reduction = 'umap') %>% as.data.frame() %>% 
+    set_colnames(c('UMAP_1', 'UMAP_2')) %>% rownames_to_column(var = 'sampleID') %>% left_join(comb_ann, by = 'sampleID')
   uncorrected_combined_type_plot <- ggplot2::ggplot(uncorrected_alignment, ggplot2::aes(UMAP_1, UMAP_2)) +
     ggplot2::geom_point(data = filter(uncorrected_alignment, type=='tumor'), alpha=0.6, size=0.5, pch=21, color='white', aes(fill=type)) +
     ggplot2::geom_point(data = filter(uncorrected_alignment, type=='CL'), alpha=0.6, size=0.6, pch=3, aes(color=type), stroke=0.5) +
@@ -50,17 +25,43 @@ plot_uncorrected_data <- function(CCLE_mat, TCGA_mat) {
     ggplot2::scale_fill_manual(values=c(tumor="#00BFC4")) +
     ggplot2::xlab('UMAP 1') + ggplot2::ylab("UMAP 2") +
     ggplot2::theme_classic() +
-    ggplot2::theme(legend.position='bottom',
-          text = ggplot2::element_text(size=8),
+    ggplot2::theme(legend.position='bottom', text = ggplot2::element_text(size=8),
           axis.text = ggplot2::element_text(size=6),
           axis.title = ggplot2::element_text(size=8),
           legend.margin =ggplot2::margin(0,0,0,0), 
           legend.box.margin=ggplot2::margin(-10,-30,-10,-30),
           axis.line = ggplot2::element_line(size = .3))
-  
   return(uncorrected_combined_type_plot)
-  
 }
+
+
+plot_uncorrected_customized_data <- function(CCLE_mat, TCGA_mat, comb_ann, data1,data2){
+  original_combined_obj <-  Seurat::CreateSeuratObject(t(rbind(TCGA_mat,CCLE_mat,data1,data2)), min.cells = 0, min.features = 0,
+                                                       metadata = comb_ann %>% magrittr::set_rownames(comb_ann$sampleID))
+  original_combined_obj <- Seurat::ScaleData(original_combined_obj, features = rownames(Seurat::GetAssayData(original_combined_obj)), do.scale = F)
+  original_combined_obj %<>% Seurat::RunPCA(assay='RNA',features = rownames(Seurat::GetAssayData(original_combined_obj)), npcs = global$n_PC_dims, verbose = F)
+  original_combined_obj %<>% Seurat::RunUMAP(assay = 'RNA', dims = 1:global$n_PC_dims,reduction = 'pca',n.neighbors = global$umap_n_neighbors,min.dist = global$umap_min_dist,metric = global$distance_metric,verbose=F)
+  
+  uncorrected_alignment <- Seurat::Embeddings(original_combined_obj, reduction = 'umap') %>% as.data.frame() %>% 
+    set_colnames(c('UMAP_1', 'UMAP_2')) %>% rownames_to_column(var = 'sampleID') %>% left_join(comb_ann, by = 'sampleID')
+  uncorrected_combined_type_plot <- ggplot2::ggplot(uncorrected_alignment, ggplot2::aes(UMAP_1, UMAP_2)) +
+    ggplot2::geom_point(data = filter(uncorrected_alignment, type=='tumor'), alpha=0.6, size=0.5, pch=21, color='white', aes(fill=type)) +
+    ggplot2::geom_point(data = filter(uncorrected_alignment, type=='CL'), alpha=0.6, size=0.6, pch=3, aes(color=type), stroke=0.5) +
+    ggplot2::geom_point(data = filter(uncorrected_alignment, type=="rootpath"),alpha=0.6, size=0.5, pch=17, aes(color=type), stroke=0.5) +
+    ggplot2::scale_color_manual(values=c(CL="#F8766D",rootpath="black")) +
+    ggplot2::scale_fill_manual(values=c(tumor="#00BFC4")) +
+    ggplot2::xlab('UMAP 1') + ggplot2::ylab("UMAP 2") +
+    ggplot2::theme_classic() +
+    ggplot2::theme(legend.position='bottom', text = ggplot2::element_text(size=8),
+          axis.text = ggplot2::element_text(size=6),
+          axis.title = ggplot2::element_text(size=8),
+          legend.margin =ggplot2::margin(0,0,0,0), 
+          legend.box.margin=ggplot2::margin(-10,-30,-10,-30),
+          axis.line = ggplot2::element_line(size = .3))
+  return(uncorrected_combined_type_plot)
+}
+
+
 
 # figure 1c and Supplementary figure 2a
 # cPCA_values included in the figshare: https://figshare.com/articles/Celligner_data/11965269
