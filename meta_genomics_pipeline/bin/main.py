@@ -41,6 +41,7 @@ def main():
         # reference database
         'kneaddata_ref': cf.get('config', 'kneaddata_ref'),
         'kraken2_db': cf.get('config', 'kraken2_db'),
+        'humann2_db': cf.get('config', 'humann2_db'),
         # software.
         'kneaddata' : cf.get('config', 'kneaddata'),
         'kraken2' : cf.get('config', 'kraken2'),
@@ -100,7 +101,7 @@ def main():
             f.write("{kreport2mpa} -r {taxonomic_dir}/{0}.S.bracken.report -o {taxonomic_dir}/{0}.S.kreport2mpa.report \n".format(each_sample, **config_dict))
 
             # step3: see: https://github.com/biobakery/biobakery/wiki/humann2  3.1, 3.2
-            f.write("{humann2} --verbose --remove-temp-output --nucleotide-database /cygene/software/biosoftware/metagenomics/humann2_data/chocophlan --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
+            f.write("{humann2} --verbose --remove-temp-output --nucleotide-database {humann2_db}/chocophlan --threads 50 --input {kneaddata_dir}/{0}.kneaddata.fastq --output {humann2_dir} \n".format(each_sample, **config_dict))
             f.write("{script_dir}/humann2_rename_table --input {humann2_dir}/{0}_genefamilies.tsv --output {humann2_dir}/{0}_genefamilies-names.tsv --names uniref90 \n".format(each_sample, **config_dict))
             # Normalizing RPKs to relative abundance
             f.write("{script_dir}/humann2_renorm_table --input {humann2_dir}/{0}_genefamilies.tsv --output {humann2_dir}/{0}_genefamilies-cpm.tsv --units cpm --update-snames \n".format(each_sample, **config_dict))
