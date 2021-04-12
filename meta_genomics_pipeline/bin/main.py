@@ -5,10 +5,18 @@ import argparse
 import configparser
 
 
+def usage():
+    print('''
+    updates:
+    
+    20210411:   add PE data parsing.
+    20200611:   created.
+    '''.format())
+
 def _argparse():
-    parser = argparse.ArgumentParser(description="This is a metagenomics pipeline")
+    parser = argparse.ArgumentParser(description="This is metagenomics pipeline")
     parser.add_argument('-c', '--config', action='store', dest='config', default='config.txt', help = "this is config file.")
-    parser.add_argument('-l', '--list', action='store', dest='data_file', default='raw.data.list.xls', help = "your data list file.")
+    parser.add_argument('-l', '--list', action='store', dest='data_file', default='data.list', help = "your data list file.")
     return parser.parse_args()
 
 def make_dir(*dir):
@@ -49,7 +57,7 @@ def main():
         'kreport2mpa': cf.get('config', 'kreport2mpa'),
         'humann2' : cf.get('config', 'humann2'),
         'megahit' : cf.get('config', 'megahit'),
-        'quast' : cf.get('config', 'quast'),
+          'quast' : cf.get('config', 'quast'),
         'prokka' : cf.get('config', 'prokka'),
         'cd-hit' : cf.get('config','cd-hit'),
         'salmon' : cf.get('config','salmon'),
