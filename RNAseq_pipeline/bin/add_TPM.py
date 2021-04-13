@@ -7,6 +7,7 @@ def usage():
     print("""
         python {} <xls> <tpm file>
 Update:
+    20210410    fix bugs.
     20200703    Created.
     """.format(os.path.basename(sys.argv[0])))
 
@@ -25,7 +26,7 @@ def deal_tpm_file(tpm_file):
 def main():
     if len(sys.argv) == 1:
         usage()
-        sys.exit("Error: Two input files are needed!")
+        sys.exit("Error: Two input files and one argment are needed!")
 
     afile = sys.argv[1]
     tpm_file = sys.argv[2]
@@ -51,11 +52,10 @@ def main():
                 row["Transcript_Strand"], row["Transcript_Exon"], row["cDNA_Change"], row["Codon_Change"], row["Protein_Change"],
                 row["Refseq_mRNA_Id"],row["tumor_f"], row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], 
                 row["n_ref_count"], row["DP"], row["Mutated_Minigene"], row["Wild-Type_Minigene"],
-                TPM_dict.get(row['HGNC_Ensembl_Gene_ID'].split(".")[0], 0),
+                TPM_dict.get(row['Hugo_Symbol'].split(".")[0], 0),
                 ))
     elif sys.argv[3] == "transcript_id":
         for index, row in data.iterrows():
-            # print(type(row))
             output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                 row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
                 row["Start_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
