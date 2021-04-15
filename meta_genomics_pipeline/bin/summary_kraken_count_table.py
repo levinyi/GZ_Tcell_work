@@ -22,6 +22,7 @@ def main():
     pattern3 = re.compile('\s+?(\d+)\ssequences\sunclassified\s[(](\d+\.\d+%)[)]')
     files = [abs_path + '/' + each for each in os.listdir(abs_path) if each.endswith("log")]
     for each_file in files:
+        print("Reading log file: {}".format(each_file))
         sample_name = os.path.basename(each_file).split(".")[0]
         output_content = []
         with open(each_file, "r") as f:
@@ -43,6 +44,7 @@ def main():
                     output_content.append(match3.group(2))
                     continue
         output.write("{}\t{}\n".format(sample_name, "\t".join(output_content)))
+    print("Summary table written: {}".format(parser.output_path))
     output.close()
 
 
