@@ -27,13 +27,14 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20210423    Fix bugs: if mutation occurs in Mitochondrial, use coding_dna.translate(table="Vertebrate Mitochondrial")
     20200709    Add "End_Position" field to result.
     20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT.
     20200628    Created.
     """.format(os.path.basename(sys.argv[0])))
 
 
-def get_codon_minigene(seq, cDNA_Change, Protein_Change):
+def get_codon_minigene(Chromosome, seq, cDNA_Change, Protein_Change):
     # Four examples of cDNA_Change item:
     # c.1518_1519insAAACAGACCA 
     # c.2953_2972delCTAAATCACACTCCTGTATC 
@@ -84,8 +85,14 @@ def get_codon_minigene(seq, cDNA_Change, Protein_Change):
     # p.LQREKLQREK1479del
     result = re.findall(r'\d+', Protein_Change)
     aa_position = int(result[0])
-    seq_aa = Seq(seq).translate()
-    new_seq_aa = Seq(new_seq).translate()
+
+    # if Chromosome is Mitochondrial. Use Seq(seq).translate(table="Vertebrate Mitochondrial") otherwise it will raise error.
+    if Chromosome == "MT":
+        seq_aa = Seq(seq).translate(table="Vertebrate Mitochondrial")
+        new_seq_aa = Seq(new_seq).translate(table="Vertebrate Mitochondrial")
+    else:
+        seq_aa = Seq(seq).translate()
+        new_seq_aa = Seq(new_seq).translate()
     
     if aa_position < 14:
         old_minigene = seq_aa[: aa_position] + seq_aa[aa_position: aa_position + 14]
@@ -137,10 +144,11 @@ def main():
     for index, row in maf_data.iterrows():
         if row["Variant_Classification"] in saved_Variant_Classification and row["Protein_Change"] != "NA" :
             if row["Annotation_Transcript"] in adict:
+                Chromosome = row["Chromosome"]
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
                 Protein_Change = row["Protein_Change"]
-                old_minigene, new_minigene = get_codon_minigene(seq, cDNA_Change, Protein_Change)
+                old_minigene, new_minigene = get_codon_minigene(Chromosome, seq, cDNA_Change, Protein_Change)
                 output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
                     row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
