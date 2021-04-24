@@ -18,14 +18,11 @@ def make_dir(*dir):
             os.mkdir( each )
 
 
-
 def main():
     """docstring for __main__"""
     parser = _argparse()
     cf = configparser.ConfigParser(allow_no_value=True)
     cf.read(parser.config)
-    # excel_file = parser.data
-    # excel_file = os.path.abspath(excel_file)
     # check config file
     if not cf.has_section('Config'):
         os.exit("Error: your config file is not correct.")
@@ -237,7 +234,8 @@ def main():
             --annotation-default Center:RootPath\n""".format(**config_dict))
         f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
         f.write("""python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls\n""".format(**config_dict))
-        f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{print$5"\\t"$6-1"\\t"$7}}' > {sample_name}.snp.checked.bed\n""".format(**config_dict))
+        #f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{print$5"\\t"$6-1"\\t"$7}}' > {sample_name}.snp.checked.bed\n""".format(**config_dict))
+        f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{if ($5 == "MT") {{print"chrM\\t"$6-1"\\t"$7}}else{{print$5"\\t"$6-1"\\t"$7}}}}' >{sample_name}.snp.checked.bed\n""".format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
