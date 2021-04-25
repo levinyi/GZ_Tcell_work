@@ -11,6 +11,7 @@ def usage():
         python3 SnS_Pre_Mock_Real_intergration.py -c SnS_Pre_Mock_Real_intergration.Comp-CR13-CD8T.config  -p Comp-CR13-CD8T -s Pre,Mock,Real
 
     Updated:
+    20200419: fix some bugs.
     20200415: updated a new version. add -s parmarter. to calculate average value to a specific group.
     20201222: fix a bug. when config file add space between two samples.
     '''
@@ -24,10 +25,16 @@ def _argparse():
     return parser.parse_args()
 
 
-def generate_big_dict(all_sample_list, min_freq,real_sample_list):
+def generate_big_dict(all_sample_list, min_freq,real_sample_list,sample_dict):
+    # input file sample_dict{sample:pre,sample1:mock,sample3:real}
+    # print(sample_dict)
     files = os.listdir(path='.')
     big_df = pd.DataFrame()
     new_sample_list = []
+    new_sample_dict = {}
+    pre_sample_list = []
+    mock_sample_list = []
+    real_sample_list = []
     for sample in all_sample_list:
         sample_file = [each for each in files if each.startswith(sample+'.pair.acc_freq')]
         print("detected file: {}".format(sample_file))
@@ -38,41 +45,60 @@ def generate_big_dict(all_sample_list, min_freq,real_sample_list):
         except IndexError:
             sys.exit("Error: Wrong sample name in your config file: {}. Could not find {}.pair.acc_freq*.txt".format(sample,sample))
         df = pd.read_table(sample_file, sep="\t").fillna(value=min_freq)
-        df1 = pd.DataFrame(df, columns=['pair','perfect_freq','perfect_count'])
+        # print(df.head())
+        df1 = pd.DataFrame(df, columns=['pair','perfect_count','perfect_freq'])
+        # print(df1.head())
         # replace 0 to min_freq
         df1.loc[df1['perfect_freq']==0,'perfect_freq'] = float(min_freq)
-        df1.columns = ['pair', sample+'_freq', sample+'_count']
+        # replace column name : add sample name to each column.
+        df1.columns = ['pair', sample+'_count({})'.format(sample_dict[sample]), sample+'_freq({})'.format(sample_dict[sample])]
+        new_sample_list.append(sample+'_freq({})'.format(sample_dict[sample]))
+        new_sample_dict.setdefault(sample_dict[sample],[]).append(sample+'_freq({})'.format(sample_dict[sample]))
+        if sample_dict[sample] == "Pre":
+            pre_sample_list.append(sample+'_freq({})'.format(sample_dict[sample]))
+        if sample_dict[sample] == "Mock":
+            mock_sample_list.append(sample+'_freq({})'.format(sample_dict[sample]))
+        if sample_dict[sample] == "Real":
+            real_sample_list.append(sample+'_freq({})'.format(sample_dict[sample]))
+        # print(df1.head())
         if big_df.empty:
             big_df = df1
         else:
             big_df = pd.merge(big_df, df1, on='pair',how='outer')
-        new_sample_list.append(sample+'_freq')
+        
+    print("new sample list: {}".format(new_sample_list))
     # big_df.to_csv("big_df.raw.xls",sep="\t")
-    
-    # filter real sample list 
     # real_sample_list2 = [i+"_freq" for i in real_sample_list]
     # big_df = big_df[big_df[real_sample_list2].sum(axis=1) != 0]
     # big_df.to_csv("big_df.filter.xls",sep="\t")
-    return big_df, new_sample_list
+    # print(big_df.head())
+    return big_df, new_sample_list, new_sample_dict,pre_sample_list, mock_sample_list, real_sample_list
 
 
 def check_sample(config_dict):
+    sample_dict = {}
     if len(config_dict['pre_samples']) == 0:
         pre_sample_list = []
     else:
         pre_sample_list = config_dict['pre_samples'].replace(" ","").rstrip(",").split(",")
+        for each_sample in pre_sample_list:
+            sample_dict[each_sample] = 'Pre'
     if len(config_dict['mock_samples']) == 0:
         mock_sample_list = []
     else:
         mock_sample_list = config_dict['mock_samples'].replace(" ","").rstrip(",").split(",")
+        for each_sample in mock_sample_list:
+            sample_dict[each_sample] = 'Mock'
     if len(config_dict['real_samples']) == 0:
         real_sample_list = []
     else:
         real_sample_list = config_dict['real_samples'].replace(" ","").rstrip(",").split(",")
+        for each_sample in real_sample_list:
+            sample_dict[each_sample] = 'Real'
     all_sample_list = pre_sample_list + mock_sample_list + real_sample_list
     print("your input sample names are: {}".format(all_sample_list))
     print("pre_sample : {}\t mock_sample : {}\t Real_sample : {}".format(pre_sample_list, mock_sample_list, real_sample_list))
-    return all_sample_list,pre_sample_list,mock_sample_list,real_sample_list
+    return all_sample_list,pre_sample_list,mock_sample_list,real_sample_list,sample_dict
 
 
 def main():
@@ -89,40 +115,45 @@ def main():
         'mock_samples' : cf.get('data', 'Mock'),
         'real_samples' : cf.get('data', 'Real'),
         }
-    all_sample_list,pre_sample_list,mock_sample_list,real_sample_list = check_sample(config_dict) 
-    big_df, new_sample_list = generate_big_dict(all_sample_list, min_freq, real_sample_list)
-    #print(big_df)
-
+    all_sample_list,pre_sample_list,mock_sample_list,real_sample_list, sample_dict = check_sample(config_dict) 
+    big_df, new_sample_list, new_sample_dict ,pre_sample_list, mock_sample_list, real_sample_list = generate_big_dict(all_sample_list, min_freq, real_sample_list,sample_dict)
+    # print(big_df)
+    
+    # print("new_sample_dict: {}".format(new_sample_dict))
+    ##############################################
     if parser.average:
         ave_set = parser.average.rstrip(",").split(",")  # [Pre,Mock,Real]
         print("since you set average group is {}".format(ave_set))
-        for each in ave_set: # [Pre,Mock,Real]
-            if each == 'Pre':
-                pre_sample_incolumn = [i+"_freq" for i in pre_sample_list]
-                big_df['pre_ave_freq'] = big_df[pre_sample_incolumn].mean(axis=1)
-                pre_sample_list = ["pre_ave"]
-            elif each == 'Mock':
-                mock_sample_incolumn = [i+"_freq" for i in mock_sample_list]
-                big_df['mock_ave_freq'] = big_df[mock_sample_incolumn].mean(axis=1)
-                mock_sample_list = ["mock_ave"]
-            elif each == 'Real':
-                real_sample_incolumn = [i+"freq" for i in mock_sample_list]
-                big_df['real_ave_freq'] = big_df[real_sample_incolumn].mean(axis=1)
-                real_sample_list = ["real_ave"]
-        # print(big_df)
-        # big_df.to_csv("big_df.cal_ave.csv",sep="\t")
-    print(pre_sample_list,mock_sample_list,real_sample_list)
+        if 'Pre' in ave_set:  # [Pre, Mock, Real]
+            big_df['pre-ave_freq'] = big_df[new_sample_dict['Pre']].mean(axis=1)
+            pre_sample_list = ["pre-ave_freq"]
+        else:
+            pre_sample_list = new_sample_dict['Pre']
+        if 'Mock' in ave_set:
+            big_df['mock-ave_freq'] = big_df[new_sample_dict['Mock']].mean(axis=1)
+            mock_sample_list = ["mock-ave_freq"]
+        else:
+            mock_sample_list = new_sample_dict['Mock']
+        if 'Real' in ave_set:
+            big_df['real-ave_freq'] = big_df[new_sample_dict['Real']].mean(axis=1)
+            real_sample_list = ["real-ave_freq"]
+        else:
+            real_sample_list = new_sample_dict['Real']
+        # print(big_df.head())
+    print("pre_samplelist,mocksamplilist,real_samplelist {} {} {} ".format(pre_sample_list,mock_sample_list,real_sample_list))
 
     ##############################################
+    # calculate mock/pre real/pre  real/mock
     for pre_sample in pre_sample_list:
         for mock_sample in mock_sample_list:
-            big_df['Mock/Pre({}/{})'.format(mock_sample,pre_sample)] = big_df[mock_sample+"_freq"]/big_df[pre_sample+"_freq"]
+            big_df['Mock/Pre({}/{})'.format(mock_sample.split("_")[0],pre_sample.split("_")[0])] = big_df[mock_sample]/big_df[pre_sample]
+    for pre_sample in pre_sample_list:
         for real_sample in real_sample_list:
-            big_df['Real/Pre({}/{})'.format(real_sample,pre_sample)] = big_df[real_sample+"_freq"]/big_df[pre_sample+"_freq"]
-    for moc_sample in mock_sample_list:
+            big_df['Real/Pre({}/{})'.format(real_sample.split("_")[0],pre_sample.split("_")[0])] = big_df[real_sample]/big_df[pre_sample]
+    for mock_sample in mock_sample_list:
         for real_sample in real_sample_list:
-            big_df['Real/Mock({}/{})'.format(real_sample,mock_sample)] = big_df[real_sample+"_freq"]/big_df[mock_sample+"_freq"]
-    #print(big_df)
+            big_df['Real/Mock({}/{})'.format(real_sample.split("_")[0],mock_sample.split("_")[0])] = big_df[real_sample]/big_df[mock_sample]
+    # print(big_df)
     ####################################################################
     # edit header for. 
     big_df = big_df.rename(columns={'pair':'TCR_id(Real_samples_union)'})
