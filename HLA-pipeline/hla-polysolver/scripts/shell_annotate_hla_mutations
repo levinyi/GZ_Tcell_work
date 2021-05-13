@@ -1,0 +1,31 @@
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+#### check if an appropriate number of arguments were passed ####
+
+if [ $# -ne 2 ]; then
+        echo 1>&2 Usage: $0 indiv dir
+        echo "  -indiv: individual ID, used as prefix for output files"
+        echo "  -dir: directory containing the raw call files (Mutect: call_stats*, Strelka: *all.somatic.indels.vcf). Also the output directory"   
+     exit 127
+fi
+
+echo "Environment variables"
+echo "  -DATA_DIR: directory containing data = $DATA_DIR"
+
+
+indiv=$1
+mydir=$2
+
+$DIR/../scripts/annotate_hla_mutect.pl $indiv $mydir $DATA_DIR/a_complete.3100.new.eb.fasta $DATA_DIR/b_complete.3100.new.eb.fasta $DATA_DIR/c_complete.3100.new.eb.fasta $DIR/..
+
+$DIR/../scripts/filter_hla_mutect.pl $mydir/$indiv.mutect.unfiltered.annotated $indiv $mydir 0 $DIR/..
+ 
+$DIR/../scripts/remove_synonymous_hla_mutect.pl $mydir/$indiv.mutect.filtered.annotated $indiv $mydir
+
+
+$DIR/../scripts/annotate_hla_strelka_indels.pl $indiv $mydir $DATA_DIR/a_complete.3100.new.eb.fasta $DATA_DIR/b_complete.3100.new.eb.fasta $DATA_DIR/c_complete.3100.new.eb.fasta $DIR/..
+
+$DIR/../scripts/filter_hla_strelka_indels.pl $mydir/$indiv.strelka_indels.unfiltered.annotated $indiv $mydir $DIR/..
+
+rm -f $mydir/*mutect.filtered.annotated
+
