@@ -1,7 +1,7 @@
 library(tidyverse)
 library(VennDiagram)
 library(RColorBrewer)
-args = commandRags(T)
+args = commandArgs(T)
 
 ############### for windows Rstudio.
 # setwd("C:\\Users\\dushiyi\\Nutstore\\.nutstore_c2hpeWlAcm9vdHBhdGhneC5jb20=\\DuShiYi\\P0000-blackbird\\2103-CR001\\CR001004")
@@ -33,8 +33,8 @@ data2 = pair_identify(data2)
 #file_name1 = "G179E3-PBMC-CD8"
 #file_name1 = "G179E5-PBMC-CD4"
 #file_name2 = "G179E1-TILs-CD3T"
-file1_name = args[3]
-file2_name = args[4]
+file_name1 = args[3]
+file_name2 = args[4]
 venn.diagram(list(A=data1$clonotype_pair_id, A=data2$clonotype_pair_id),
              resolution = 300, imagetype = "png",
              col = RColorBrewer::brewer.pal(7, "Dark2")[1:2],
@@ -55,7 +55,7 @@ venn.diagram(list(A=data1$clonotype_pair_id, A=data2$clonotype_pair_id),
              sub.fontfamily = "serif", main.just = 0,
              # for subtitle:
              sub = "", sub.cex = 4, sub.col = "black", sub.fontface = 2,
-             filename ="VennDiagram.pairwise.png")
+             filename =paste("VennDiagram",file_name1,file_name2,"png",sep="."))
 
 ################## end venn diagram end ##############
 
@@ -70,5 +70,5 @@ names(data_merged) <- c("clonotype_pair_id",
                         paste("freq", file_name1,sep="-"),
                         paste("freq", file_name2,sep="-"))
 # write to table:
-write.table(data_merged, file = paste(file_name1,file_name2,"frequency.csv",sep = "_"), sep = ",", row.names = FALSE)
+write.table(data_merged, file = paste(file_name1,file_name2,"frequency.csv",sep = "_"), sep = ",", row.names = FALSE, quote = FALSE )
 
