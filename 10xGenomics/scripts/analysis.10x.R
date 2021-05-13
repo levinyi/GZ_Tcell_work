@@ -14,7 +14,7 @@ tcr_path = args[2]
 # read scRNAseq folder:
 data = Seurat::Read10X(data.dir = paste(scRNAseq_path,'filtered_feature_bc_matrix',sep = "/"))
 sc_seurat_obj <- Seurat::CreateSeuratObject(data, project = "scRNAseq_object")
-sc_seurat_obj # 33538 features across 5533 samples within 1 assay 
+# sc_seurat_obj # 33538 features across 5533 samples within 1 assay 
 
 # read TCRseq file
 add_clonotype <- function(tcr_path, seurat_obj){
@@ -39,15 +39,18 @@ sc_seurat_obj = add_clonotype(tcr_path, sc_seurat_obj)
 
 ################
 sc_seurat_obj[["percent.mt"]] <- PercentageFeatureSet(sc_seurat_obj, pattern = "^MT-")
-VlnPlot(sc_seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+p1 = VlnPlot(sc_seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+ggsave(filename="P1.VlnPlot.feature.png", plot=p1, path=".")
 # FeatureScatter is typically used to visualize feature-feature relationships, but can be used
 # for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
 
 plot1 <- FeatureScatter(sc_seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
 plot2 <- FeatureScatter(sc_seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
-CombinePlots(plots = list(plot1, plot2))
+p2 = CombinePlots(plots = list(plot1, plot2))
+ggsave(filename="P2.combinePlots.FeatureScatter.png", plot=p2, path=".")
+
 sc_seurat_obj <- subset(sc_seurat_obj, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
-sc_seurat_obj # 33538 features across 3549 samples within 1 assay 
+# sc_seurat_obj # 33538 features across 3549 samples within 1 assay 
 # standard seurat workflow
 sc_seurat_obj = NormalizeData(object = sc_seurat_obj)
 sc_seurat_obj = FindVariableFeatures(object = sc_seurat_obj)
@@ -57,8 +60,8 @@ sc_seurat_obj = FindNeighbors(object = sc_seurat_obj)
 sc_seurat_obj = FindClusters(object = sc_seurat_obj, resolution = 0.5)
 # sc_seurat_obj = RunTSNE(object = sc_seurat_obj)
 sc_seurat_obj = RunUMAP(object = sc_seurat_obj, dims = 1:20)
-p1 <- DimPlot(sc_seurat_obj, reduction = "umap")
-ggsave(filename = "umap.png",plot = p1, path = "./" )
+p3 <- DimPlot(sc_seurat_obj, reduction = "umap")
+ggsave(filename = "P3.raw.umap.png",plot = p3, path = "." )
 
 # find doublets
 ## doubletfinder
@@ -85,14 +88,14 @@ find_doublets <- function(sc_seurat_obj){
   sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet" && sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))])] <- "Doublet_lo"
   sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet")] <- "Doublet_hi"
   sc_seurat_obj$DF
-  write.table(sc_seurat_obj$DF, file = "doublets.table.csv",sep = ",",row.names = FALSE)
-  p = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF")
-  ggsave(filename = "doublets.png",plot = p, path = "./" )
+  write.table(sc_seurat_obj$DF, file = "P4.doublets.table.csv", sep = ",", row.names = FALSE, quote = FALSE)
+  p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF")
+  ggsave(filename = "P4.doublets.png",plot = p4, path = "./" )
   return(sc_seurat_obj)
 }
 sc_seurat_obj = find_doublets(sc_seurat_obj)
 sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
-sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
+# sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
 # singR annotate cluster
 library(SingleR)
 library(celldex)
@@ -119,29 +122,27 @@ cluster_annotation <- function(sc_seurat_obj){
                                       mona = pred.mona$labels,
                                       novershter = pred.novershter$labels
   )
-  write.table(sc_seurat_obj_cellType, file = "SingleR_cell_type.csv",sep = ",", row.names = FALSE)
+  write.table(sc_seurat_obj_cellType, file = "P5.SingleR_cell_type.csv",sep = ",", row.names = FALSE, quote=FALSE)
   sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'hpca']
-  p0 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("HumanPrimaryCellAtlasData")
+  p5_0 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("HumanPrimaryCellAtlasData")
   sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'blue']
-  p1 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("BlueprintEncodeData")
+  p5_1 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("BlueprintEncodeData")
   sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
-  p2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("DatabaseImmuneCellExpressionData")
+  p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("DatabaseImmuneCellExpressionData")
   sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
-  p3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR') + ggtitle("MonacoImmuneData")
+  p5_3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR') + ggtitle("MonacoImmuneData")
   sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'novershter']
-  p4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ ggtitle("NovershternHematopoieticData")
-  
-  library(cowplot)
-  p5 = cowplot::plot_grid(p0,p1,p2,p3,p4, ncol = 2)
-  ggsave(filename = "cluster.annotation.with.5.databases.png", plot = p5, path = "./" )
+  p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ ggtitle("NovershternHematopoieticData")
+  ggsave(filename="P5_0.cluster.annotation.with.hpca.png",plot = p5_0, path = ".")
+  ggsave(filename="P5_1.cluster.annotation.with.blue.png",plot = p5_1, path = ".")
+  ggsave(filename="P5_2.cluster.annotation.with.dice.png",plot = p5_2, path = ".")
+  ggsave(filename="P5_3.cluster.annotation.with.mona.png",plot = p5_3, path = ".")
+  ggsave(filename="P5_4.cluster.annotation.with.nove.png",plot = p5_4, path = ".")
+  # library(cowplot)
+  # p5 = cowplot::plot_grid(p5_0,p5_1,p5_2,p5_3,p5_4, ncol = 2)
+  # ggsave(filename = "cluster.annotation.with.5.databases.png", plot = p5, path = "./" )
   return(sc_seurat_obj)
 }
 sc_seurat_obj = cluster_annotation(sc_seurat_obj)
-# umap for 
-cell_names = c("AAACCTGAGAGCTGGT-1","AAACCTGAGCGATAGC-1","AAACCTGAGTGTCCCG-1","AAACCTGCAATCCAAC-1","AAACCTGCACACATGT-1","CCTTCCCAGATATGCA-1","CCTTCCCAGATATGCA-1","TCAGCAAGTCTAGCGC-1","TCAGCAAGTCTAGCGC-1")
-DimPlot(object = sc_seurat_obj, 
-        cells.highlight = cell_names, 
-        cols.highlight = "red",
-        cols = "grey",order = TRUE,)
-
+save.image("sc_seurat_obj")
 
