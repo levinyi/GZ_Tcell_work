@@ -70,5 +70,5 @@ names(data_merged) <- c("clonotype_pair_id",
                         paste("freq", file_name1,sep="-"),
                         paste("freq", file_name2,sep="-"))
 # write to table:
-write.table(data_merged, file = paste(file_name1,file_name2,"frequency.csv",sep = "_"), sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_merged, file = "shared.clonotypes.frequency.csv", sep = ",", row.names = FALSE, quote = FALSE )
 
