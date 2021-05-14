@@ -1,5 +1,5 @@
 library(Seurat)
-library(tidyverse)
+library(tidyverse,quietly=T)
 args = commandArgs(T)
 
 ## setup for windows
@@ -144,6 +144,5 @@ cluster_annotation <- function(sc_seurat_obj){
   return(sc_seurat_obj)
 }
 sc_seurat_obj = cluster_annotation(sc_seurat_obj)
-save.image(file = "sc_seurat_obj.RData", version = NULL, ascii = FALSE,
-           compress = !ascii, safe = TRUE)
+save.image(file = "sc_seurat_obj.RData", version = NULL, ascii = FALSE, safe = TRUE)
 
