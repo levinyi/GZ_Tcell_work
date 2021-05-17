@@ -60,15 +60,16 @@ venn.diagram(list(A=data1$clonotype_pair_id, A=data2$clonotype_pair_id),
 ################## end venn diagram end ##############
 
 #### export data
-data_merged = dplyr::full_join(data1, data2, by = "clonotype_pair_id") %>% 
-  select(clonotype_pair_id,clonotype_id.x,clonotype_id.y,frequency.x,frequency.y) %>% 
-  drop_na()
+data_total = dplyr::full_join(data1, data2, by = "clonotype_pair_id") %>% 
+  select(clonotype_pair_id,clonotype_id.x,clonotype_id.y,frequency.x,frequency.y) 
 # rename column name:
-names(data_merged) <- c("clonotype_pair_id", 
+names(data_total) <- c("clonotype_pair_id", 
                         paste("clono_id",file_name1,sep="-"),
                         paste("clono_id",file_name2,sep="-"),
                         paste("freq", file_name1,sep="-"),
                         paste("freq", file_name2,sep="-"))
+data_merged = data_total %>%  drop_na()
 # write to table:
 write.table(data_merged, file = "shared.clonotypes.frequency.csv", sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_total, file = "total.clonotypes.frequency.csv", sep = ",", row.names = FALSE, quote = FALSE )
 
