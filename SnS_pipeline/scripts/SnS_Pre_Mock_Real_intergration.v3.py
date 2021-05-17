@@ -47,9 +47,9 @@ def generate_big_dict(all_sample_list, min_freq,real_sample_list,sample_dict):
         df = pd.read_table(sample_file, sep="\t").fillna(value=min_freq)
         # print(df.head())
         df1 = pd.DataFrame(df, columns=['pair','perfect_count','perfect_freq'])
-        # print(df1.head())
-        # replace 0 to min_freq
-        df1.loc[df1['perfect_freq']==0,'perfect_freq'] = float(min_freq)
+        # print(df1)
+        # replace 0 to min_freq in freq columns.
+        df1['perfect_freq'] = df1['perfect_freq'].replace(0,float(min_freq))
         # replace column name : add sample name to each column.
         df1.columns = ['pair', sample+'_count({})'.format(sample_dict[sample]), sample+'_freq({})'.format(sample_dict[sample])]
         new_sample_list.append(sample+'_freq({})'.format(sample_dict[sample]))
@@ -65,7 +65,12 @@ def generate_big_dict(all_sample_list, min_freq,real_sample_list,sample_dict):
             big_df = df1
         else:
             big_df = pd.merge(big_df, df1, on='pair',how='outer')
-        
+    # print(big_df)
+    # replace NAN to min_freq in freq columns 
+    big_df[new_sample_list] = big_df[new_sample_list].fillna(value=float(min_freq))
+    # replace NAN to 0 in count columns.
+    big_df = big_df.fillna(0)
+    # print(big_df)
     print("new sample list: {}".format(new_sample_list))
     # big_df.to_csv("big_df.raw.xls",sep="\t")
     # real_sample_list2 = [i+"_freq" for i in real_sample_list]
@@ -118,7 +123,7 @@ def main():
     all_sample_list,pre_sample_list,mock_sample_list,real_sample_list, sample_dict = check_sample(config_dict) 
     big_df, new_sample_list, new_sample_dict ,pre_sample_list, mock_sample_list, real_sample_list = generate_big_dict(all_sample_list, min_freq, real_sample_list,sample_dict)
     # print(big_df)
-    
+
     # print("new_sample_dict: {}".format(new_sample_dict))
     ##############################################
     if parser.average:
@@ -160,19 +165,6 @@ def main():
     #print(big_df)
     big_df.to_csv(parser.project+".csv",sep=",",index=False)
     print("all done!")
-
-def calculate_division(a,b):
-    a = float(a)
-    b = float(b)
-    if a == 0 and b == 0:
-        v = str('0')
-    elif a == 0 and b != 0:
-        v = str(0.0000001/b)
-    elif a != 0 and b == 0:
-        v = str(a/0.0000001)
-    elif a != 0 and b !=0:
-        v = str(a/b)
-    return v
 
 
 if __name__ == '__main__':
