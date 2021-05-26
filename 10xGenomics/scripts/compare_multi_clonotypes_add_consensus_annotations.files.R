@@ -15,10 +15,10 @@ args = commandArgs(T)
 # data2 = read.csv(file2, sep=",", header=T)
 ################ end
 # for linux 
-file1_path = args[1]
-file2_path = args[2]
-data1 = read.csv(paste(file1_path, "clonotypes_add_consensus_annotations.csv", sep="/"), sep=",", header=T)
-data2 = read.csv(paste(file2_path, "clonotypes_add_consensus_annotations.csv", sep="/"), sep=",", header=T)
+file1 = args[1]
+file2 = args[2]
+data1 = read.csv(file1, sep=",", header=T)
+data2 = read.csv(file2, sep=",", header=T)
 pair_identify <- function(data){
   data = data %>% 
     tidyr::unite(clonotype_tra_id, c(v_gene, cdr3, j_gene, ), sep = "", remove = FALSE) %>% 
@@ -70,6 +70,6 @@ names(data_total) <- c("clonotype_pair_id",
                         paste("freq", file_name2,sep="-"))
 data_merged = data_total %>%  drop_na()
 # write to table:
-write.table(data_merged, file = "shared.clonotypes.frequency.csv", sep = ",", row.names = FALSE, quote = FALSE )
-write.table(data_total, file = "total.clonotypes.frequency.csv", sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_merged, file = paste(file_name1,file_name2,"shared.clonotypes.frequency.csv",sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_total,  file = paste(file_name1,file_name2,"total.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
 
