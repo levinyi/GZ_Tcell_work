@@ -1,0 +1,29 @@
+[config]
+
+project_name = my_project_name
+script_dir = ../bin
+
+# software:
+kneaddata = ../bin/kneaddata
+# sequence_source: choose from 'NexteraPE', 'TruSeq2', 'TruSeq3', 'none'
+sequence_source = TruSeq3
+
+kraken2   = ../bin/kraken2
+# bracken path must be the source path, do not use linked path.
+# bracken   = /cygene/software/biosoftware/metagenomics/Bracken/bracken
+bracken   = ../bin/bracken
+kreport2mpa = ../bin/kreport2mpa.py
+
+humann   = ../bin/humann
+megahit   = ../bin/megahit
+quast     = ../bin/quast.py
+prokka    = ../bin/prokka
+cd-hit    = ../bin/cd-hit
+salmon    = ../bin/salmon
+
+# reference and databases:
+kneaddata_ref = ../database/kneaddata_database
+# kraken2_db = /cygene/software/biosoftware/metagenomics/kraken2/minikraken_8GB_20200312
+kraken2_db    = ../database/kraken2_database
+humann_db    = ../database/humann3_dbs
+metaphlan3_db = ../database/metaphlan3_database
