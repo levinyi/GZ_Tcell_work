@@ -43,8 +43,13 @@ def deal_frequency_file(frequ_file, frequency, total_number, counts_sum):
                 acc90_freqcutoff += 1
             if float(c[1]) > 0.8 and float(c[4]) >= frequency:
                 acc80_freqcutoff += 1
-    print("total(reads),match_A(reads),match_B(reads),six_total(Mol),match_perfect,percent,~Reads/Molecule,,TCR by at least 1 molecule,TCRs with freq>{cutoff},TCRs: acc>0.90 & Freq>{cutoff},TCRs: acc>0.80 & Freq>{cutoff},match_perfect: TCR Freq > {cutoff}".format(**{"cutoff":frequency}))
-    print("{},{},,{}/{},{}/{},{}/{},{}/{},{}".format(",".join(counts_sum),float(counts_sum[0])/float(counts_sum[3]),molecule_number,total_number, tcr_freq_cutoff,total_number, acc90_freqcutoff,total_number, acc80_freqcutoff,total_number, match_perfect_number))
+    print("total(reads),match_A(reads),match_B(reads),six_total(Mol),match_AB6,percent,Mol_per_TCR,~Reads/Molecule,,TCR by at least 1 molecule,TCRs with freq>{cutoff},TCRs: acc>0.90 & Freq>{cutoff},TCRs: acc>0.80 & Freq>{cutoff},match_perfect: TCR Freq > {cutoff}".format(**{"cutoff":frequency}))
+    print("{},{},{},,{}/{},{}/{},{}/{},{}/{},{}".format(",".join(counts_sum),float(counts_sum[4])/float(total_number),float(counts_sum[0])/float(counts_sum[3]),
+        molecule_number,total_number, 
+        tcr_freq_cutoff,total_number, 
+        acc90_freqcutoff,total_number, 
+        acc80_freqcutoff,total_number, 
+        match_perfect_number))
     print("")
     return match_perfect_number
 
