@@ -30,7 +30,19 @@ with open(sum_file, "r") as f:
         # print(match.group(1))
         # tcr_freq = adict[match.group(1)]
         # print(tcr_freq)
-        match = ".".join(c[0].split(".")[1:-2])
+        
+        # 20210526 new batch: P0036-SnS-Gen3p3_BkBdWv5_WouterLiAl/20210402_SnS_Gen3p3_wouterOVA5LiliAlena_hsTRBCRQR8/
+        # for example molecule name: G382E2L1.194.CD4.1000.1.b|SP08.AAAGAATTTTCG.1
+        # split with ".": G382E2L1 194 CD4 1000 1 b|SP08 AAAGAATTTTCG 1
+        # pair in acc_freq file:   190.CD4.1000.1|SP05
+        # 
+        m = c[0].split(".")
+        # print(m)
+        m[-3] = m[-3][1:]
+        # print(m)
+        match = "{}{}".format(".".join(m[1:-3]), m[-3])
+        # print(match)
+        # match = ".".join(c[0].split(".")[1:-2])
         tcr_freq = adict[match]
 
         print("{}\t{}\t{}\t{}".format("\t".join(c),sum5_TRA,sum5_TRB,tcr_freq))
