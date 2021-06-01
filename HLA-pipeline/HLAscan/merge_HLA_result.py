@@ -15,6 +15,7 @@ def addtwodimdict(thedict, key_a, key_b, val):
 def deal_hla(afile):
     type1 = 'NULL'
     type2 = 'NULL'
+    name = afile.split(".")[2]
     with open(afile, "r") as f:
         for line in f:
             line = line.rstrip("\n")
