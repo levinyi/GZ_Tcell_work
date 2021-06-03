@@ -112,8 +112,8 @@ def deal_sum_file(summa_file, frequency, match_perfect_number):
         print("mut in CDR3aJ,Indel in CDR3aJ,mut in conA,Indel in conA,mut in CDR3bJ,Indel in CDR3bJ,mut in conB,Indel in conB,mut in TRBV,Indel in TRBV,Overall w/o TRAV,Error-free% in TRBV,Overall w/o TRAV,Overall Err-free w/ TRAV,Error free % at Freq>{}".format(frequency))
         print("{},{},{},{},{},{},{},{},{},{},{},,Theoretical(TRBV was multiplied twice)".format(
             mut_in_CDR3aJ, Indel_in_CDR3aJ, mut_in_conA, Indel_in_conA, 
-            mut_in_CDR3bJ, Indel_in_CDR3bJ, mut_in_conB, Indel_in_conB, mut_in_TRBV,Indel_in_TRBV,
-            overall_wo_TRAV))
+            mut_in_CDR3bJ, Indel_in_CDR3bJ, mut_in_conB, Indel_in_conB, 
+            mut_in_TRBV,Indel_in_TRBV, overall_wo_TRAV))
         Error_free_in_TRBV = (mut_in_TRBV**2)*(Indel_in_TRBV**2)/(float(total_molecules_in_file))**4
         Theoretical_pct = ((mut_in_CDR3aJ*Indel_in_CDR3aJ*mut_in_conA*Indel_in_conA*mut_in_CDR3bJ*Indel_in_CDR3bJ*mut_in_conB*Indel_in_conB)/float(pow(total_molecules_in_file,8)))*Error_free_in_TRBV
         print("{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%}".format(
