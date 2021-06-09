@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="./library/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body background="./library/image/back.png">
+    <div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<br>
+				<a href="http://www.genenergy.cn/"><img src="./library/image/Rlogo.jpg"/></a>
+			</div>
+			<div class="col-md-9">
+				<h2 align="center">10X Genomics 单细胞测序数据分析报告</h2>
+				<h4 align="center">Custom:Custom &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contract:Contract</h4>
+			</div>   
+		</div> 
+		<hr/>
+		<div class="row">
+			<div class="col-md-3" >
+				<div class="navbar navbar-default" role="navigation">
+					<ul class="nav">
+						<li><a href="01_Index.html">Introduction(简介)</a></li>
+						<li><a href="02_QC.html">QC(测序数据质量统计)</a></li>					
+						<li><a href="03_Cluster.html">Cluster(细胞聚类)</a></li>
+						<li><a href="04_CellMarker.html">CellMarker(细胞标记基因分析)</a></li>
+						<li><a href="05_TrajectoryAnalysis.html">Trajectory(拟时轨迹分析)</a></li>
+						<li><a href="06_FUN.html">FUN(细胞标记基因功能分析)</a></li>
+						<li><a href="07_Datasoft.html">DBSoft(数据库和软件)</a></li>
+						<li><a href="08_Reference.html">Refs(参考文献)</a></li>
+						<li><a href="09_Help.html">F&Q(帮助)</a></li>
+					</ul>
+				</div>	  
+			</div>
+			<div class="col-md-9">	
+<p>首先基于扩散系数衡量的变异程度排序而挑选前1500个基因， 采用DDRTree方法进行降维和构建最小生成树，然后对单细胞进行在高维和低维空间搜索最优排序而拟合最佳细胞发育或者分化拟时轨迹曲线， </p>
+<hr/>
+<p align="center">图A:拟时轨迹曲线图，细胞聚类的类别，不同的分支可能代表可能不同的状态， 拟时的估计值采用不同颜色表示</p><div class="row"><div class="col-md-10"><img src="./4TrajectoryAnalysis/Tree_by_cluster_state_and_Pseudotime.png" height="100%" width="100%" /></img></div><div class="col-md-2 row pre-scrollable" style="overflow-x: auto; overflow-y: auto; height: 200px;"><ul class="list-unstyled"><li><a href="./4TrajectoryAnalysis/Tree_by_cluster.png" target="_blank" >Tree_by_cluster</a></li><li><a href="./4TrajectoryAnalysis/Tree_by_state.png" target="_blank" >Tree_by_state</a></li><li><a href="./4TrajectoryAnalysis/Tree_by_Pseudotime.png" target="_blank" >Tree_by_Pseudotime</a></li></ul></div><p><a href="./4TrajectoryAnalysis/cell_state_and_Pseudotime.xls" target="_blank" >cell_state_and_Pseudotime.xls</a>表示细胞的拟时估计值和推断的状态。</p>			</div>
+		</div>	
+    </div>
+	<div id="footer" class="container">
+		<nav class="navbar navbar-default">
+			<div class="navbar-inner navbar-content-center">
+			</div>
+		</nav>
+	</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="./library/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body background="./library/image/back.png">
+    <div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<br>
+				<a href="http://www.genenergy.cn/"><img src="./library/image/Rlogo.jpg"/></a>
+			</div>
+			<div class="col-md-9">
+				<h2 align="center">10X Genomics 单细胞测序数据分析报告</h2>
+				<h4 align="center">Custom:Custom &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contract:Contract</h4>
+			</div>   
+		</div> 
+		<hr/>
+		<div class="row">
+			<div class="col-md-3" >
+				<div class="navbar navbar-default" role="navigation">
+					<ul class="nav">
+						<li><a href="01_Index.html">Introduction(简介)</a></li>
+						<li><a href="02_QC.html">QC(测序数据质量统计)</a></li>					
+						<li><a href="03_Cluster.html">Cluster(细胞聚类)</a></li>
+						<li><a href="04_CellMarker.html">CellMarker(细胞标记基因分析)</a></li>
+						<li><a href="05_TrajectoryAnalysis.html">Trajectory(拟时轨迹分析)</a></li>
+						<li><a href="06_FUN.html">FUN(细胞标记基因功能分析)</a></li>
+						<li><a href="07_Datasoft.html">DBSoft(数据库和软件)</a></li>
+						<li><a href="08_Reference.html">Refs(参考文献)</a></li>
+						<li><a href="09_Help.html">F&Q(帮助)</a></li>
+					</ul>
+				</div>	  
+			</div>
+			<div class="col-md-9">	
+                <h3>实验描述</h3>
+				<ol>
+					<li>细胞质检RNA，用Countess®II Automated Cell Counter对细胞计数，将细胞浓度调整到理想浓度1×10 6/mL。</li>
+					<li>10X标记cDNA片段，含有barcode信息的凝胶珠子首先与细胞和酶的混合物结合，然后被位于微流体"双十字"连接中的油表面活性剂液滴包裹。液滴非常小，仅能容纳一个凝胶珠子，液滴流到储液器中被收集后，凝胶珠子溶解释放引物序列，逆转录cDNA片段，并以cDNA为模板进行PCR扩增。将每个液滴中含有barcode信息的产物混合，构建测序文库。</li>
+					<li>建库，首先利用Biorupter超声破碎仪将cDNA打断成200~300bp左右的片段，加上测序接头P5和测序引物R1等传统二代测序的建库过程，最后进行PCR扩增得到DNA文库。</li>
+					<li>簇生成和测序，利用Qubit仪器对文库进行定量，合格的文库被放置到cBot中进行桥式扩增，生成簇后利用Hiseq或者Miseq测序仪进行测序。原理是每个循环都加入A, T, G, C 4种荧光基团标记的dNTP，依据AT，GC配对，对应的dNTP通过DNA聚合酶结合到模板DNA链上，其他未结合的dNTP被洗脱掉，结合的位置释放出荧光信号，被计算机捕捉到并进行相应转换，从而得到该位置的碱基信息。</li>					
+                </ol>
+                <h3>Loupe Cell Browser说明</h3>
+				Loupe Cell Browser是10X单细胞的数据可视化工具， 下载于<a href="./CloupeFile/Loupe-Cell-Browser-1.0.4.exe" target="_blank">Loupe-Cell-Browser-1.0.4.exe</a>， 也可下载于<a href="https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/latest" target="_blank">https://support.10xgenomics.com/single-cell-gene-expression/software/downloads/latest</a>，安装说明见<a href="https://support.10xgenomics.com/single-cell-gene-expression/software/visualization/latest/installation" target="_blank">https://support.10xgenomics.com/single-cell-gene-expression/software/visualization/latest/installation</a>， 将文件<a href="./CloupeFile/cloupe.cloupe" target="_blank">cloupe.cloupe</a>导入Loupe Cell Browser软件可查看细胞群的t-SNE图， 基因表达查询以及根据表达信息查看细胞子群， 详细说明见<a href="https://support.10xgenomics.com/single-cell-gene-expression/software/visualization/latest/tutorial-navigation" target="_blank">https://support.10xgenomics.com/single-cell-gene-expression/software/visualization/latest/tutorial-navigation</a>。
+				
+					
+			</div>
+		</div>	
+    </div>
+	<div id="footer" class="container">
+	</div>
+</body>
+</html>

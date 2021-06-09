@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="./library/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body background="./library/image/back.png">
+    <div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<br>
+				<a href="http://www.genenergy.cn/"><img src="./library/image/Rlogo.jpg"/></a>
+			</div>
+			<div class="col-md-9">
+				<h2 align="center">10X Genomics 单细胞测序数据分析报告</h2>
+				<h4 align="center">Custom:Custom &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contract:Contract</h4>
+			</div>   
+		</div> 
+		<hr/>
+		<div class="row">
+			<div class="col-md-3" >
+				<div class="navbar navbar-default" role="navigation">
+					<ul class="nav">
+						<li><a href="01_Index.html">Introduction(简介)</a></li>
+						<li><a href="02_QC.html">QC(测序数据质量统计)</a></li>					
+						<li><a href="03_Cluster.html">Cluster(细胞聚类)</a></li>
+						<li><a href="04_CellMarker.html">CellMarker(细胞标记基因分析)</a></li>
+						<li><a href="05_TrajectoryAnalysis.html">Trajectory(拟时轨迹分析)</a></li>
+						<li><a href="06_FUN.html">FUN(细胞标记基因功能分析)</a></li>
+						<li><a href="07_Datasoft.html">DBSoft(数据库和软件)</a></li>
+						<li><a href="08_Reference.html">Refs(参考文献)</a></li>
+						<li><a href="09_Help.html">F&Q(帮助)</a></li>
+					</ul>
+				</div>	  
+			</div>
+			<div class="col-md-9">	
+<p>本实验采用10X单细胞应用和Illumina测序平台的双端测序模式对样本进行高通量测序，
+采用10X内部软件Cell Ranger对原始数据采用STAR比对于Ensembl参考基因组序列， 包括外显子， 内含子， 基因间隔区域以及整个转录本区域进行比对统计，该软件通过细胞识别算法区分细胞的Barcode序列标记和细胞内不同mRNA分子的UMI标记， 经过过滤筛选统计检测到的细胞数，细胞序列数以及基因数。 部分细胞由于RNA含量较低或者其余原因得到的序列数偏少为则被认为是背景噪音。</p>
+<hr/>
+<p align="center">测序数据质量统计结果(<a href="./1QC/cellRange_QC.html" target="_blank">cellRange_QC.html</a>)</p></br>
+<p align="center">测序数据质量统计结果说明</p><table cellspacing="1" border="0" class="dataTable table table-hover table-condensed"><thead><tr>
+<th class="sort-string-robust top-header-row ">术语</th><th class="sort-string-robust top-header-row ">术语说明</th></tr></thead>
+<tbody>
+<tr><td>Read1</td><td style="font-size:15px;">靠近转录本3端的序列标签，长度为98bp</td></tr><tr><td>10X Barcode</td><td style="font-size:15px;">标记细胞的Barcode序列，长度为16bp</td></tr><tr><td>Sample Index</td><td style="font-size:15px;">标记样本的Index序列，长度为8bp</td></tr><tr><td>Read2</td><td style="font-size:15px;">标记每个mRNA分析的UMI序列，长度为10bp</td></tr><tr><td>Number of Cells</td><td style="font-size:15px;">高质量细胞数，小于所有细胞的UMI总数的99%分位数的10%定义为背景噪音细胞</td></tr><tr><td>Mean reads per Cell</td><td style="font-size:15px;">每个细胞的平均序列数</td></tr><tr><td>Median genes perl Cell</td><td style="font-size:15px;">每个细胞中的中值基因数，比对到序列大于0被定义为检测到的基因</td></tr><tr><td>Number of reads</td><td style="font-size:15px;">所有比对到的序列数</td></tr><tr><td>Valid Barcodes</td><td style="font-size:15px;">带有正确标记的序列数百分比，每个标记对应到每个细胞</td></tr><tr><td>Reads Mapped Confidently to Transcriptome</td><td style="font-size:15px;">比对到数据库已知参考基因的序列数百分比</td></tr><tr><td>Reads Mapped Confidently to Integenic Regions</td><td style="font-size:15px;">比对到数据库的基因间隔区域的序列数百分比</td></tr><tr><td>Reads Mapped Confidently to Intronic Regions</td><td style="font-size:15px;">比对到数据库的内含子区域的序列数百分比</td></tr><tr><td>Reads Mapped Confidently to Intergenic Regions</td><td style="font-size:15px;">比对到数据库的基因间隔区域的序列数百分比</td></tr><tr><td>Sequencing Saturation</td><td style="font-size:15px;">序列饱和度估计</td></tr><tr><td>Q30 Bases in Barcode</td><td style="font-size:15px;">标记中质量分数大于等于30的碱基百分比</td></tr><tr><td>Q30 Bases in RNA Read</td><td style="font-size:15px;">Read中质量分数大于等于30的碱基百分比</td></tr><tr><td>Q30 Bases in Sample Index</td><td style="font-size:15px;">Samle index中质量分数大于等于30的碱基百分比</td></tr><tr><td>Q30 Bases in UMI</td><td style="font-size:15px;">UMI标记中质量分数大于等于30的碱基百分比</td></tr><tr><td>Estimated Number of Cells</td><td style="font-size:15px;">估计检测到的高质量细胞数</td></tr><tr><td>Fraction Reads in Cells</td><td style="font-size:15px;">落于高质量细胞的序列数百分比</td></tr><tr><td>Mean Reads per Cell</td><td style="font-size:15px;">每个高质量细胞的平均序列数</td></tr><tr><td>Median Genes per Cell</td><td style="font-size:15px;">每个高质量细胞的基因数中值</td></tr><tr><td>Total Genes Detected</td><td style="font-size:15px;">所有细胞检测到的基因总数</td></tr><tr><td>Median UMI Counts per Cell</td><td style="font-size:15px;">每个高质量细胞的平均UMI数</td></tr></tbody></table>
+<p align="center">图A:单细胞的基因数,UMI序列数以及来自线粒体基因的UMI序列比例，横坐标表示细胞编号，纵坐标表示此细胞中的基因数,UMI序列数,来自线粒体基因的UMI序列比例和来自编码核糖体基因的UMI序列比例和</p>
+<div class="row"><img src="./1QC/DetectedGenes_and_DetectedUMIs_by_Violinplot.png" height="100%" width="100%" /></img></div><p align="center">图B:单细胞的UMI序列数与来自线粒体基因的UMI序列比例的散点图，单细胞的UMI序列数与基因数的散点图</p>
+<div class="row"><img src="./1QC/nUMI_vs_percent.mito.png" height="100%" width="100%" /></img></div></br>
+			</div>
+		</div>	
+    </div>
+	<div id="footer" class="container">
+		<nav class="navbar navbar-default">
+			<div class="navbar-inner navbar-content-center">
+			</div>
+		</nav>
+	</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="./library/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body background="./library/image/back.png">
+    <div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<br>
+				<a href="http://www.genenergy.cn/"><img src="./library/image/Rlogo.jpg"/></a>
+			</div>
+			<div class="col-md-9">
+				<h2 align="center">10X Genomics 单细胞测序数据分析报告</h2>
+				<h4 align="center">Custom:Custom &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contract:Contract</h4>
+			</div>   
+		</div> 
+		<hr/>
+		<div class="row">
+			<div class="col-md-3" >
+				<div class="navbar navbar-default" role="navigation">
+					<ul class="nav">
+						<li><a href="01_Index.html">Introduction(简介)</a></li>
+						<li><a href="02_QC.html">QC(测序数据质量统计)</a></li>					
+						<li><a href="03_Cluster.html">Cluster(细胞聚类)</a></li>
+						<li><a href="04_CellMarker.html">CellMarker(细胞标记基因分析)</a></li>
+						<li><a href="05_TrajectoryAnalysis.html">Trajectory(拟时轨迹分析)</a></li>
+						<li><a href="06_FUN.html">FUN(细胞标记基因功能分析)</a></li>
+						<li><a href="07_Datasoft.html">DBSoft(数据库和软件)</a></li>
+						<li><a href="08_Reference.html">Refs(参考文献)</a></li>
+						<li><a href="09_Help.html">F&Q(帮助)</a></li>
+					</ul>
+				</div>	  
+			</div>
+			<div class="col-md-9">	
+<p>根据基因数大于等于200, 来自线粒体基因UMI序列数小于等于10%过滤得到高质量单细胞, 此外过滤线粒体基因和编码核糖体蛋白基因(<a href="./1QC/cellRange_QC_filtered.html" target="_blank">cellRange_QC_filtered.html</a>)，针对样本内的高质量单细胞和基因的UMI序列数，计算每个细胞的UMI总数，
+采用中位数标准化处理将每个细胞中的基因UMI数归一化到所有细胞UMI总数的中位数为基因表达量。 
+基于扩散系数衡量的变异程度最高的1500个基因， 采用PCA降维度的方式来看细胞之间的相似性，样本距离越近表示细胞基因的表达趋势约接近。 
+针对PCA结果中解释方差最大的前10个主成分，采用TSNE(t-Distributed Stochastic Neighbor Embedding)对单细胞群聚类进行可视化。 
+TSNE展示方法的原理是将高维空间下样本之间的欧式距离通过基于student T分布随机近邻嵌合的条件概率来重新计算样本距离，
+使得在低维度空间内样本呈现明显分隔的集群。 </p>
+<p>采用三种聚类方法分别对高质量群体细胞进行聚类分析， 第一种采用Cell Ranger默认的基于图聚类的方法构建细胞最近邻图， 利用Louvain Modularity优化算法对细胞群进行聚类，该方法采用PCA低维空间的欧式距离转换为基于K最近邻的Jaccard Index距离进行聚类。第二种采用Seurat的将PCA空间基于欧式距离构建最近邻KNN图， 然后再利用Louvain Modularity优化算法对细胞群进行聚类。第三种采用Monocle的TSNE低维空间内计算欧式距离， 然后基于局部密度原理对细胞群进行聚类。</p>
+<hr/>
+<p align="center">图A:Cell Ranger的PCA和TSNE图，PCA图中， 横坐标代表数据解释方差最大的方向PC1，纵坐标代表数据解释方差次大的方向PC2，每个点代表一个细胞，距离相近的细胞认为是同一类型细胞， TSNE图类似</p><div class="row"><div class="col-md-10"><img src="./2Cluster/PCA_and_TSNE_CR.png" height="100%" width="100%" /></img></div><div class="col-md-2 row pre-scrollable" style="overflow-x: auto; overflow-y: auto; height: 200px;"><ul class="list-unstyled"><li><a href="./2Cluster/PCA_and_TSNE_CR.png" target="_blank" >PCA_and_TSNE_CR</a></li><li><a href="./2Cluster/PCA_and_TSNE_SC.png" target="_blank" >PCA_and_TSNE_SC</a></li><li><a href="./2Cluster/PCA_and_TSNE_MC.png" target="_blank" >PCA_and_TSNE_MC</a></li></ul></div></div><p align="center">图B:Cell Ranger的基于UMI数的TSNE热图和基于基因数的TSNE热图</p><div class="row"><div class="col-md-10"><img src="./2Cluster/TSNE_by_total_UMI_and_Genes_CR.png" height="100%" width="100%" /></img></div><div class="col-md-2 row pre-scrollable" style="overflow-x: auto; overflow-y: auto; height: 200px;"><ul class="list-unstyled"><li><a href="./2Cluster/TSNE_by_total_UMI_and_Genes_CR.png" target="_blank" >TSNE_by_total_UMI_and_Genes_CR</a></li><li><a href="./2Cluster/TSNE_by_total_UMI_and_Genes_SC.png" target="_blank" >TSNE_by_total_UMI_and_Genes_SC</a></li><li><a href="./2Cluster/TSNE_by_total_UMI_and_Genes_MC.png" target="_blank" >TSNE_by_total_UMI_and_Genes_MC</a></li></ul></div></div></br><p><a href="./2Cluster/clusters_CR.csv" target="_blank" >clusters_CR.csv</a>表示每个类的细胞编号，<a href="./2Cluster/variance_CR.csv" target="_blank" >variance_CR.csv</a>表示前10个主成分解释的方差比例，<a href="./2Cluster/gene_cell_exprs_table.xls" target="_blank" >gene_cell_exprs_table.xls</a>表示基因细胞表达矩阵表，
+<a href="./2Cluster/gene_cell_exprs_norm_table.xls" target="_blank" >gene_cell_exprs_norm_table.xls</a>表示基因细胞标准化表达矩阵表，
+<a href="./2Cluster/gene_cell_exprs_norm_log_table.xls" target="_blank" >gene_cell_exprs_norm_log_table.xls</a>表示基因细胞标准化取Log(Signal+1)矩阵表， 
+Cluster*_samplelist.xls表示每类细胞编号单独列表， Cluster*_samplelist_signal.xls表示每类细胞标准化表达矩阵表。</p>			</div>
+		</div>	
+    </div>
+	<div id="footer" class="container">
+		<nav class="navbar navbar-default">
+			<div class="navbar-inner navbar-content-center">
+			</div>
+		</nav>
+	</div>
+</body>
+</html>
