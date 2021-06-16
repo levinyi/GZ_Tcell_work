@@ -201,8 +201,8 @@ ggsave(filename = paste(output_dir, "P7_VlnPlot_adt_CD4_CD8.png",sep="/"), plot 
 
 # we can also identify alternative protein and RNA markers for this cluster through differential
 # expression
-adt_markers <- FindMarkers(sc_seurat_obj, ident.1 = 4, assay = "ADT")
-rna_markers <- FindMarkers(sc_seurat_obj, ident.1 = 1, assay = "RNA")
+# adt_markers <- FindMarkers(sc_seurat_obj, ident.1 = 4, assay = "ADT")
+# rna_markers <- FindMarkers(sc_seurat_obj, ident.1 = 1, assay = "RNA")
 # adt_markers
 # rna_markers
 # Why do this?
@@ -219,7 +219,7 @@ ggsave(filename = paste(output_dir, "P8_2_RidgePlot_RNA_CD4_CD8.png",sep="/"), p
 adt.markers <- FindAllMarkers(sc_seurat_obj, assay = "ADT", only.pos = TRUE)
 # mean?
 
-save.image(file = "sc_seurat_obj.RData", version = NULL, ascii = FALSE, safe = TRUE)
+#save.image(file = paste(output_dir,"sc_seurat_obj.RData",sep="/"), version = NULL, ascii = FALSE, safe = TRUE)
 
 # source : https://satijalab.org/seurat/archive/v3.1/multimodal_vignette.html
 # source : https://satijalab.org/seurat/articles/multimodal_vignette.html
