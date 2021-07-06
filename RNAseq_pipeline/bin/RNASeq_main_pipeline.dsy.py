@@ -59,8 +59,8 @@ def main():
         f.write("{samtools} index {sample_name}.RNA.Aligned.sortedByCoord.out.bam\n".format(**config_dict))
         f.write("{samtools} mpileup -ABQ0 -l {sample_name}.snp.checked.bed -f {ref_fasta} {sample_name}.RNA.Aligned.sortedByCoord.out.bam >{sample_name}.RNAseq.mpileup.txt\n".format(**config_dict))
 
-        f.write("{featureCounts} -O -T 20 -t exon -g gene_name -a {gtf_file} -o {sample_name}.exon.gene_name.counts.txt  {sample_name}.RNA.Aligned.sortedByCoord.out.bam \n".format(**config_dict))
-        f.write("python3 {scripts_dir}/featureCounts2TPM.py -a {sample_name}.exon.gene_name.counts.txt -o {sample_name}.RNAseq.exon.gene_name.counts.TPM.txt\n".format(**config_dict))
+        f.write("{featureCounts} -O -T 20 -t exon -g gene_name -a {gtf_file} -o {sample_name}.RNAseq.exon.gene_name.counts.txt  {sample_name}.RNA.Aligned.sortedByCoord.out.bam \n".format(**config_dict))
+        f.write("python3 {scripts_dir}/featureCounts2TPM.py -a {sample_name}.RNAseq.exon.gene_name.counts.txt -o {sample_name}.RNAseq.exon.gene_name.counts.TPM.txt\n".format(**config_dict))
 
         # add TPM and add RNAseq read depth.
         f.write("python3 {scripts_dir}/add_TPM.py {sample_name}.variants.funcotated.with.minigene.MAF.xls {sample_name}.RNAseq.exon.gene_name.counts.TPM.txt gene_id\n".format(**config_dict))
