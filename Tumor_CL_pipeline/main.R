@@ -327,4 +327,4 @@ ggsave("Fig3b.tumor_dist_spread.png")
 
 fig3b_plot = cell_line_tumor_distance_distribution(alignment2, tumor_CL_my_cor)
 ggsave("Fig3b.tumor_dist_spread.my.png")
-save.image("main.Rdata")
+#save.image("main.Rdata")
