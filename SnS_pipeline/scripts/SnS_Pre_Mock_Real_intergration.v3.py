@@ -8,12 +8,15 @@ import configparser
 def usage():
     '''
     Usage:
-        python3 SnS_Pre_Mock_Real_intergration.py -c SnS_Pre_Mock_Real_intergration.Comp-CR13-CD8T.config  -p Comp-CR13-CD8T -s Pre,Mock,Real
+        python3 SnS_Pre_Mock_Real_intergration.v3.py -c SnS_Pre_Mock_Real_intergration.Comp-CR13-CD8T.config  -p Comp-CR13-CD8T -s Pre,Mock,Real
 
     Updated:
+    20210729: fix a bug when mock is empty in config file. will report KeyError.
     20200419: fix some bugs.
     20200415: updated a new version. add -s parmarter. to calculate average value to a specific group.
     20201222: fix a bug. when config file add space between two samples.
+
+    Author: shiyi@rootpathgx.com
     '''
 
 def _argparse():
@@ -133,17 +136,17 @@ def main():
             big_df['pre-ave_freq'] = big_df[new_sample_dict['Pre']].mean(axis=1)
             pre_sample_list = ["pre-ave_freq"]
         else:
-            pre_sample_list = new_sample_dict['Pre']
+            pre_sample_list = new_sample_dict.get('Pre',[])
         if 'Mock' in ave_set:
             big_df['mock-ave_freq'] = big_df[new_sample_dict['Mock']].mean(axis=1)
             mock_sample_list = ["mock-ave_freq"]
         else:
-            mock_sample_list = new_sample_dict['Mock']
+            mock_sample_list = new_sample_dict.get('Mock',[])
         if 'Real' in ave_set:
             big_df['real-ave_freq'] = big_df[new_sample_dict['Real']].mean(axis=1)
             real_sample_list = ["real-ave_freq"]
         else:
-            real_sample_list = new_sample_dict['Real']
+            real_sample_list = new_sample_dict.get('Real',[])
         # print(big_df.head())
     print("pre_samplelist,mocksamplilist,real_samplelist {} {} {} ".format(pre_sample_list,mock_sample_list,real_sample_list))
 
