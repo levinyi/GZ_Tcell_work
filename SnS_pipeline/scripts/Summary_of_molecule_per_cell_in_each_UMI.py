@@ -27,6 +27,8 @@ sample_mole_dict = {}
 
 folder = sys.argv[2]
 for each in os.listdir(folder):
+    if each =="data":
+        continue
     if os.path.isdir(each):
         #print("yes {}".format(each))
         folder_list.append(each)
