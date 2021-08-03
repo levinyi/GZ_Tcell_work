@@ -70,6 +70,6 @@ names(data_total) <- c("clonotype_pair_id",
                         paste("freq", file_name2,sep="-"))
 data_merged = data_total %>%  drop_na()
 # write to table:
-write.table(data_merged, file = paste(file_name1,file_name2,"shared.clonotypes.frequency.csv",sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
-write.table(data_total,  file = paste(file_name1,file_name2,"total.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_merged, file = paste(file_name1, file_name2, "shared.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
+write.table(data_total,  file = paste(file_name1, file_name2, "total.clonotypes.frequency.csv",  sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
 
