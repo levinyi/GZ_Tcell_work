@@ -8,15 +8,15 @@ source(here::here('src', 'analysis_helpers.R'))
 source(here::here('src', 'global_params.R'))
 
 
-load_data <- function(data_dir, tumor_file = 'TCGA_mat.tsv', cell_line_file = 'CCLE_mat.csv', 
-    annotation_file = 'Celligner_info.csv', hgnc_file = "hgnc_complete_set_7.24.2018.txt",
-    RootPath_Tumor_file = "RootPath.Tumor.tpm.20210308.22.txt", RootPath_Tumor_info_file = "RootPath.Tumor.Info.20210308.22.csv",
-    RootPath_CL_file = "RootPath.CellLine.tpm.20210308.2.txt", RootPath_CL_info_file = "RootPath.CellLine.Info.20210308.2.csv"){
+load_data <- function(data_dir, tumor_file = 'database/TCGA_mat.tsv', cell_line_file = 'database/CCLE_mat.csv', 
+    annotation_file = 'database/Celligner_info.csv', hgnc_file = "database/hgnc_complete_set_7.24.2018.txt",
+    RootPath_Tumor_file = "database/RootPath.Tumor.tpm.20210801.23.txt", RootPath_Tumor_info_file = "database/RootPath.Tumor.Info.20210801.23.csv",
+    RootPath_CL_file = "database/RootPath.CellLine.tpm.20210308.2.txt", RootPath_CL_info_file = "database/RootPath.CellLine.Info.20210308.2.csv"){
     
     hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
     
-    TCGA_mat <-  readr::read_tsv(file.path(data_dir, tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Gene') %>% as.matrix() %>% t()
-    CCLE_mat <-  readr::read_csv(file.path(data_dir, cell_line_file)) %>% as.data.frame() %>% tibble::column_to_rownames('X1') %>% as.matrix()
+    TCGA_mat <- readr::read_tsv(file.path(data_dir, tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Gene') %>% as.matrix() %>% t()
+    CCLE_mat <- readr::read_csv(file.path(data_dir, cell_line_file)) %>% as.data.frame() %>% tibble::column_to_rownames('X1') %>% as.matrix()
     colnames(CCLE_mat) <- stringr::str_match(colnames(CCLE_mat), '\\((.+)\\)')[,2]
 
     RTPT_tumor_mat = data.table::fread(file.path(data_dir, RootPath_Tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Geneid') %>% as.matrix() %>% t()
@@ -122,7 +122,7 @@ calc_tumor_CL_cor_new <- function(Celligner_aligned_data, all_ann) {
     return(tumor_CL_cor)
 }
 
-calc_gene_stats <- function(TCGA_mat, CCLE_mat, hgnc_file="hgnc_complete_set_7.24.2018.txt") {
+calc_gene_stats <- function(TCGA_mat, CCLE_mat, hgnc_file="database/hgnc_complete_set_7.24.2018.txt") {
   common_genes <- intersect(colnames(TCGA_mat), colnames(CCLE_mat))
 
   hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
@@ -151,10 +151,10 @@ calc_gene_stats <- function(TCGA_mat, CCLE_mat, hgnc_file="hgnc_complete_set_7.2
 ##########################################
 
 data_dir = "./"
-RootPath_Tumor_file = args[1]
-RootPath_info_file = args[2]
-dat = load_data(data_dir, RootPath_Tumor_file=RootPath_Tumor_file, RootPath_info_file=RootPath_info_file)
-
+#my_Tumor_file = args[1]
+#my_info_file = args[2]
+#dat = load_data(data_dir, RootPath_Tumor_file=my_Tumor_file, RootPath_Tumor_info_file=my_info_file)
+dat = load_data(data_dir)
 
 
 comb_ann <- rbind(
