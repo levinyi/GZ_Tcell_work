@@ -19,6 +19,7 @@ with open(cell_number, "r") as f:
         sample, cell = line.split()
         cell_number_dict[sample] = cell
 
+# print(cell_number_dict) # for debug
 sample_list = []
 folder_list = []
 sample_umi_dict = {}
