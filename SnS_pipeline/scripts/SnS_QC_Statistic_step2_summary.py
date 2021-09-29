@@ -2,6 +2,12 @@ import sys
 import os
 import argparse
 
+def usage():
+    '''
+    updated:
+    20210907: updated the formula
+
+    '''.format(sys.argv[0])
 
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
@@ -127,7 +133,11 @@ def main():
             mut_in_CDR3bJ, Indel_in_CDR3bJ, mut_in_conB, Indel_in_conB, 
             mut_in_TRAV, Indel_in_TRAV, overall_wo_TRBV))
         Error_free_in_TRAV = (mut_in_TRAV**2)*(Indel_in_TRAV**2)/(float(total_molecules_in_file))**4
-        Theoretical_pct = (mut_in_CDR3aJ*Indel_in_CDR3aJ*mut_in_conA*Indel_in_conA*mut_in_TRAV*Indel_in_TRAV*mut_in_CDR3bJ*Indel_in_CDR3bJ*mut_in_conB*Indel_in_conB)/float(pow(total_molecules_in_file,10))
+        # this is the old methord of Theoretical_pct
+        # Theoretical_pct = (mut_in_CDR3aJ*Indel_in_CDR3aJ*mut_in_conA*Indel_in_conA*mut_in_TRAV*Indel_in_TRAV*mut_in_CDR3bJ*Indel_in_CDR3bJ*mut_in_conB*Indel_in_conB)/float(pow(total_molecules_in_file,10))
+        
+        # 20210907, new formula of Theoretical_pct: Use TRAV Err-Free rate to estimate TRBV
+        Theoretical_pct = (mut_in_CDR3aJ*Indel_in_CDR3aJ*mut_in_conA*Indel_in_conA*mut_in_CDR3bJ*Indel_in_CDR3bJ*mut_in_conB*Indel_in_conB)/float(pow(total_molecules_in_file,8)) * Error_free_in_TRAV
         print("{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%}".format(
             mut_in_CDR3aJ/float(total_molecules_in_file), Indel_in_CDR3aJ/float(total_molecules_in_file), 
             mut_in_conA/float(total_molecules_in_file),   Indel_in_conA/float(total_molecules_in_file), 
@@ -137,8 +147,10 @@ def main():
             overall_wo_TRBV/float(total_molecules_in_file),
             Error_free_in_TRAV,
             Theoretical_pct,
-            Theoretical_pct*(mut_in_TRAV/float(total_molecules_in_file))*(Indel_in_TRAV/float(total_molecules_in_file)),
-            match_perfect_number*Theoretical_pct*(mut_in_TRAV/float(total_molecules_in_file))*(Indel_in_TRAV/float(total_molecules_in_file)),
+            # Theoretical_pct*(mut_in_TRAV/float(total_molecules_in_file))*(Indel_in_TRAV/float(total_molecules_in_file)),
+            Theoretical_pct*Error_free_in_TRAV,
+            # match_perfect_number*Theoretical_pct*(mut_in_TRAV/float(total_molecules_in_file))*(Indel_in_TRAV/float(total_molecules_in_file)),
+            Theoretical_pct*Error_free_in_TRAV*match_perfect_number,
             ))
         print("")
     print("")
