@@ -1,14 +1,26 @@
+# install.packages("Seurat")
+# install.packages("tidyr")
+# install.packages("tidyverse")
 library(Seurat)
-library(tidyverse,quietly=T)
+library(tidyverse, quietly=T)
 args = commandArgs(T)
 
 # for 3 ADT:
 # adt_CD4-TotalSeqC, adt_CD8-TotalSeqC, adt_IgG1-TotalSeqC
 
+## setup for windows
+# setwd("C:\\Users\\CEID\\Nutstore\\.nutstore_c2hpeWlAcm9vdHBhdGhneC5jb20=\\DuShiYi\\P0000-blackbird\\2103-CR001\\CR001003\\CR001003_PD1_CD4_CD8\\G082E5L1_scRNAseq_G082E6L1_CITEseq")
+# list.dirs()
+# scRNAseq_path = "./"
+# tcr_path = "../G082E4L1_TCRseq_IMGT"
+
+## setting for linux
+scRNAseq_path = args[1]   # scRNAseq data must contain ADT information.
+tcr_path = args[2]
+
+# create a output directory in current path.
 dir.create("CITEseq_analysis")
 output_dir = "CITEseq_analysis"
-scRNAseq_path = args[1] # scRNAseq data must contain ADT information.
-tcr_path = args[2]
 
 # read scRNAseq folder:
 data = Seurat::Read10X(data.dir = paste(scRNAseq_path, 'outs/filtered_feature_bc_matrix', sep = "/"))
@@ -91,10 +103,14 @@ ggsave(filename = paste(output_dir,"P3.raw.tsne.png",sep="/"),plot = p3_2, width
 ## install.packages('remotes')
 ## remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
 library(DoubletFinder)
+
+# Do not apply DoubletFinder to aggregated scRNA-seq data representing multiple distinct samples
+## -------------- pK Identification (no ground-truth) --------------------------------------
 sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:10, sct = FALSE)
 sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
 bcmvn <- find.pK(sweep.stats)
 mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
+
 ## ----------------- DoubletFinder:Homotypic Doublet Proportion Estimate ------------------------
 annotations <- sc_seurat_obj@meta.data$seurat_clusters
 homotypic.prop <- modelHomotypic(annotations) 
@@ -109,18 +125,23 @@ sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:10, pN = 0.25, pK = mpK
 
 ## ---------------------Doublets by DoubletFinder --------------------------------------------
 sc_seurat_obj$DF = sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi,sep = "_"),colnames(sc_seurat_obj@meta.data))]
-sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet" && sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))])] <- "Doublet_lo"
+doublets_rate = round(length(which(sc_seurat_obj$DF=="Doublet"))/ nrow(sc_seurat_obj@meta.data)*100,2)
+print(paste("doublets_rate : ", doublets_rate,"%", sep=""))
+sc_seurat_obj$DF[which((sc_seurat_obj$DF == "Doublet") & (sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))] == "Singlet"))] <- "Doublet_lo"
 sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet")] <- "Doublet_hi"
 
-# sc_seurat_obj$DF
-write.table(sc_seurat_obj$DF, file = paste(output_dir, "P4.doublets.table.csv", sep="/"), sep = ",", row.names = FALSE, quote = FALSE)
-p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF")
-ggsave(filename = paste(output_dir,"P4.doublets.png",sep="/"),plot = p4, width=9,height=7,path = "./" )
+p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF", label.size = 5, label = TRUE, pt.size = 1) + 
+  ggtitle(paste("Doublets rate : ",doublets_rate,"%", sep=""))
+ggsave(filename = paste(output_dir, "P4.doublets.png",sep="/"), plot = p4, width=9, height=7, path = "./" )
 
+########################## finish Doubletsfinder.
+##########################################################
 
-sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
-# sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
-# singR annotate cluster
+## select Singlet cells 
+# sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
+## sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
+#########################################################
+############################# singR annotate cluster
 ## install.packages("BiocManager")
 ## BiocManager::install("SingleR")
 ## or 
@@ -130,6 +151,7 @@ sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
 library(SingleR)
 # BiocManager::install("celldex")
 library(celldex)
+
 sc_seurat_obj_SingleR = GetAssayData(sc_seurat_obj, slot="data")
 sc_seurat_obj_clusters = sc_seurat_obj@meta.data$seurat_clusters
 
@@ -153,35 +175,42 @@ sc_seurat_obj_cellType = data.frame(ClusterID=levels(sc_seurat_obj@meta.data$seu
                                     novershter = pred.novershter$labels
 )
 write.table(sc_seurat_obj_cellType, file = paste(output_dir,"P5.SingleR_cell_type.csv",sep="/"),sep = ",", row.names = FALSE, quote=FALSE)
-sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'hpca']
-p5_0 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("HumanPrimaryCellAtlasData")
-sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'blue']
-p5_1 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("BlueprintEncodeData")
-sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
-p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ggtitle("DatabaseImmuneCellExpressionData")
-sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
-p5_3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR') + ggtitle("MonacoImmuneData")
-sc_seurat_obj@meta.data$singleR = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'novershter']
-p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR',)+ ggtitle("NovershternHematopoieticData")
+sc_seurat_obj@meta.data$singleR.hpca = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'hpca']
+p5_0 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.hpca',)+ggtitle("HumanPrimaryCellAtlasData")
+sc_seurat_obj@meta.data$singleR.blue = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'blue']
+p5_1 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.blue',)+ggtitle("BlueprintEncodeData")
+sc_seurat_obj@meta.data$singleR.dice = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
+p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.dice',)+ggtitle("DatabaseImmuneCellExpressionData")
+sc_seurat_obj@meta.data$singleR.mona = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
+p5_3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.mona') + ggtitle("MonacoImmuneData")
+sc_seurat_obj@meta.data$singleR.nove = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'novershter']
+p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.move',)+ ggtitle("NovershternHematopoieticData")
 ggsave(filename=paste(output_dir,"P5_0.cluster.annotation.with.hpca.png",sep="/"),width=9,height=7,plot = p5_0, path = "./")
 ggsave(filename=paste(output_dir,"P5_1.cluster.annotation.with.blue.png",sep="/"),width=9,height=7,plot = p5_1, path = "./")
 ggsave(filename=paste(output_dir,"P5_2.cluster.annotation.with.dice.png",sep="/"),width=9,height=7,plot = p5_2, path = "./")
 ggsave(filename=paste(output_dir,"P5_3.cluster.annotation.with.mona.png",sep="/"),width=9,height=7,plot = p5_3, path = "./")
 ggsave(filename=paste(output_dir,"P5_4.cluster.annotation.with.nove.png",sep="/"),width=9,height=7,plot = p5_4, path = "./")
 # library(cowplot)
-# p5 = cowplot::plot_grid(p5_0,p5_1,p5_2,p5_3,p5_4, ncol = 2)
-# ggsave(filename = "cluster.annotation.with.5.databases.png", plot = p5, path = "./" )
+p5 = cowplot::plot_grid(p5_0,p5_1,p5_2,p5_3,p5_4, ncol = 2)
+ggsave(filename=paste(output_dir,"cluster.annotation.with.5.databases.png",sep="/"), plot = p5, width=9, height=7, path = "./" )
 
-#DefaultAssay(sc_seurat_obj) <- "ADT"
-#p1 <- FeaturePlot(sc_seurat_obj, "CD4-TotalSeqC", cols = c("lightgrey", "darkgreen")) + ggtitle("CD4 antibody")
-#p3 <- FeaturePlot(sc_seurat_obj, "CD8-TotalSeqC", cols = c("lightgrey", "darkgreen")) + ggtitle("CD8 antibody")
-#DefaultAssay(sc_seurat_obj) <- "RNA"
-#p2 <- FeaturePlot(sc_seurat_obj, "CD4") + ggtitle("CD4 RNA")
-#p4 <- FeaturePlot(sc_seurat_obj, "CD8A") + ggtitle("CD8A RNA")
-#p5 <- FeaturePlot(sc_seurat_obj, "CD8B") + ggtitle("CD8B RNA")
-#p1 | p2 | p3 | p4 | p5
+########################################
+########################################
+# this is for customized.
+sc_seurat_obj@meta.data$singleR.target = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
+sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype42" )] <- "clon42is215"
+sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype41" )] <- "clon41is1078"
+p5_t = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.target',)+ ggtitle("MonacoImmuneData")
+ggsave(filename=paste(output_dir,"P5_t.cluster.annotation.with.targ.png",sep="/"),plot = p5_t,width=9,height=7, path = ".")
 
-Key(sc_seurat_obj[["RNA"]])
+#######################################
+#######################################
+write.table(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj@meta.data),
+            file=paste(output_dir, 'Total.meta.data.mass.csv', sep="/"),
+            sep=",", row.names=FALSE)
+
+#########################################
+############### for  CITEseq
 Key(sc_seurat_obj[["ADT"]])
 p6_1 <- FeaturePlot(sc_seurat_obj, "adt_CD4-TotalSeqC", cols = c("lightgrey", "darkgreen")) + ggtitle("CD4 antibody")
 p6_2 <- FeaturePlot(sc_seurat_obj, "adt_CD8-TotalSeqC", cols = c("lightgrey", "darkgreen")) + ggtitle("CD8 antibody")
