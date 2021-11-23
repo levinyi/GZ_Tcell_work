@@ -184,7 +184,7 @@ p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR
 sc_seurat_obj@meta.data$singleR.mona = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
 p5_3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.mona') + ggtitle("MonacoImmuneData")
 sc_seurat_obj@meta.data$singleR.nove = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'novershter']
-p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.move',)+ ggtitle("NovershternHematopoieticData")
+p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.nove',)+ ggtitle("NovershternHematopoieticData")
 ggsave(filename=paste(output_dir,"P5_0.cluster.annotation.with.hpca.png",sep="/"),width=9,height=7,plot = p5_0, path = "./")
 ggsave(filename=paste(output_dir,"P5_1.cluster.annotation.with.blue.png",sep="/"),width=9,height=7,plot = p5_1, path = "./")
 ggsave(filename=paste(output_dir,"P5_2.cluster.annotation.with.dice.png",sep="/"),width=9,height=7,plot = p5_2, path = "./")
