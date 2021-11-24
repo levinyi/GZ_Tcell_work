@@ -32,6 +32,8 @@ def deal_clonotypes_add_consensus_file(afile):
             clonotype_pair = c[4].split("*")[0].replace("/","") + c[10] + c[6].split("*")[0] + "_" + c[17].split("*")[0].replace("/","") + c[23] + c[19].split("*")[0]
             pair_dict[clonotype_pair] = c[-1]
     return pair_dict
+
+
 def deal_clonotypes_add_consensus_files(afile):
     df = pd.read_csv(afile, sep=",")
     df['clonotype_pair'] = df['v_gene'].str.split("*").str[0].str.replace("/","") + df['cdr3'] + df['j_gene'].str.split("*").str[0].str.replace("/","")+ df['v_gene.1'].str.split("*").str[0].str.replace("/","")+ df['cdr3.1'] + df['j_gene.1'].str.split("*").str[0].str.replace("/","")
