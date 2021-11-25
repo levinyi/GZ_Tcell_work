@@ -19,8 +19,8 @@ scRNAseq_path = args[1]   # scRNAseq data must contain ADT information.
 tcr_path = args[2]
 
 # create a output directory in current path.
-dir.create("CITEseq_analysis")
-output_dir = "CITEseq_analysis"
+dir.create("scRNAseq_CITEseq_TCRseq_analysis")
+output_dir = "scRNAseq_CITEseq_TCRseq_analysis"
 
 # read scRNAseq folder:
 data = Seurat::Read10X(data.dir = paste(scRNAseq_path, 'outs/filtered_feature_bc_matrix', sep = "/"))
@@ -197,11 +197,11 @@ ggsave(filename=paste(output_dir,"cluster.annotation.with.5.databases.png",sep="
 ########################################
 ########################################
 # this is for customized.
-sc_seurat_obj@meta.data$singleR.target = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
-sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype42" )] <- "clon42is215"
-sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype41" )] <- "clon41is1078"
-p5_t = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.target',)+ ggtitle("MonacoImmuneData")
-ggsave(filename=paste(output_dir,"P5_t.cluster.annotation.with.targ.png",sep="/"),plot = p5_t,width=9,height=7, path = ".")
+# sc_seurat_obj@meta.data$singleR.target = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
+# sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype42" )] <- "clon42is215"
+# sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype41" )] <- "clon41is1078"
+# p5_t = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.target',)+ ggtitle("MonacoImmuneData")
+# ggsave(filename=paste(output_dir,"P5_t.cluster.annotation.with.targ.png",sep="/"),plot = p5_t,width=9,height=7, path = ".")
 
 #######################################
 #######################################
@@ -245,7 +245,7 @@ p8_2 = RidgePlot(sc_seurat_obj, features = c("rna_CD4", "rna_CD8A", "rna_CD8B"),
 ggsave(filename = paste(output_dir, "P8_1_RidgePlot_adt_CD4_CD8.png",sep="/"), plot = p8_1, path = "./",width=12,height=6)
 ggsave(filename = paste(output_dir, "P8_2_RidgePlot_RNA_CD4_CD8.png",sep="/"), plot = p8_2, path = "./",width=12,height=6)
 
-adt.markers <- FindAllMarkers(sc_seurat_obj, assay = "ADT", only.pos = TRUE)
+# adt.markers <- FindAllMarkers(sc_seurat_obj, assay = "ADT", only.pos = TRUE)
 # mean?
 
 #save.image(file = paste(output_dir,"sc_seurat_obj.RData",sep="/"), version = NULL, ascii = FALSE, safe = TRUE)
