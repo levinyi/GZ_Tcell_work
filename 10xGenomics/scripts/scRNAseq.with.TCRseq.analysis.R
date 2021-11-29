@@ -180,9 +180,76 @@ ggsave(filename=paste(output_dir,"P5_cluster.annotation.with.5.databases.png",se
 # sc_seurat_obj@meta.data$singleR.target = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
 # sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype597" )] <- "clon597is215"
 # sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype34" )] <- "clon34is1078"
+
+# ump_data_for_ggplot  = Seurat::Embeddings(sc_seurat_obj, reduction = "umap")  %>%
+#   as.data.frame() %>% rownames_to_column(var = 'barcode') %>%
+#   left_join(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj@meta.data), by = 'barcode')
+# ump_data_for_ggplot
+# write.table(ump_data_for_ggplot, file=paste(output_dir, 'test.data.mass.csv', sep="/"), sep=",", row.names=FALSE)
+
+# highlight_data <- ump_data_for_ggplot %>% filter(grepl("clon", singleR.target))
+# highlight_data
+# cells.highlight = rownames(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj@meta.data) %>% filter(grepl("clon", singleR.target)))
+# cells.highlight
 # p5_t = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.target',)+ ggtitle("MonacoImmuneData")
 # ggsave(filename=paste(output_dir,"P5_t.cluster.annotation.with.targ.png",sep="/"),plot = p5_t,width=9,height=7, path = ".")
 # p5_t
+
+# or 
+
+library(ggforce)
+install.packages("ggforce")
+library(tidyverse)
+library(magrittr)
+library(RColorBrewer)
+install.packages("ggrepel")
+library(ggrepel)
+brewer.pal(7,"Set2")[2]
+brewer.pal.info
+display.brewer.pal(11,"Paired")
+
+tissue_colors <- c(`CD4+ T cells`= "red",
+                   `CD8+ T cells` = "green",
+                   `clonotype1004` = "#e491c1",
+                   `clonotype1012` = "#45a132",
+                   `clonotype1382` = "#45a132",
+                   `clonotype202` = "#6a6c2c",
+                   `clonotype245` = "#d8ab6a",
+                   `clonotype42` = "#e6c241",
+                   `clonotype215` = "#c44c90",
+                   `clonotype1078` = "#a9e082",
+                   `Dendritic cells` = "#f5899e",
+                   `T cells` = "blue"
+)
+cell_labels = c("CD4+ T cells", "CD8+ T cells", "clonotype1004", "clonotype1012", "clonotype1078", "clonotype1382", "clonotype202", "clonotype215", "clonotype42", "Dendritic cells", "T cells")
+
+ump_data_for_ggplot  = Seurat::Embeddings(sc_seurat_obj, reduction = "umap")  %>% 
+  as.data.frame() %>% rownames_to_column(var = 'barcode') %>% 
+  left_join(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj@meta.data), by = 'barcode')
+ump_data_for_ggplot
+
+highlight_data <- ump_data_for_ggplot %>% filter(grepl("clon", singleR.target))
+highlight_data
+common_themes = theme(plot.title = element_text(size = 17, hjust = 0.5),
+                      panel.grid.major = element_line(colour = NA), # 去掉网格线
+                      panel.background = element_blank(), # 去掉背景
+                      panel.grid.major.x = element_line(),  # 横向网格线linetype=2,xuxian
+                      panel.grid.major.y = element_line(), # 纵向网格线
+                      panel.border = element_rect(fill=NA), # 边框
+                      axis.line = element_line(), # 坐标轴线
+                      axis.title = element_text(size = 17),
+                      legend.title = element_blank(),
+                      #legend.position = c(0.95,0.95), # bottom, right, 'left'
+                      legend.background = element_rect(colour = NA, fill = NA),
+)
+p5_t2 = ggplot(ump_data_for_ggplot, aes(x=UMAP_1, y=UMAP_2, color=singleR.target, label=singleR.target))+ geom_point(size=0.5, alpha=1)+
+  scale_color_manual(values = tissue_colors) + geom_point(data = highlight_data, aes(x=UMAP_1, y=UMAP_2),size=2,) + 
+  geom_text_repel(data = highlight_data) +
+  common_themes
+
+ggsave(filename=paste(output_dir,"P5_t2.cluster.annotation.with.targ.png",sep="/"),plot = p5_t2,width=9,height=7, path = ".")
+p5_t2
+
 
 ########################################
 ########################################
