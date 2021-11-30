@@ -1,6 +1,7 @@
 library(tidyverse)
 library(VennDiagram)
 library(RColorBrewer)
+library(ggplot2)
 args = commandArgs(T)
 
 ############### for windows Rstudio.
@@ -60,6 +61,8 @@ venn.diagram(list(A=data1$clonotype_pair_id, A=data2$clonotype_pair_id),
 ################## end venn diagram end ##############
 
 #### export data
+raw_data = dplyr::full_join(data1, data2, by="clonotype_pair_id")
+
 data_total = dplyr::full_join(data1, data2, by = "clonotype_pair_id") %>% 
   select(clonotype_pair_id,clonotype_id.x,clonotype_id.y,frequency.x,frequency.y) 
 # rename column name:
@@ -70,6 +73,10 @@ names(data_total) <- c("clonotype_pair_id",
                         paste("freq", file_name2,sep="-"))
 data_merged = data_total %>%  drop_na()
 # write to table:
-write.table(data_merged, file = paste(file_name1, file_name2, "shared.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
-write.table(data_total,  file = paste(file_name1, file_name2, "total.clonotypes.frequency.csv",  sep="_"), sep = ",", row.names = FALSE, quote = FALSE )
+write.table(raw_data,    file = paste(file_name1, file_name2,    "raw.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE)
+write.table(data_merged, file = paste(file_name1, file_name2, "shared.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE)
+write.table(data_total,  file = paste(file_name1, file_name2,  "total.clonotypes.frequency.csv", sep="_"), sep = ",", row.names = FALSE, quote = FALSE)
+
+# draw plot from data_merged:
+# ggplot() + geom_bar()
 
