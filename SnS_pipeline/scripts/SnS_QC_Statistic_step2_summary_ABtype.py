@@ -34,6 +34,8 @@ def deal_frequency_file(frequ_file, frequency, total_number, counts_sum):
             if line.startswith("pair"):
                 continue
             c = line.split()
+            if c[4] == "NA":
+                continue
             if c[1] != '0':
                 molecule_number += 1
             if float(c[4]) >= frequency:
