@@ -37,10 +37,10 @@ with open(sum_file, "r") as f:
         # for example molecule name: G382E2L1.194.CD4.1000.1.b|SP08.AAAGAATTTTCG.1
         # split with ".": G382E2L1 194 CD4 1000 1 b|SP08 AAAGAATTTTCG 1
         # pair in acc_freq file:   190.CD4.1000.1|SP05
-        #m[-3] = m[-3][1:]
+        m[-3] = m[-3][1:]
         # print(m)
         match = "{}{}".format(".".join(m[1:-3]), m[-3])
-        
+        # print(match)
         # 20210611 new batch: P0037-SnS-Gen3p3_NCIWv1_CR13/20210604_SnS_NCIWv1_CR13all_hsTRBCRQR8_N12_ExoI/G412-G419/UMI5_Choose20210609
         # for example molecule name : G412E2L1.NCI4323.Clone1.1.e|SP1.ACAGCGGGGTGG.1
         # split with "." G412E2L1 NCI4323 Clone1 1 e|SP1 ACAGCGGGGTGG 1
@@ -53,7 +53,7 @@ with open(sum_file, "r") as f:
         # pair in acc_freq file: a1341_b1714|SP2
         # match = m[1]
         # print("match :", match)
-        match = ".".join(c[0].split(".")[1:-2])
+        # match = ".".join(c[0].split(".")[1:-2])
         tcr_freq = adict[match]
 
         print("{}\t{}\t{}\t{}".format("\t".join(c),sum5_TRA,sum5_TRB,tcr_freq))
