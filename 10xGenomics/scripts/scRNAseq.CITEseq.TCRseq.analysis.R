@@ -107,6 +107,7 @@ library(DoubletFinder)
 # Do not apply DoubletFinder to aggregated scRNA-seq data representing multiple distinct samples
 ## -------------- pK Identification (no ground-truth) --------------------------------------
 sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:10, sct = FALSE)
+# sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:15, sct = T) # need test
 sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
 bcmvn <- find.pK(sweep.stats)
 mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
