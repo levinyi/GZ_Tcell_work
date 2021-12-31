@@ -116,6 +116,8 @@ mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
 annotations <- sc_seurat_obj@meta.data$seurat_clusters
 homotypic.prop <- modelHomotypic(annotations) 
 nExp_poi <- round(0.075*nrow(sc_seurat_obj@meta.data)) ## Assuming 7.5% doublet formation rate
+# DoubletRate = 0.039  # 5000 Cells correspond to doublets rate yes 3.9%
+# nExp_poi <- round(DoubletRate*ncol(sc_seurat_obj))
 nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
 
 ## ------------DoubletFinder:Run DoubletFinder with varying classification stringencies ---------
@@ -164,7 +166,7 @@ novershter = celldex::NovershternHematopoieticData()
 
 pred.hpca = SingleR(test = sc_seurat_obj_SingleR, ref = hpca, labels = hpca$label.main,clusters = sc_seurat_obj_clusters )
 pred.blue = SingleR(test = sc_seurat_obj_SingleR, ref = blueprint_encode,labels = blueprint_encode$label.main,clusters = sc_seurat_obj_clusters )
-# pred.dice = SingleR(test = sc_seurat_obj_SingleR, ref =dice, labels = dice$label.main,clusters = sc_seurat_obj_clusters)
+pred.dice = SingleR(test = sc_seurat_obj_SingleR, ref =dice, labels = dice$label.main,clusters = sc_seurat_obj_clusters)
 pred.mona = SingleR(test = sc_seurat_obj_SingleR, ref = mona, labels = mona$label.main,clusters = sc_seurat_obj_clusters)
 pred.novershter = SingleR(test = sc_seurat_obj_SingleR, ref = novershter, labels = novershter$label.main,clusters = sc_seurat_obj_clusters)
 
