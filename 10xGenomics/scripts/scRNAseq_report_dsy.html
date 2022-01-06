@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RootPath 单细胞分析报告</title>
+    <style>
+        body{
+            margin: 0;
+            font-family: DIN Next LT Pro;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            background-color: #fff;
+        }
+        .top-bar-wraper{
+            height: 63px;
+            background-color: rgb(178, 218, 178); 
+            width: 100%;
+        }
+        .top-bar{
+            background-color: yellow;
+            width: 1010px;
+            height: 38px;
+            margin:0 auto;
+        }
+        .top-bar .icon{
+            float: left;
+        }
+        .top-bar .project{
+            float: right;
+        }
+        h1{
+            font-size: 20px;
+        }
+        .main-content{
+            width: 1010px;
+            margin: 0 auto;
+        }
+        .box{
+            border: 1px solid #DEE2E6;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .3);
+        }
+        .title-help-text-container{
+            display: block;
+        }
+        .png{
+            width: 500px;
+        }
+        ul .png{
+            width: 500px;
+        }
+        li{
+            list-style-type: none;
+        }
+        a{
+            text-decoration: none;
+        }
+        footer{
+            width: 100%;
+            height: 50px;
+            background-color: grey;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="top-bar-wraper">
+            <div class="top-bar">
+                <div class="icon">RootPath</div>
+                <div class="project">Project</div>
+            </div>
+        </div>
+
+    </header>
+    <main class="main-content">
+        <div class="p1 box">
+            <h1>QC</h1>
+            <h2>description</h2>
+            <p>this is for part one </p>
+            <img class="png" src="P1.VlnPlot.feature.png" alt="">
+            <img class="png" src="P2.combinePlots.FeatureScatter.png" alt="">
+        </div>
+        <div class="p3 box">
+            <h1>Tsne/UMAP</h1>
+            <p>this is for umap</p>
+            <img src="P3.raw.tsne.png" alt="" class="png">
+            <img src="P3.raw.umap.png" alt="" class="png">
+        </div>
+        <div class="doublets box">
+            <h1>Doublets analysis</h1>
+            <p>this is for doublets</p>
+            <img class="png" src="./P4.doublets.png" alt="">
+        </div>
+        <div class="cluster box">
+            <h1>cluster annotation</h1>
+            <p>this is annotation for cluster</p>
+            singleR
+            <ul class="ul-png">
+                <li><img src="./P5_0.cluster.annotation.with.hpca.png" alt="" class="png"></li>
+                <li><img src="./P5_1.cluster.annotation.with.blue.png" alt="" class="png"></li>
+                <li><img src="./P5_2.cluster.annotation.with.dice.png" alt="" class="png"></li>
+                <li><img src="./P5_3.cluster.annotation.with.mona.png" alt="" class="png"></li>
+                <li><img src="./P5_4.cluster.annotation.with.nove.png" alt="" class="png"></li>
+            </ul>
+        </div>
+        <div class="CITE-Seq box">
+            <h1>CITE-Seq</h1>
+            <i>icon</i>
+            <div class="title-help-text-container">
+                <dt>CITE-Seq</dt>
+                <dd>CITE-Seq means protein surface xxx</dd>
+            </div>
+            <img class="png" src="./P6.FeaturePlot_ADT_VS_RNA_CD4_VS_CD8.png" alt="">
+        </div>
+        <div class="vlnplot box">
+            <h1>Vlnplot</h1>
+            <img src="./P7_VlnPlot_adt_CD4_CD8.png" alt="" class="png">
+            <img src="./P8_1_RidgePlot_adt_CD4_CD8.png" alt="" class="png">
+            <img src="./P8_2_RidgePlot_RNA_CD4_CD8.png" alt="" class="png">
+        </div>
+        <div class="help box">
+            <h1>其他信息</h1>
+            <li class="other-info">
+                <ul><a href="./ADT.t.csv">ADT.t.csv</a>表示每种表面蛋白在每个细胞中的表达量count数</ul>
+                <ul><a href="./P5.SingleR_cell_type.csv">P5.SingleR_cell_type.csv</a>:表示</ul>
+                <ul><a href="./RNA.t.csv">RNA.t.csv</a>:表示</ul>
+                <ul><a href="Total.meta.data.mass.csv">Total.meta.data.mass.csv</a>:表示</ul>
+            </li>
+        </div>
+        <div></div>
+    </main>
+    <footer></footer>
+</body>
+</html>
