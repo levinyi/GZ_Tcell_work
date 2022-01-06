@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RootPath 单细胞分析报告</title>
     <style>
-        body{
+        body {
             margin: 0;
             font-family: DIN Next LT Pro;
             font-size: 1rem;
@@ -16,126 +17,305 @@
             text-align: left;
             background-color: #fff;
         }
-        .top-bar-wraper{
-            height: 63px;
-            background-color: rgb(178, 218, 178); 
+
+        .top-bar-wraper {
+            height: 62px;
+            background-color: #153057;
             width: 100%;
         }
-        .top-bar{
-            background-color: yellow;
+
+        .top-bar {
+            /* background-color: yellow; */
             width: 1010px;
-            height: 38px;
-            margin:0 auto;
+            height: 62px;
+            color: rgb(2, 252, 2);
+            margin: 0 auto;
+            line-height: 62px;
         }
-        .top-bar .icon{
-            float: left;
+
+        .project {
+            color: #212529;
+            width: 1010px;
+            margin: 0 auto;
+            /* padding: 0 10px; */
+            line-height: 60px;
         }
-        .top-bar .project{
-            float: right;
-        }
-        h1{
-            font-size: 20px;
-        }
-        .main-content{
+
+        .main-content {
             width: 1010px;
             margin: 0 auto;
         }
-        .box{
-            border: 1px solid #DEE2E6;
-            border-radius: 10px;
-            margin-top: 10px;
+
+        .summary_card {
+            float: left;
+            width: 970px;
+            border: 1px solid rgba(0, 0, 0, .1);
+            padding: 0 14px;
+            border-radius: 5px;
+            margin-top: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, .3);
+            /* display: flex; */
         }
-        .title-help-text-container{
+
+        .title-help-text-container {
             display: block;
         }
-        .png{
+
+        .header-wrapper {
+            display: flex;
+            /* align-items: center; */
+        }
+
+        .header-questionMark {
+            height: 1rem;
+            margin-top: 0.825rem;
+            margin-left: 0.5rem;
+            opacity: .6;
+            cursor: pointer;
+            /* float: left; */
+        }
+
+        .header-questionMark:hover {
+            display: block;
+        }
+
+        .png {
             width: 500px;
         }
-        ul .png{
+
+        ul .png {
             width: 500px;
         }
-        li{
+
+        li {
             list-style-type: none;
         }
-        a{
+
+        a {
             text-decoration: none;
         }
+
         footer{
             width: 100%;
             height: 50px;
-            background-color: grey;
+            background-color: rgb(167, 164, 164);
             margin-top: 30px;
+            float: left;
+        }
+        .footer-box{
+            width: 970px;
+            margin: auto;
+            text-align: center;
+            line-height: 50px;
+            color: rgb(2, 252, 2);
         }
     </style>
 </head>
+
 <body>
     <header>
         <div class="top-bar-wraper">
             <div class="top-bar">
-                <div class="icon">RootPath</div>
-                <div class="project">Project</div>
+                <h1>RootPath</h1>
             </div>
         </div>
-
+        <div class="project">
+            <h1>分析结果展示</h1>
+        </div>
     </header>
     <main class="main-content">
-        <div class="p1 box">
-            <h1>QC</h1>
-            <h2>description</h2>
-            <p>this is for part one </p>
-            <img class="png" src="P1.VlnPlot.feature.png" alt="">
-            <img class="png" src="P2.combinePlots.FeatureScatter.png" alt="">
-        </div>
-        <div class="p3 box">
-            <h1>Tsne/UMAP</h1>
-            <p>this is for umap</p>
-            <img src="P3.raw.tsne.png" alt="" class="png">
-            <img src="P3.raw.umap.png" alt="" class="png">
-        </div>
-        <div class="doublets box">
-            <h1>Doublets analysis</h1>
-            <p>this is for doublets</p>
-            <img class="png" src="./P4.doublets.png" alt="">
-        </div>
-        <div class="cluster box">
-            <h1>cluster annotation</h1>
-            <p>this is annotation for cluster</p>
-            singleR
-            <ul class="ul-png">
-                <li><img src="./P5_0.cluster.annotation.with.hpca.png" alt="" class="png"></li>
-                <li><img src="./P5_1.cluster.annotation.with.blue.png" alt="" class="png"></li>
-                <li><img src="./P5_2.cluster.annotation.with.dice.png" alt="" class="png"></li>
-                <li><img src="./P5_3.cluster.annotation.with.mona.png" alt="" class="png"></li>
-                <li><img src="./P5_4.cluster.annotation.with.nove.png" alt="" class="png"></li>
-            </ul>
-        </div>
-        <div class="CITE-Seq box">
-            <h1>CITE-Seq</h1>
-            <i>icon</i>
-            <div class="title-help-text-container">
-                <dt>CITE-Seq</dt>
-                <dd>CITE-Seq means protein surface xxx</dd>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>Basic QC</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
             </div>
-            <img class="png" src="./P6.FeaturePlot_ADT_VS_RNA_CD4_VS_CD8.png" alt="">
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div class="img">
+                <img class="png" src="P1.VlnPlot.feature.png" alt="">
+                <img class="png" src="P2.combinePlots.FeatureScatter.png" alt="">
+            </div>
+
         </div>
-        <div class="vlnplot box">
-            <h1>Vlnplot</h1>
-            <img src="./P7_VlnPlot_adt_CD4_CD8.png" alt="" class="png">
-            <img src="./P8_1_RidgePlot_adt_CD4_CD8.png" alt="" class="png">
-            <img src="./P8_2_RidgePlot_RNA_CD4_CD8.png" alt="" class="png">
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>Tsne/UMAP</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <img src="P3.raw.tsne.png" alt="" class="png">
+                <img src="P3.raw.umap.png" alt="" class="png">
+            </div>
         </div>
-        <div class="help box">
-            <h1>其他信息</h1>
-            <li class="other-info">
-                <ul><a href="./ADT.t.csv">ADT.t.csv</a>表示每种表面蛋白在每个细胞中的表达量count数</ul>
-                <ul><a href="./P5.SingleR_cell_type.csv">P5.SingleR_cell_type.csv</a>:表示</ul>
-                <ul><a href="./RNA.t.csv">RNA.t.csv</a>:表示</ul>
-                <ul><a href="Total.meta.data.mass.csv">Total.meta.data.mass.csv</a>:表示</ul>
-            </li>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>Doublets analysis</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <img class="png" src="./P4.doublets.png" alt="">
+            </div>
         </div>
-        <div></div>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>cluster annotation</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <ul class="ul-png">
+                    <li><img src="./P5_0.cluster.annotation.with.hpca.png" alt="" class="png"></li>
+                    <li><img src="./P5_1.cluster.annotation.with.blue.png" alt="" class="png"></li>
+                    <li><img src="./P5_2.cluster.annotation.with.dice.png" alt="" class="png"></li>
+                    <li><img src="./P5_3.cluster.annotation.with.mona.png" alt="" class="png"></li>
+                    <li><img src="./P5_4.cluster.annotation.with.nove.png" alt="" class="png"></li>
+                </ul>
+            </div>
+        </div>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>CITE-Seq</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <img class="png" src="./P6.FeaturePlot_ADT_VS_RNA_CD4_VS_CD8.png" alt="">
+            </div>
+        </div>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>Vlnplot</h2>
+                </div>
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                        data-test="antibodySequencingQuestionMark">
+                        <path
+                            d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: block;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <img src="./P7_VlnPlot_adt_CD4_CD8.png" alt="" class="png">
+                <img src="./P8_1_RidgePlot_adt_CD4_CD8.png" alt="" class="png">
+                <img src="./P8_2_RidgePlot_RNA_CD4_CD8.png" alt="" class="png">
+            </div>
+        </div>
+        <div class="summary_card">
+            <div class="header-wrapper">
+                <!-- 标题行中的字体和问号需要两个div -->
+                <div>
+                    <h2>其他信息</h2>
+                </div>
+                <a href="">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="header-questionMark"
+                            data-test="antibodySequencingQuestionMark">
+                            <path
+                                d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z">
+                            </path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+            <!-- 标题的问号中的内容 -->
+            <div class="title-help-text-container" style="display: none;">
+                <p>这里是隐藏信息，需要点击一下才能看</p>
+            </div>
+            <!-- 展示结果图片的区域 -->
+            <div>
+                <li class="other-info">
+                    <ul><a href="./ADT.t.csv">ADT.t.csv</a>表示每种表面蛋白在每个细胞中的表达量count数</ul>
+                    <ul><a href="./P5.SingleR_cell_type.csv">P5.SingleR_cell_type.csv</a>:表示</ul>
+                    <ul><a href="./RNA.t.csv">RNA.t.csv</a>:表示</ul>
+                    <ul><a href="Total.meta.data.mass.csv">Total.meta.data.mass.csv</a>:表示</ul>
+                </li>
+            </div>
+        </div>
     </main>
-    <footer></footer>
+    <footer>
+        <div class="footer-box">
+            到底啦
+        </div>
+        </footer>
 </body>
+
 </html>
