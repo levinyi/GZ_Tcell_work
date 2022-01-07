@@ -71,8 +71,11 @@ sc_seurat_obj = add_clonotype(tcr_path, sc_seurat_obj)
 
 ################
 sc_seurat_obj[["percent.mt"]] <- PercentageFeatureSet(sc_seurat_obj, pattern = "^MT-")
-p1 = VlnPlot(sc_seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+# log scale, flip=FALSE is default.
+p1 = VlnPlot(sc_seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, log=TRUE, flip=FALSE)
 ggsave(filename=paste(output_dir,"P1.VlnPlot.feature.png",sep="/"), plot=p1, width=12,height=6,path=".")
+
 # FeatureScatter is typically used to visualize feature-feature relationships, but can be used
 # for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
 
@@ -164,6 +167,7 @@ blueprint_encode = celldex::BlueprintEncodeData()
 mona = celldex::MonacoImmuneData()
 novershter = celldex::NovershternHematopoieticData()
 
+# choose label.main or label.fine
 pred.hpca = SingleR(test = sc_seurat_obj_SingleR, ref = hpca, labels = hpca$label.main,clusters = sc_seurat_obj_clusters )
 pred.blue = SingleR(test = sc_seurat_obj_SingleR, ref = blueprint_encode,labels = blueprint_encode$label.main,clusters = sc_seurat_obj_clusters )
 pred.dice = SingleR(test = sc_seurat_obj_SingleR, ref =dice, labels = dice$label.main,clusters = sc_seurat_obj_clusters)
@@ -200,6 +204,74 @@ ggsave(filename=paste(output_dir,"cluster.annotation.with.5.databases.png",sep="
 
 ########################################
 ########################################
+###### Garnett
+library(monocle3)
+library(garnett)
+library(org.Hs.eg.db)
+# Garnett 是基于monocle3， 所以它输入的数据格式是CellDataSet(CDS)
+# create CDS object:
+data = GetAssayData(sc_seurat_obj, assay="RNA", slot = 'counts')
+cell_metadata <- sc_seurat_obj@meta.data
+gene_annotation <- data.frame(gene_short_name = rownames(data))
+rownames(gene_annotation) <- rownames(data)
+
+cds <- monocle3::new_cell_data_set(data, cell_metadata = cell_metadata, gene_metadata = gene_annotation)
+cds <- monocle3::preprocess_cds(cds, num_dim = 20)
+# 接着做monocle3
+
+# garnett
+##############################
+# 2.2 marker 文件准备
+# download.file(url="https://cole-trapnell-lab.github.io/garnett/marker_files/hsPBMC_markers.txt", destfile = "hsPBMC_markers.txt")
+# 演示利用marker file训练分类器
+# 2.3 marker 基因评估
+# 对marker file中的marker基因评分
+marker_check <- check_markers(cds, "RootPathPBMC_TCell_markers.txt",
+                              db=org.Hs.eg.db,
+                              cds_gene_id_type = "SYMBOL",
+                              marker_file_gene_id_type = "SYMBOL")
+p = plot_markers(marker_check)
+p
+ggsave(filename = paste(output_dir, "marker_gene_check.database.png", sep = "/"), plot = p, width = 9,height = 7, path = "./")
+# 评估结果会以红色字体提示哪些marker基因在数据库中找不到对应的Ensembl名称，
+# 以及哪些基因的特异性不高（标注“High overlap with XX cells”）。
+# 我们可以根据评估结果优化marker基因，或者添加其他信息来辅助区分细胞类型。
+
+# 2.4 训练分类器
+# 使用marker file和cds对象训练分类器 # 这一步比较慢
+sc_seurat_obj_classifier <- train_cell_classifier(cds = cds,
+                                                  marker_file = "RootPathPBMC_TCell_markers.txt",
+                                                  db = org.Hs.eg.db,
+                                                  cds_gene_id_type = "SYMBOL",
+                                                  num_unknown = 10,
+                                                  marker_file_gene_id_type = "SYMBOL",
+                                                  min_observations = 50,
+                                                  # cores = 8,  # windows
+                                                  cores = 64, # linux
+                                                  )
+
+# 查看分类器最后选择的根节点基因，注意markerfile的基因都会在其中
+feature_genes_root <- get_feature_genes(sc_seurat_obj_classifier, node="root", db= org.Hs.eg.db)
+# head(feature_genes_root)
+
+# 查看分类器中分支节点的分类基因
+feature_genes_branch <- get_feature_genes(sc_seurat_obj_classifier, node = "root", db= org.Hs.eg.db, convert_ids = TRUE)
+# head(feature_genes_branch)
+
+# 3. 使用训练好的分类器预测自己的数据
+pData(cds)$garnett_cluster <- pData(cds)$seurat_clusters
+# 使用前面训练的pbmc_classifier来对自己的数据进行细胞分型
+cds <- classify_cells(cds, sc_seurat_obj_classifier, db=org.Hs.eg.db, cluster_extend = TRUE, cds_gene_id_type = "SYMBOL")
+## 将结果返回给seurat对象# 提取分类结果
+cds.meta <- subset(pData(cds), select = c("cell_type","cluster_ext_type")) %>% as.data.frame()
+# cds.meta <- subset(pData(cds), select = c("cell_type", "cluster_ext_type")) %>% as.data.frame()
+sc_seurat_obj <- AddMetaData(sc_seurat_obj, metadata = cds.meta)
+
+# 查看结果
+p <- DimPlot(sc_seurat_obj, group.by = "cluster_ext_type", label = T, label.size = 3) + ggtitle("Classified by Garnett")
+ggsave(filename = paste(output_dir, "Garnett.png", sep = "/"), plot = p, width = 9,height = 7, path = "./")
+
+
 # this is for customized.
 # sc_seurat_obj@meta.data$singleR.target = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
 # sc_seurat_obj$singleR.target[which(sc_seurat_obj$clonotype_id == "clonotype42" )] <- "clon42is215"
