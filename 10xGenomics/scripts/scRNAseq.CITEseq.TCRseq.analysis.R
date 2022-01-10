@@ -101,6 +101,22 @@ p3_2 <- DimPlot(sc_seurat_obj, reduction = "tsne")
 ggsave(filename = paste(output_dir,"P3.raw.umap.png",sep="/"),plot = p3, width=9,height=7,path = "." )
 ggsave(filename = paste(output_dir,"P3.raw.tsne.png",sep="/"),plot = p3_2, width=9,height=7,path = "." )
 
+
+########################################
+########################################
+# for RNA velocity
+# save cells to RNA velocity analysis
+write.csv(Seurat::Cells(sc_seurat_obj), file = paste(output_dir,"cellID_obs.csv", sep = "/"), row.names = FALSE)
+write.csv(Seurat::Embeddings(sc_seurat_obj, reduction = "umap"), file = paste(output_dir,"cell_embeddings.csv", sep = "/"))
+write.csv(sc_seurat_obj@meta.data$seurat_clusters, file = paste(output_dir,"clusters.csv", sep = "/"))
+########################################
+########################################
+# for PieParty: https://github.com/harbourlab/PieParty
+write.csv(Seurat::GetAssayData(sc_seurat_obj, slot = "counts"),
+	  file = paste(output_dir,"expression.counts.for.PieParty.csv", sep = "/"), 
+	  row.names = FALSE)
+#########################################
+#########################################
 # find doublets
 ## doubletfinder
 ## install.packages('remotes')
@@ -142,10 +158,12 @@ ggsave(filename = paste(output_dir, "P4.doublets.png",sep="/"), plot = p4, width
 
 ########################## finish Doubletsfinder.
 ##########################################################
+#########################################################
 
 ## select Singlet cells 
 # sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
 ## sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
+#########################################################
 #########################################################
 ############################# singR annotate cluster
 ## install.packages("BiocManager")
@@ -163,21 +181,21 @@ sc_seurat_obj_clusters = sc_seurat_obj@meta.data$seurat_clusters
 
 hpca = celldex::HumanPrimaryCellAtlasData()
 blueprint_encode = celldex::BlueprintEncodeData()
-# dice = celldex::DatabaseImmuneCellExpressionData()
+dice = celldex::DatabaseImmuneCellExpressionData()
 mona = celldex::MonacoImmuneData()
 novershter = celldex::NovershternHematopoieticData()
 
 # choose label.main or label.fine
-pred.hpca = SingleR(test = sc_seurat_obj_SingleR, ref = hpca, labels = hpca$label.main,clusters = sc_seurat_obj_clusters )
-pred.blue = SingleR(test = sc_seurat_obj_SingleR, ref = blueprint_encode,labels = blueprint_encode$label.main,clusters = sc_seurat_obj_clusters )
-pred.dice = SingleR(test = sc_seurat_obj_SingleR, ref =dice, labels = dice$label.main,clusters = sc_seurat_obj_clusters)
-pred.mona = SingleR(test = sc_seurat_obj_SingleR, ref = mona, labels = mona$label.main,clusters = sc_seurat_obj_clusters)
-pred.novershter = SingleR(test = sc_seurat_obj_SingleR, ref = novershter, labels = novershter$label.main,clusters = sc_seurat_obj_clusters)
+pred.hpca = SingleR(test = sc_seurat_obj_SingleR, ref = hpca, labels = hpca$label.fine, clusters = sc_seurat_obj_clusters )
+pred.blue = SingleR(test = sc_seurat_obj_SingleR, ref = blueprint_encode,labels = blueprint_encode$label.fine,clusters = sc_seurat_obj_clusters )
+pred.dice = SingleR(test = sc_seurat_obj_SingleR, ref =dice, labels = dice$label.fine,clusters = sc_seurat_obj_clusters)
+pred.mona = SingleR(test = sc_seurat_obj_SingleR, ref = mona, labels = mona$label.fine,clusters = sc_seurat_obj_clusters)
+pred.novershter = SingleR(test = sc_seurat_obj_SingleR, ref = novershter, labels = novershter$label.fine,clusters = sc_seurat_obj_clusters)
 
 sc_seurat_obj_cellType = data.frame(ClusterID=levels(sc_seurat_obj@meta.data$seurat_clusters),
                                     hpca = pred.hpca$labels,
                                     blue  = pred.blue$labels,
-                                    # Dice = pred.dice$labels,
+                                    Dice = pred.dice$labels,
                                     mona = pred.mona$labels,
                                     novershter = pred.novershter$labels
 )
@@ -186,25 +204,25 @@ sc_seurat_obj@meta.data$singleR.hpca = sc_seurat_obj_cellType[match(sc_seurat_ob
 p5_0 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.hpca',)+ggtitle("HumanPrimaryCellAtlasData")
 sc_seurat_obj@meta.data$singleR.blue = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'blue']
 p5_1 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.blue',)+ggtitle("BlueprintEncodeData")
-# sc_seurat_obj@meta.data$singleR.dice = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
-# p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.dice',)+ggtitle("DatabaseImmuneCellExpressionData")
+sc_seurat_obj@meta.data$singleR.dice = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
+p5_2 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.dice',)+ggtitle("DatabaseImmuneCellExpressionData")
 sc_seurat_obj@meta.data$singleR.mona = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
 p5_3 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.mona') + ggtitle("MonacoImmuneData")
 sc_seurat_obj@meta.data$singleR.nove = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'novershter']
 p5_4 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by = 'singleR.nove',)+ ggtitle("NovershternHematopoieticData")
 ggsave(filename=paste(output_dir,"P5_0.cluster.annotation.with.hpca.png",sep="/"),width=9,height=7,plot = p5_0, path = "./")
 ggsave(filename=paste(output_dir,"P5_1.cluster.annotation.with.blue.png",sep="/"),width=9,height=7,plot = p5_1, path = "./")
-# ggsave(filename=paste(output_dir,"P5_2.cluster.annotation.with.dice.png",sep="/"),width=9,height=7,plot = p5_2, path = "./")
+ggsave(filename=paste(output_dir,"P5_2.cluster.annotation.with.dice.png",sep="/"),width=9,height=7,plot = p5_2, path = "./")
 ggsave(filename=paste(output_dir,"P5_3.cluster.annotation.with.mona.png",sep="/"),width=9,height=7,plot = p5_3, path = "./")
 ggsave(filename=paste(output_dir,"P5_4.cluster.annotation.with.nove.png",sep="/"),width=9,height=7,plot = p5_4, path = "./")
-# library(cowplot)
-# p5 = cowplot::plot_grid(p5_0,p5_1,p5_2,p5_3,p5_4, ncol = 2)
-p5 = cowplot::plot_grid(p5_0,p5_1,p5_3,p5_4, ncol = 2)
-ggsave(filename=paste(output_dir,"cluster.annotation.with.5.databases.png",sep="/"), plot = p5, width=9, height=7, path = "./" )
+library(cowplot)
+p5 = cowplot::plot_grid(p5_0,p5_1,p5_2,p5_3,p5_4, ncol = 2)
+# p5 = cowplot::plot_grid(p5_0,p5_1,p5_3,p5_4, ncol = 2)
+ggsave(filename=paste(output_dir,"P5_cluster.annotation.with.5.databases.png",sep="/"), plot = p5, width=9, height=7, path = "./" )
 
 ########################################
 ########################################
-###### Garnett
+########  Garnett
 library(monocle3)
 library(garnett)
 library(org.Hs.eg.db)
@@ -226,12 +244,11 @@ cds <- monocle3::preprocess_cds(cds, num_dim = 20)
 # 演示利用marker file训练分类器
 # 2.3 marker 基因评估
 # 对marker file中的marker基因评分
-marker_check <- check_markers(cds, "RootPathPBMC_TCell_markers.txt",
+marker_check <- check_markers(cds, "/cygene/work/00.test/pipeline/10xGenomics/scripts/RootPathPBMC_TCell_markers.txt",
                               db=org.Hs.eg.db,
                               cds_gene_id_type = "SYMBOL",
                               marker_file_gene_id_type = "SYMBOL")
 p = plot_markers(marker_check)
-p
 ggsave(filename = paste(output_dir, "marker_gene_check.database.png", sep = "/"), plot = p, width = 9,height = 7, path = "./")
 # 评估结果会以红色字体提示哪些marker基因在数据库中找不到对应的Ensembl名称，
 # 以及哪些基因的特异性不高（标注“High overlap with XX cells”）。
@@ -240,7 +257,7 @@ ggsave(filename = paste(output_dir, "marker_gene_check.database.png", sep = "/")
 # 2.4 训练分类器
 # 使用marker file和cds对象训练分类器 # 这一步比较慢
 sc_seurat_obj_classifier <- train_cell_classifier(cds = cds,
-                                                  marker_file = "RootPathPBMC_TCell_markers.txt",
+                                                  marker_file = "/cygene/work/00.test/pipeline/10xGenomics/scripts/RootPathPBMC_TCell_markers.txt",
                                                   db = org.Hs.eg.db,
                                                   cds_gene_id_type = "SYMBOL",
                                                   num_unknown = 10,
@@ -268,7 +285,7 @@ cds.meta <- subset(pData(cds), select = c("cell_type","cluster_ext_type")) %>% a
 sc_seurat_obj <- AddMetaData(sc_seurat_obj, metadata = cds.meta)
 
 # 查看结果
-p <- DimPlot(sc_seurat_obj, group.by = "cluster_ext_type", label = T, label.size = 3) + ggtitle("Classified by Garnett")
+p <- DimPlot(sc_seurat_obj, group.by = "cluster_ext_type", label = T, label.size = 3, repel = TRUE) + ggtitle("Classified by Garnett")
 ggsave(filename = paste(output_dir, "Garnett.png", sep = "/"), plot = p, width = 9,height = 7, path = "./")
 
 
