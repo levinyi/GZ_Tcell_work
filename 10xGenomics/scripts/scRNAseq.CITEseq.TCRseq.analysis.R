@@ -222,6 +222,28 @@ ggsave(filename=paste(output_dir,"P5_cluster.annotation.with.5.databases.png",se
 
 ########################################
 ########################################
+######## scCATCH
+library(scCATCH)
+scCATCH_obj <- scCATCH::createscCATCH(sc_seurat_obj[["RNA"]]@data, cluster = as.character(sc_seurat_obj@meta.data$seurat_clusters))
+clu_markers <- scCATCH::findmarkergene(scCATCH_obj, species = "Human", 
+                                        cluster = "All", cancer = "Normal", 
+                                        marker = cellmatch,
+                                        tissue = c("Peripheral blood","Blood"), 
+                                        use_method = "1", cell_min_pct = 0.25,
+                                        logfc = 0.25, pvalue = 0.25,
+                                        verbose = TRUE)
+# cellmatch.table = cellmatch
+# write.csv(cellmatch.table, file = paste(output_dir,  "CellMatch.database.csv", sep = "/"),row.names = FALSE, quote = FALSE)
+clu_ann <- scCATCH::findcelltype(clu_markers)
+
+scCATCH_ann_data = merge(clu_ann@meta, clu_ann@celltype,by = "cluster") %>% tibble::column_to_rownames("cell")
+sc_seurat_obj = AddMetaData(sc_seurat_obj, scCATCH_ann_data)
+
+p5_6 = DimPlot(sc_seurat_obj, reduction = "umap", label = T, group.by="cell_type", pt.size = 0.5, repel = TRUE) + ggtitle("scCATCH Peripheral blood")
+ggsave(filename = paste(output_dir, "P5_6.cluster.annotation.with.scCATCH.cellmatch.png", sep="/"), plot = p5_6, width=9, height=7, path = "./" )
+
+########################################
+########################################
 ########  Garnett
 library(monocle3)
 library(garnett)
