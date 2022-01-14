@@ -250,14 +250,83 @@ library(garnett)
 library(org.Hs.eg.db)
 # Garnett 是基于monocle3， 所以它输入的数据格式是CellDataSet(CDS)
 # create CDS object:
-data = GetAssayData(sc_seurat_obj, assay="RNA", slot = 'counts')
+expression_matrix = GetAssayData(sc_seurat_obj, assay="RNA", slot = 'counts')
 cell_metadata <- sc_seurat_obj@meta.data
-gene_annotation <- data.frame(gene_short_name = rownames(data))
-rownames(gene_annotation) <- rownames(data)
+gene_annotation <- data.frame(gene_short_name = rownames(expression_matrix))
+rownames(gene_annotation) <- rownames(expression_matrix)
 
-cds <- monocle3::new_cell_data_set(data, cell_metadata = cell_metadata, gene_metadata = gene_annotation)
+cds <- monocle3::new_cell_data_set(expression_matrix, cell_metadata = cell_metadata, gene_metadata = gene_annotation)
 cds <- monocle3::preprocess_cds(cds, num_dim = 20)
 # 接着做monocle3
+p = plot_pc_variance_explained(cds)
+ggsave(filename = paste(output_dir, "P6.monocle3.pc_variance_explained.png", sep="/"), plot = p, width=9, height=7, path = "./" )
+
+cds <- monocle3::reduce_dimension(cds)
+# pplot_cells(cds)
+# head(rownames(cds))
+p = plot_cells(cds, genes=c("CD4","CD8A","CD8B"))
+ggsave(filename = paste(output_dir, "P6.monocle3.cells.CD4.CD8.png", sep="/"), plot = p, width=9, height=7, path = "./" )
+
+p = plot_cells(cds, color_cells_by = "seurat_clusters", label_cell_groups = F, )
+ggsave(filename = paste(output_dir, "P6.monocle3.color_cells_by_seurat_clusters.png", sep="/"), plot = p, width=9, height=7, path = "./" )
+### Construct and assign the made up partition
+
+cds <- cluster_cells(cds, reduction_method = "UMAP")
+print("Learning graph, which can take a while depends on the sample")
+cds <- learn_graph(cds, use_partition = T)
+
+print("Plotting clusters")
+p = plot_cells(cds, x=1,y=2, 
+           color_cells_by = "seurat_clusters",
+           group_cells_by = "cluster", 
+           # genes = c("CD4","CD8A","CD8B"),
+           show_trajectory_graph = T,
+           label_roots = F,
+           graph_label_size = 3, 
+           cell_size = .5,
+           rasterize = T,
+           alpha = .2,
+           scale_to_range = 1,
+           # label_principal_points = 1,
+           label_groups_by_cluster = FALSE,
+           label_leaves=FALSE,
+           label_branch_points=FALSE,
+)
+ggsave(filename = paste(output_dir, "P6.monocle3.cluster.png", sep="/"), plot = p, width=9, height=7, path = "./" )
+
+
+# #############
+cds <- order_cells(cds, reduction_method = "UMAP")
+
+print("Plotting color cell by pseudotime")
+p = plot_cells(cds, x=1,y=2, 
+           color_cells_by = 'pseudotime',
+           group_cells_by = "cluster",
+           # genes = c("CD4","CD8A","CD8B"),
+           show_trajectory_graph = T,
+           label_roots = F,
+           graph_label_size = 3, 
+           cell_size = .5,
+           rasterize = T,
+           alpha = .2,
+           scale_to_range = 1,
+           # label_principal_points = 1,
+           label_groups_by_cluster = FALSE,
+           label_leaves=FALSE,
+           label_branch_points=FALSE,
+           )
+ggsave(filename = paste(output_dir, "P6.monocle3.pseudotime.png", sep="/"), plot = p, width=9, height=7, path = "./" )
+
+# 单个基因的逆时序轨迹
+AFD_genes = c("S100A9", "RPS27", "FCER1A")
+AFD_lineage_cds = cds[AFD_genes,
+                      clusters(cds) %in% c(11, 12, 5)]
+
+p = plot_genes_in_pseudotime(AFD_lineage_cds,
+                         color_cells_by="pseudotime",
+                         min_expr=0.5)
+
+ggsave(filename = paste(output_dir, "P6.monocle3.genes.in.pseudotime.png", sep="/"), plot = p, width=9, height=7, path = "./" )
 
 # garnett
 ##############################
