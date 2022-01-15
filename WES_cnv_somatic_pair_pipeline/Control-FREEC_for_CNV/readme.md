@@ -17,3 +17,6 @@ ln -s xxx.bam ./myControl.bam
 ####
 # freec -conf <config file> -sample <mySample.bam> -control <myControl.bam>
 freec -conf config_exome.txt
+
+
+/cygene/software/biosoftware/FREEC-11.6/scripts/assess_significance.R
