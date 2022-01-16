@@ -1,0 +1,4 @@
+[2022-01-14T08:33:45.887300Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+addLegacyOutputLink] [wrapperSignal] wrapperStart
+[2022-01-14T08:33:45.893815Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+addLegacyOutputLink] [wrapperSignal] taskStart
+[2022-01-14T08:33:45.900537Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+addLegacyOutputLink] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:33:45.900832Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+addLegacyOutputLink] [wrapperSignal] taskElapsedSec 0

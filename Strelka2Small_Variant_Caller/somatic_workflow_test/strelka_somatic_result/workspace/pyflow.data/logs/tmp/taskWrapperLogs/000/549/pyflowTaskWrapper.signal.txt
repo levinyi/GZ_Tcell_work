@@ -1,0 +1,4 @@
+[2022-01-14T09:16:47.233828Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+Indel_index_vcf] [wrapperSignal] wrapperStart
+[2022-01-14T09:16:47.240481Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+Indel_index_vcf] [wrapperSignal] taskStart
+[2022-01-14T09:16:47.283617Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+Indel_index_vcf] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:16:47.284093Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+Indel_index_vcf] [wrapperSignal] taskElapsedSec 0

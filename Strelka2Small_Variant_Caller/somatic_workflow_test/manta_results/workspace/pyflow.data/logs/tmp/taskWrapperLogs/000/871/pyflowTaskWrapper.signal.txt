@@ -1,0 +1,4 @@
+[2022-01-14T09:05:18.677404Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_357_chr19_GL383574v1_alt_0000_to_chromId_358_chr19_KI270866v1_alt_0000] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:18.686384Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_357_chr19_GL383574v1_alt_0000_to_chromId_358_chr19_KI270866v1_alt_0000] [wrapperSignal] taskStart
+[2022-01-14T09:05:18.879346Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_357_chr19_GL383574v1_alt_0000_to_chromId_358_chr19_KI270866v1_alt_0000] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:18.879806Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_357_chr19_GL383574v1_alt_0000_to_chromId_358_chr19_KI270866v1_alt_0000] [wrapperSignal] taskElapsedSec 0

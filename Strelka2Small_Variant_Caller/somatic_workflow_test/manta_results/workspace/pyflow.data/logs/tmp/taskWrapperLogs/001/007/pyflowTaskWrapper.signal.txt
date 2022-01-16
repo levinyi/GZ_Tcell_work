@@ -1,0 +1,4 @@
+[2022-01-14T09:05:27.789985Z] [cygene] [2700003_1] [pyflowTaskWrapper:mergeLocusGraph] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:27.796606Z] [cygene] [2700003_1] [pyflowTaskWrapper:mergeLocusGraph] [wrapperSignal] taskStart
+[2022-01-14T09:05:28.803460Z] [cygene] [2700003_1] [pyflowTaskWrapper:mergeLocusGraph] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:28.804563Z] [cygene] [2700003_1] [pyflowTaskWrapper:mergeLocusGraph] [wrapperSignal] taskElapsedSec 1

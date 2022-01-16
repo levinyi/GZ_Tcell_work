@@ -1,0 +1,4 @@
+[2022-01-14T09:12:54.285216Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+compressSegmentOutput_chromId_001_chr2_0017] [wrapperSignal] wrapperStart
+[2022-01-14T09:12:54.293980Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+compressSegmentOutput_chromId_001_chr2_0017] [wrapperSignal] taskStart
+[2022-01-14T09:12:54.304037Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+compressSegmentOutput_chromId_001_chr2_0017] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:12:54.304441Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+compressSegmentOutput_chromId_001_chr2_0017] [wrapperSignal] taskElapsedSec 0

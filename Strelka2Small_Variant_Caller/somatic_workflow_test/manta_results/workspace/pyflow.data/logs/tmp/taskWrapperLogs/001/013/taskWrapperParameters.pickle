@@ -1,0 +1,26 @@
+(dp0
+S'isShellCmd'
+p1
+I01
+sS'cmd'
+p2
+S'"/usr/local/bin/python2" "/cygene/software/biosoftware/manta/libexec/vcfCmdlineSwapper.py" "/cygene/software/biosoftware/manta/bin/configManta.py --normalBam /cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Normal.duplicates_marked_sorted_fixed.BQSR.bam --tumorBam /cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Tumor.duplicates_marked_sorted_fixed.BQSR.bam --referenceFasta /cygene/database/GATK_resource_bundle/hg38/Homo_sapiens_assembly38.fasta --runDir ./manta_results" < "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/svHyGen/candidateSV.0000.vcf" > "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/svHyGen/candidateSV.0000.vcf.reheader.tmp" && mv "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/svHyGen/candidateSV.0000.vcf.reheader.tmp" "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/svHyGen/candidateSV.0000.vcf"'
+p3
+sS'errFile'
+p4
+S'/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/pyflow.data/logs/pyflow_tasks_stderr_log.txt'
+p5
+sS'outFile'
+p6
+S'/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/pyflow.data/logs/pyflow_tasks_stdout_log.txt'
+p7
+sS'env'
+p8
+NsS'nCores'
+p9
+I1
+sS'cwd'
+p10
+S''
+p11
+s.

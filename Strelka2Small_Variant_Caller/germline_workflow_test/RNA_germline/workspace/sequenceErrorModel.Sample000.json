@@ -1,0 +1,160 @@
+{
+    "sample": [
+        {
+            "sampleName": "/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.RNA.Aligned.sortedByCoord.out.bam",
+            "motif": [
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 1,
+                    "indelRate": 0.008,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 1,
+                    "indelRate": 0.0,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 2,
+                    "indelRate": 0.0049,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 3,
+                    "indelRate": 0.0057,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 4,
+                    "indelRate": 0.0067,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 5,
+                    "indelRate": 0.0079,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 6,
+                    "indelRate": 0.0092,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 7,
+                    "indelRate": 0.0108,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 8,
+                    "indelRate": 0.0127,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 9,
+                    "indelRate": 0.0148,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 10,
+                    "indelRate": 0.0174,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 11,
+                    "indelRate": 0.0204,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 12,
+                    "indelRate": 0.0239,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 13,
+                    "indelRate": 0.028,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 14,
+                    "indelRate": 0.0328,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 15,
+                    "indelRate": 0.0384,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 1,
+                    "repeatCount": 16,
+                    "indelRate": 0.045,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 2,
+                    "indelRate": 0.01,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 3,
+                    "indelRate": 0.0109,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 4,
+                    "indelRate": 0.0118,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 5,
+                    "indelRate": 0.0129,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 6,
+                    "indelRate": 0.014,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 7,
+                    "indelRate": 0.0152,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 8,
+                    "indelRate": 0.0166,
+                    "noisyLocusRate": 0.0
+                },
+                {
+                    "repeatPatternSize": 2,
+                    "repeatCount": 9,
+                    "indelRate": 0.018,
+                    "noisyLocusRate": 0.0
+                }
+            ],
+            "isStatic": true
+        }
+    ]
+}

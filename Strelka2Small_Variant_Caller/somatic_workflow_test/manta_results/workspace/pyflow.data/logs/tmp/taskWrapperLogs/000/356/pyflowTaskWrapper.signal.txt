@@ -1,0 +1,4 @@
+[2022-01-14T09:05:02.684649Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_1274_chrUn_JTFH01000432v1_decoy_to_1398_chrUn_JTFH01000556v1_decoy] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:02.693572Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_1274_chrUn_JTFH01000432v1_decoy_to_1398_chrUn_JTFH01000556v1_decoy] [wrapperSignal] taskStart
+[2022-01-14T09:05:07.690259Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_1274_chrUn_JTFH01000432v1_decoy_to_1398_chrUn_JTFH01000556v1_decoy] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:07.690973Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_1274_chrUn_JTFH01000432v1_decoy_to_1398_chrUn_JTFH01000556v1_decoy] [wrapperSignal] taskElapsedSec 4

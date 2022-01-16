@@ -1,0 +1,4 @@
+[2022-01-14T09:05:28.870128Z] [cygene] [2700003_1] [pyflowTaskWrapper:checkLocusGraph] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:28.876987Z] [cygene] [2700003_1] [pyflowTaskWrapper:checkLocusGraph] [wrapperSignal] taskStart
+[2022-01-14T09:05:28.922445Z] [cygene] [2700003_1] [pyflowTaskWrapper:checkLocusGraph] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:28.924140Z] [cygene] [2700003_1] [pyflowTaskWrapper:checkLocusGraph] [wrapperSignal] taskElapsedSec 0

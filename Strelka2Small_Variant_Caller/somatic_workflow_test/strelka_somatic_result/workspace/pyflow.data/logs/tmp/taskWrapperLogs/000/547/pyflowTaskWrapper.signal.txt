@@ -1,0 +1,4 @@
+[2022-01-14T09:16:47.232090Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+SNV_index_vcf] [wrapperSignal] wrapperStart
+[2022-01-14T09:16:47.239222Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+SNV_index_vcf] [wrapperSignal] taskStart
+[2022-01-14T09:16:47.404978Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+SNV_index_vcf] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:16:47.405529Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+SNV_index_vcf] [wrapperSignal] taskElapsedSec 0

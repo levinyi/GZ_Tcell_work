@@ -1,0 +1,4 @@
+[2022-01-14T09:05:29.059877Z] [cygene] [2700003_1] [pyflowTaskWrapper:generateCandidateSV_0000] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:29.067283Z] [cygene] [2700003_1] [pyflowTaskWrapper:generateCandidateSV_0000] [wrapperSignal] taskStart
+[2022-01-14T09:05:45.477595Z] [cygene] [2700003_1] [pyflowTaskWrapper:generateCandidateSV_0000] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:45.479725Z] [cygene] [2700003_1] [pyflowTaskWrapper:generateCandidateSV_0000] [wrapperSignal] taskElapsedSec 16

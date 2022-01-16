@@ -1,0 +1,4 @@
+[2022-01-14T08:27:58.555552Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+mergeCounts] [wrapperSignal] wrapperStart
+[2022-01-14T08:27:58.563159Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+mergeCounts] [wrapperSignal] taskStart
+[2022-01-14T08:27:58.599206Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+mergeCounts] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:27:58.599769Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+mergeCounts] [wrapperSignal] taskElapsedSec 0

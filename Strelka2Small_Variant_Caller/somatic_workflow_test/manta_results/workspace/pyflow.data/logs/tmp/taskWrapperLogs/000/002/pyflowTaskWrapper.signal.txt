@@ -1,0 +1,4 @@
+[2022-01-14T09:05:01.023753Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_generateStats_001] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:01.030935Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_generateStats_001] [wrapperSignal] taskStart
+[2022-01-14T09:05:10.420704Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_generateStats_001] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:10.421296Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_generateStats_001] [wrapperSignal] taskElapsedSec 9

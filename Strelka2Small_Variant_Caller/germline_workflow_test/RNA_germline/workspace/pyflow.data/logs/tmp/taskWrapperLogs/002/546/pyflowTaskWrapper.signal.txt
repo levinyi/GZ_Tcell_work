@@ -1,0 +1,4 @@
+[2022-01-14T08:33:35.150077Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+variants_concat_vcf] [wrapperSignal] wrapperStart
+[2022-01-14T08:33:35.158471Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+variants_concat_vcf] [wrapperSignal] taskStart
+[2022-01-14T08:33:35.202508Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+variants_concat_vcf] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:33:35.204262Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+variants_concat_vcf] [wrapperSignal] taskElapsedSec 0

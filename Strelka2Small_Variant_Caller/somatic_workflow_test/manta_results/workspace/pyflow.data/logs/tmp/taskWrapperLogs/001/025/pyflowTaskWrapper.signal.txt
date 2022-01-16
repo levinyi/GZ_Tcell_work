@@ -1,0 +1,4 @@
+[2022-01-14T09:05:45.852173Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:45.858454Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels] [wrapperSignal] taskStart
+[2022-01-14T09:05:45.928974Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:45.929440Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels] [wrapperSignal] taskElapsedSec 0

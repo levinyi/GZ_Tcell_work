@@ -1,0 +1,4 @@
+[2022-01-14T09:05:28.989231Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeHyGenDir] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:28.996501Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeHyGenDir] [wrapperSignal] taskStart
+[2022-01-14T09:05:29.000773Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeHyGenDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:29.001352Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeHyGenDir] [wrapperSignal] taskElapsedSec 0

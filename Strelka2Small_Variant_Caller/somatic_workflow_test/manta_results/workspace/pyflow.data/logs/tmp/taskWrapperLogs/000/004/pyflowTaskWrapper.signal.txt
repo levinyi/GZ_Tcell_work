@@ -1,0 +1,4 @@
+[2022-01-14T09:05:10.609352Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_removeTmpDir] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:10.616711Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_removeTmpDir] [wrapperSignal] taskStart
+[2022-01-14T09:05:10.620370Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_removeTmpDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:10.620896Z] [cygene] [2700003_1] [pyflowTaskWrapper:getAlignmentStats_removeTmpDir] [wrapperSignal] taskElapsedSec 0

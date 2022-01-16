@@ -1,0 +1,4 @@
+[2022-01-14T09:05:10.612035Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeGraphTmpDir] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:10.618815Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeGraphTmpDir] [wrapperSignal] taskStart
+[2022-01-14T09:05:10.622958Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeGraphTmpDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:10.623428Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeGraphTmpDir] [wrapperSignal] taskElapsedSec 0

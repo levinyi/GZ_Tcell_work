@@ -1,0 +1,36 @@
+group:	/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Normal.duplicates_marked_sorted_fixed.BQSR.bam
+fragment length observations:	999502
+fragment length quantiles:
+0.01	152
+0.05	187
+0.1	206
+0.25	239
+0.5	284
+0.75	343
+0.9	409
+0.95	455
+0.99	550
+Total sampled reads:	3234976
+Total sampled paired reads:	3234976
+Total sampled unpaired reads:	0
+Total sampled paired reads with low MAPQ:	84056
+Total sampled high-confidence read pairs passing all filters:	1000343
+
+group:	/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Tumor.duplicates_marked_sorted_fixed.BQSR.bam
+fragment length observations:	1399309
+fragment length quantiles:
+0.01	132
+0.05	166
+0.1	185
+0.25	220
+0.5	271
+0.75	340
+0.9	414
+0.95	464
+0.99	564
+Total sampled reads:	5761479
+Total sampled paired reads:	5761479
+Total sampled unpaired reads:	0
+Total sampled paired reads with low MAPQ:	196155
+Total sampled high-confidence read pairs passing all filters:	1401087
+

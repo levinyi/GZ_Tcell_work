@@ -1,0 +1,106 @@
+GraphBuildTime	0.2192h wall, 0.2120h user + 0.0069h system = 0.2189h CPU (99.85%)
+GraphMergeTime	0.0003h wall, 0.0003h user + 0.0000h system = 0.0003h CPU (99.23%)
+disjointSubgraphs	8822
+nodes	14405
+directedEdges	17240
+selfEdges	5868
+totalGraphEvidence	250658
+totalCleaned	2077651
+highestSearchCount	189
+isMaxSearchCount	0
+highestSearchDensity	0.325
+isMaxSearchDensity	0
+
+[Sample0]
+Source	/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Normal.duplicates_marked_sorted_fixed.BQSR.bam
+MinMapqFiltered	407109	0.0516
+NotFiltered	7481788	0.9484
+NotFilteredAndIgnored	7289954	0.9241
+NotFilteredAndAnomalousPair	138308	0.0175
+NotFilteredAndAnomalousPairRemotes	114600	0.0145
+NotFilteredAndSplitRead	32108	0.0041
+NotFilteredAndSplitReadInAnomalousPair	7080	0.0009
+NotFilteredAndSplitReadSupplementarySegments	18020	N/A
+NotFilteredAndLargeIndel	16319	0.0021
+NotFilteredAndSemiAligned	16331	0.0021
+EvidenceType_pair	0	0.0000
+EvidenceType_local_pair	120640	0.6780
+EvidenceType_cigar	16569	0.0931
+EvidenceType_softclip	0	0.0000
+EvidenceType_semialign	16509	0.0928
+EvidenceType_shadow	0	0.0000
+EvidenceType_split_align	24210	0.1361
+EvidenceType_unknown	0	0.0000
+ClosePairs	5374
+
+[Sample1]
+Source	/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.Tumor.duplicates_marked_sorted_fixed.BQSR.bam
+MinMapqFiltered	925228	0.0509
+NotFiltered	17236026	0.9491
+NotFilteredAndIgnored	16538472	0.9106
+NotFilteredAndAnomalousPair	568012	0.0313
+NotFilteredAndAnomalousPairRemotes	430483	0.0237
+NotFilteredAndSplitRead	88741	0.0049
+NotFilteredAndSplitReadInAnomalousPair	25362	0.0014
+NotFilteredAndSplitReadSupplementarySegments	54673	N/A
+NotFilteredAndLargeIndel	37348	0.0021
+NotFilteredAndSemiAligned	50602	0.0028
+EvidenceType_pair	0	0.0000
+EvidenceType_local_pair	439067	0.7241
+EvidenceType_cigar	37915	0.0625
+EvidenceType_softclip	0	0.0000
+EvidenceType_semialign	51065	0.0842
+EvidenceType_shadow	0	0.0000
+EvidenceType_split_align	78298	0.1291
+EvidenceType_unknown	0	0.0000
+ClosePairs	7202
+
+NodeRegionSizequantile:
+0.25	48
+0.5	70
+0.75	177
+0.9	236
+0.95	292
+0.99	453
+NodeEdgeCount:
+0	0
+1	13606
+2	583
+3	107
+4	41
+5	21
+6	9
+7	7
+8	3
+9+	28
+NodeObservationCount:
+0	2919
+1	0
+2	0
+3	0
+4	0
+5	0
+6	0
+7	0
+8	0
+9	5022
+10	9
+11	5
+12	1998
+13	3
+14	0
+15	912
+16	2
+17	1
+18	718
+19	1
+20	0
+21	427
+22	1
+23	0
+24	343
+25	1
+26	0
+27	232
+28	0
+29+	1811

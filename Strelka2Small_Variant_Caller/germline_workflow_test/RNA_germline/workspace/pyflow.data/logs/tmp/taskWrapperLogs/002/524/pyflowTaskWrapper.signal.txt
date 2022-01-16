@@ -1,0 +1,4 @@
+[2022-01-14T08:28:17.820358Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+callGenomeSegment_chromId_3085_HLA-B_42_08_0000_to_chromId_3147_HLA-B_67_01_02_0000] [wrapperSignal] wrapperStart
+[2022-01-14T08:28:17.829975Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+callGenomeSegment_chromId_3085_HLA-B_42_08_0000_to_chromId_3147_HLA-B_67_01_02_0000] [wrapperSignal] taskStart
+[2022-01-14T08:28:19.271141Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+callGenomeSegment_chromId_3085_HLA-B_42_08_0000_to_chromId_3147_HLA-B_67_01_02_0000] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:28:19.271780Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+callGenomeSegment_chromId_3085_HLA-B_42_08_0000_to_chromId_3147_HLA-B_67_01_02_0000] [wrapperSignal] taskElapsedSec 1

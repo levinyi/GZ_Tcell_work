@@ -1,0 +1,4 @@
+[2022-01-14T09:05:17.286328Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_891_chrUn_JTFH01000049v1_decoy_0000_to_chromId_940_chrUn_JTFH01000098v1_decoy_0000] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:17.295187Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_891_chrUn_JTFH01000049v1_decoy_0000_to_chromId_940_chrUn_JTFH01000098v1_decoy_0000] [wrapperSignal] taskStart
+[2022-01-14T09:05:18.178830Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_891_chrUn_JTFH01000049v1_decoy_0000_to_chromId_940_chrUn_JTFH01000098v1_decoy_0000] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:18.179294Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_891_chrUn_JTFH01000049v1_decoy_0000_to_chromId_940_chrUn_JTFH01000098v1_decoy_0000] [wrapperSignal] taskElapsedSec 0

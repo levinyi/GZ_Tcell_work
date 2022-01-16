@@ -1,0 +1,4 @@
+[2022-01-14T09:05:45.976557Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels_tabix] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:45.983449Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels_tabix] [wrapperSignal] taskStart
+[2022-01-14T09:05:46.025868Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels_tabix] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:46.026410Z] [cygene] [2700003_1] [pyflowTaskWrapper:extractSmallIndels_tabix] [wrapperSignal] taskElapsedSec 0

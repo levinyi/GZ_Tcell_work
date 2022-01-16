@@ -1,0 +1,4 @@
+[2022-01-14T09:05:02.392326Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_306_chr12_KI270833v1_alt_to_307_chr12_KI270836v1_alt] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:02.397887Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_306_chr12_KI270833v1_alt_to_307_chr12_KI270836v1_alt] [wrapperSignal] taskStart
+[2022-01-14T09:05:02.536145Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_306_chr12_KI270833v1_alt_to_307_chr12_KI270836v1_alt] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:02.536529Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_306_chr12_KI270833v1_alt_to_307_chr12_KI270836v1_alt] [wrapperSignal] taskElapsedSec 0

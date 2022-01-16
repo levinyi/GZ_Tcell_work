@@ -1,0 +1,4 @@
+[2022-01-14T09:16:47.465453Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+removeTmpDir] [wrapperSignal] wrapperStart
+[2022-01-14T09:16:47.472184Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+removeTmpDir] [wrapperSignal] taskStart
+[2022-01-14T09:16:47.499400Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+removeTmpDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:16:47.500195Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+removeTmpDir] [wrapperSignal] taskElapsedSec 0

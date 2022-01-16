@@ -1,0 +1,4 @@
+[2022-01-14T09:05:45.548103Z] [cygene] [2700003_1] [pyflowTaskWrapper:fixVcfHeader_sortDiploidSV] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:45.554376Z] [cygene] [2700003_1] [pyflowTaskWrapper:fixVcfHeader_sortDiploidSV] [wrapperSignal] taskStart
+[2022-01-14T09:05:45.584248Z] [cygene] [2700003_1] [pyflowTaskWrapper:fixVcfHeader_sortDiploidSV] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:45.584702Z] [cygene] [2700003_1] [pyflowTaskWrapper:fixVcfHeader_sortDiploidSV] [wrapperSignal] taskElapsedSec 0

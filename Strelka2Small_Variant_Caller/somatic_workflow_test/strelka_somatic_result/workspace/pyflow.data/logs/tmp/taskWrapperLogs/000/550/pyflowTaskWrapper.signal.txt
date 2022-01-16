@@ -1,0 +1,4 @@
+[2022-01-14T09:16:47.143314Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+mergeRunStats] [wrapperSignal] wrapperStart
+[2022-01-14T09:16:47.150859Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+mergeRunStats] [wrapperSignal] taskStart
+[2022-01-14T09:16:47.177187Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+mergeRunStats] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:16:47.177830Z] [cygene] [2705288_1] [pyflowTaskWrapper:CallGenome+mergeRunStats] [wrapperSignal] taskElapsedSec 0

@@ -1,0 +1,4 @@
+[2022-01-14T09:05:45.767654Z] [cygene] [2700003_1] [pyflowTaskWrapper:tabix_sortSomaticSV] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:45.774540Z] [cygene] [2700003_1] [pyflowTaskWrapper:tabix_sortSomaticSV] [wrapperSignal] taskStart
+[2022-01-14T09:05:45.780592Z] [cygene] [2700003_1] [pyflowTaskWrapper:tabix_sortSomaticSV] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:45.780889Z] [cygene] [2700003_1] [pyflowTaskWrapper:tabix_sortSomaticSV] [wrapperSignal] taskElapsedSec 0

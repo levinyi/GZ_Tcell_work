@@ -1,0 +1,4 @@
+[2022-01-14T08:28:04.152563Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+removeTmpDir] [wrapperSignal] wrapperStart
+[2022-01-14T08:28:04.159870Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+removeTmpDir] [wrapperSignal] taskStart
+[2022-01-14T08:28:04.175428Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+removeTmpDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:28:04.176858Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+removeTmpDir] [wrapperSignal] taskElapsedSec 0

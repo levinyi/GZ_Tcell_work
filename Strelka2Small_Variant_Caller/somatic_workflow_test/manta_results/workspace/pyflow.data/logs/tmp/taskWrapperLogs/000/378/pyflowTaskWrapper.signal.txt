@@ -1,0 +1,4 @@
+[2022-01-14T09:05:02.521886Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_3272_HLA-C_12_22_to_3313_HLA-DQA1_05_01_01_01] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:02.529986Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_3272_HLA-C_12_22_to_3313_HLA-DQA1_05_01_01_01] [wrapperSignal] taskStart
+[2022-01-14T09:05:05.169761Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_3272_HLA-C_12_22_to_3313_HLA-DQA1_05_01_01_01] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:05.170313Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_sample000_estimateChromDepth_3272_HLA-C_12_22_to_3313_HLA-DQA1_05_01_01_01] [wrapperSignal] taskElapsedSec 2

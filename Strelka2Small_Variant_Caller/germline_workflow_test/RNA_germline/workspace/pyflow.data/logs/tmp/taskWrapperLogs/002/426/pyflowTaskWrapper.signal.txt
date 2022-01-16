@@ -1,0 +1,4 @@
+[2022-01-14T08:30:37.303249Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+compressGenomeSegment_chromId_469_chrUn_KN707619v1_decoy_0000_to_chromId_534_chrUn_KN707684v1_decoy_0000_variants] [wrapperSignal] wrapperStart
+[2022-01-14T08:30:37.311861Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+compressGenomeSegment_chromId_469_chrUn_KN707619v1_decoy_0000_to_chromId_534_chrUn_KN707684v1_decoy_0000_variants] [wrapperSignal] taskStart
+[2022-01-14T08:30:37.319651Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+compressGenomeSegment_chromId_469_chrUn_KN707619v1_decoy_0000_to_chromId_534_chrUn_KN707684v1_decoy_0000_variants] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:30:37.320179Z] [cygene] [2674426_1] [pyflowTaskWrapper:CallGenome+compressGenomeSegment_chromId_469_chrUn_KN707619v1_decoy_0000_to_chromId_534_chrUn_KN707684v1_decoy_0000_variants] [wrapperSignal] taskElapsedSec 0

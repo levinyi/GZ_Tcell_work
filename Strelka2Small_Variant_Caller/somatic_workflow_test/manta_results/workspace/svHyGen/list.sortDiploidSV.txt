@@ -1,0 +1,1 @@
+/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/somatic_workflow_test/manta_results/workspace/svHyGen/diploidSV.0000.vcf

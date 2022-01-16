@@ -1,0 +1,26 @@
+(dp0
+S'isShellCmd'
+p1
+I01
+sS'cmd'
+p2
+S'cat "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/germline_workflow_test/RNA_germline/workspace/genomeSegment.tmpdir/segment.chromId_262_chr7_KI270808v1_alt_0000.genome.S1.vcf" | "/cygene/software/biosoftware/strelka/strelka-2.9.10.centos6_x86_64/libexec/bgzip9" -c >| "/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/germline_workflow_test/RNA_germline/workspace/genomeSegment.tmpdir/segment.chromId_262_chr7_KI270808v1_alt_0000.genome.S1.vcf.gz"'
+p3
+sS'errFile'
+p4
+S'/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/germline_workflow_test/RNA_germline/workspace/pyflow.data/logs/pyflow_tasks_stderr_log.txt'
+p5
+sS'outFile'
+p6
+S'/cygene/work/00.test/pipeline/Strelka2Small_Variant_Caller/germline_workflow_test/RNA_germline/workspace/pyflow.data/logs/pyflow_tasks_stdout_log.txt'
+p7
+sS'env'
+p8
+NsS'nCores'
+p9
+I1
+sS'cwd'
+p10
+S''
+p11
+s.

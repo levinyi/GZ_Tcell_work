@@ -1,0 +1,1 @@
+[2022-01-14T08:28:05.366754Z] [cygene] [2674426_1] [StrelkaGermlineWorkflow] [WARNING] Adaptive indel error rate estimation for sample '/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL001004_WES_RNAseq/BL001004/BL001004.RNA.Aligned.sortedByCoord.out.bam' did not succeed, using static indel error model instead.

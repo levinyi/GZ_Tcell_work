@@ -1,0 +1,5 @@
+StrelkaRunStatsReport
+TotalHours	3.4737h wall, 3.4624h user + 0.0096h system = 3.4721h CPU (99.95%)
+
+CallRegionCandidateIndels	68452
+CallRegionNonCandidateIndels	672875

@@ -1,0 +1,4 @@
+[2022-01-14T08:27:46.575114Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+countErrors_chromId_010_chr11_0008] [wrapperSignal] wrapperStart
+[2022-01-14T08:27:46.581603Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+countErrors_chromId_010_chr11_0008] [wrapperSignal] taskStart
+[2022-01-14T08:27:48.868780Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+countErrors_chromId_010_chr11_0008] [wrapperSignal] taskExitCode 0
+[2022-01-14T08:27:48.869218Z] [cygene] [2674426_1] [pyflowTaskWrapper:EstimateSeqErrorParams+Sample000+countErrors_chromId_010_chr11_0008] [wrapperSignal] taskElapsedSec 2

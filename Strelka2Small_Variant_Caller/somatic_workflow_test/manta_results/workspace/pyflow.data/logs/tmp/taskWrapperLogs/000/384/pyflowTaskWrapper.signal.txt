@@ -1,0 +1,4 @@
+[2022-01-14T09:05:10.439210Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_removeTmpDir] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:10.446515Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_removeTmpDir] [wrapperSignal] taskStart
+[2022-01-14T09:05:10.462973Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_removeTmpDir] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:10.463955Z] [cygene] [2700003_1] [pyflowTaskWrapper:getChromDepth_removeTmpDir] [wrapperSignal] taskElapsedSec 0

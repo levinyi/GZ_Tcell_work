@@ -1,0 +1,4 @@
+[2022-01-14T09:05:15.130418Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_004_chr5_0001] [wrapperSignal] wrapperStart
+[2022-01-14T09:05:15.138838Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_004_chr5_0001] [wrapperSignal] taskStart
+[2022-01-14T09:05:17.260766Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_004_chr5_0001] [wrapperSignal] taskExitCode 0
+[2022-01-14T09:05:17.261326Z] [cygene] [2700003_1] [pyflowTaskWrapper:makeLocusGraph_chromId_004_chr5_0001] [wrapperSignal] taskElapsedSec 2
