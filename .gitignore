@@ -24,3 +24,4 @@ database
 *.fa
 *.fasta
 *.bin
+test*
