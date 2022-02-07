@@ -25,3 +25,6 @@ database
 *.fasta
 *.bin
 test*
+Tumor_CL_pipeline/main.Rdata
+Tumor_CL_pipeline/tumor_CL_my_cor.transit.csv
+Tumor_CL_pipeline/tumor_CL_cor.transit.csv

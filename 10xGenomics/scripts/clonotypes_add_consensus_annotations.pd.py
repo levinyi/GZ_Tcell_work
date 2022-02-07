@@ -1,5 +1,7 @@
+# %%
 import os,sys
 import pandas as pd
+from sklearn.tree import plot_tree
 
 
 def two_dim_dict(thedict, key_a, key_b, value):
@@ -37,7 +39,7 @@ def read_consensus(file2):
                 detail_dict.setdefault(clonotype_id,{})[chain] = a[1:]
     return len_dict, detail_dict
 
-
+# %%
 file1 = "clonotypes.csv"
 file2 = "consensus_annotations.csv"
 
