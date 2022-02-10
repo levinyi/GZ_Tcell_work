@@ -170,11 +170,25 @@ def main():
             --create-output-bam-index \\
             --use-original-qualities \\
             --create-output-bam-md5 true \n""".format(**config_dict))
+        ## statistic bam
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
+            DepthOfCoverage \\
+            --input {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
+            -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
+            -O {sample_name}.Tumor.bam.DepthOfCoverage.txt \\
+            -R {ref_fasta}\n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
+            DepthOfCoverage \\
+            --input {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam  \\
+            -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
+            -O {sample_name}.Normal.bam.DepthOfCoverage.txt \\
+            -R {ref_fasta}\n""".format(**config_dict))
+        f.write("""Rscript draw.DepthOfCoverage.R {sample_name}.Tumor.bam.DepthOfCoverage.txt {sample_name}.Normal.bam.DepthOfCoverage.txt \n""".format(**config_dict))
         # # Mutect2
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
             Mutect2 \\
             -R {ref_fasta} \\
-            -I  {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
+            -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam \\
             -tumor Tumor \\
             -normal Normal \\
