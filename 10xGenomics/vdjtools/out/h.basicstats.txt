@@ -1,1 +1,0 @@
-sample_id	metadata_blank	count	diversity	mean_frequency	geomean_frequency	nc_diversity	nc_frequency	mean_cdr3nt_length	mean_insert_size	mean_ndn_size	convergence
