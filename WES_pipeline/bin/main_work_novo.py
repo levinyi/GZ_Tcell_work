@@ -183,7 +183,9 @@ def main():
             -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
             -O {sample_name}.Normal.bam.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
-        f.write("""Rscript draw.DepthOfCoverage.R {sample_name}.Tumor.bam.DepthOfCoverage.txt {sample_name}.Normal.bam.DepthOfCoverage.txt \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Tumor.bam.DepthOfCoverage.txt {sample_name}.Normal.bam.DepthOfCoverage.txt \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R {sample_name}.Tumor.coverage.depth.rate.xls {sample_name}.Normal.coverage.depth.rate.xls \n""".format(**config_dict))
+        
         # # Mutect2
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
             Mutect2 \\
