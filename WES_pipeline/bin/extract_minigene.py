@@ -159,7 +159,7 @@ def main():
                     )
                 )
     output_file.close()
-
+    print("Finished extract minigene!")
 
 if __name__ == '__main__':
     main()
