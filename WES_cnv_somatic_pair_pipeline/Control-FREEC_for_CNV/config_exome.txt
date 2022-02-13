@@ -8,7 +8,7 @@ outputDir = ./
 
 #sex=XY
 breakPointType=4
-chrFiles =  /cygene/database/GATK_resource_bundle/hg38/Homo_sapiens_assembly38.fasta
+chrFiles =  /cygene/database/GATK_resource_bundle/hg38/
 
 maxThreads=50
 
@@ -20,13 +20,13 @@ readCountThreshold=50
 
 [sample]
 
-mateFile = /cygene2/work/P0000-Blackbird/2103-CR001/CR001004/analysis/CR001004_WES_RNAseq/CR001004.Tumor.duplicates_marked_sorted_fixed.BQSR.bam
+mateFile = /cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL14_WES_PTTU_CL1/BL14_hg38/BL14_CL1.Tumor.duplicates_marked_sorted_fixed.BQSR.bam
 inputFormat = BAM
 mateOrientation = FR
 
 [control]
 
-mateFile = /cygene2/work/P0000-Blackbird/2103-CR001/CR001004/analysis/CR001004_WES_RNAseq/CR001004.Normal.duplicates_marked_sorted_fixed.BQSR.bam
+mateFile = /cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL14_WES_PTTU_CL1/BL14_hg38/BL14_CL1.Normal.duplicates_marked_sorted_fixed.BQSR.bam
 inputFormat = BAM
 
 # 0 (for single ends), RF (Illumina mate-pairs), FR (Illumina paired-ends), FF (SOLiD mate-pairs)
