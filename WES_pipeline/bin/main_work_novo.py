@@ -244,7 +244,7 @@ def main():
             --variant {sample_name}.filtered.vcf \\
             --output {sample_name}.variants.funcotated.MAF.xls \\
             --remove-filtered-variants true \\
-            --add-output-vcf-command-line true \\
+            --add-output-vcf-command-line false \\
             --annotation-default normal_barcode:Normal \\
             --annotation-default tumor_barcode:Tumor \\
             --annotation-default Center:RootPath \\
