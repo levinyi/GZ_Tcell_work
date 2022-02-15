@@ -38,6 +38,7 @@ results = {}
 hla_types = ["HLA-A","HLA-B","HLA-C","HLA-E","HLA-F","HLA-G","MICA","MICB","HLA-DMA","HLA-DMB",
         "HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQB1","HLA-DRA","HLA-DRB1",
         "HLA-DRB5","TAP1","TAP2"]
+
 for each_file in input_files:
     name, type1, type2 = deal_hla(each_file)
     addtwodimdict(results,name,'type1',type1)
