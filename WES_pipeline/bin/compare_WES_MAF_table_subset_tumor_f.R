@@ -20,8 +20,11 @@ table2 = read.table(data2, header=T)
 full_table <- full_join(table1, table2, by=c("Hugo_Symbol","Start_Position"),suffix = c(paste('.',suffix_left,sep=''),paste('.',suffix_right,sep='')))
 write.table(full_table, file=paste(suffix_left,"_VS_", suffix_right,".Raw.xls", sep=""), sep="\t", row.names = FALSE, quote=FALSE)
 
-# select_col = c()
 selected_table <- full_table %>% select(Hugo_Symbol,paste('tumor_f.',suffix_left,sep=''),paste('tumor_f.',suffix_right, sep='')) %>% na.omit()
 write.table(selected_table, file=paste(suffix_left,"_VS_", suffix_right,".subset.VAF.xls",sep=""), sep="\t", row.names = FALSE, quote=FALSE)
+
+# correlation diagram
 # ggplot(select_table) + geom_point() 
+
+# venn diagram
 
