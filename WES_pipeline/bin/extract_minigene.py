@@ -27,6 +27,7 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20220217    Fix bugs: DtypeWarning: Columns (56,88,101,103,107,108,111,147) have mixed types.Specify dtype option on import or set low_memory=False. [at pandas read file]
     20210423    Fix bugs: if mutation occurs in Mitochondrial, use coding_dna.translate(table="Vertebrate Mitochondrial")
     20200709    Add "End_Position" field to result.
     20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT.
@@ -36,7 +37,8 @@ Updates:
 
 def get_codon_minigene(Chromosome, seq, cDNA_Change, Protein_Change):
     # Four examples of cDNA_Change item:
-    # c.1518_1519insAAACAGACCA 
+    # c.1518_1519insAAACAGACCA
+    # c.550_551insGGGGCCGCC
     # c.2953_2972delCTAAATCACACTCCTGTATC 
     # c.4113delG 
     # c.3335A>G , c.11119_11120CC>AT
@@ -116,11 +118,12 @@ def main():
 
     adict = {}
     for record in SeqIO.parse(cds_file, "fasta"):
-        adict[str(record.id)] = str(record.seq)
+        record_id = str(record.id).split("|")[0]
+        adict[record_id] = str(record.seq)
     cds_file.close()
 
     # read maf file as a dataframe and first line stored as header.
-    maf_data = pd.read_table(maf_file, sep="\t",).fillna(value="NA")
+    maf_data = pd.read_table(maf_file, sep="\t",dtype='str').fillna(value="NA")
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
         "Start_Position", "End_Position","Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
@@ -132,13 +135,14 @@ def main():
     output_file.write("{}\n".format("\t".join(contain_fields)))
 
     saved_Variant_Classification = {
-        "Splice_Site": 1,
         "Nonsense_Mutation": 1,
         "Missense_Mutation": 1,
         "Frame_Shift_Del": 1,
         "Frame_Shift_Ins": 1,
         "In_Frame_Del": 1, 
         "In_Frame_Ins": 1,
+        "Splice_Site": 1,
+        # "Silent": 1,
     }
 
     for index, row in maf_data.iterrows():
@@ -158,6 +162,8 @@ def main():
                     row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], new_minigene, old_minigene,
                     )
                 )
+            else:
+                print("Annotation_Transcript not found {} {}".format(row["Annotation_Transcript"],row["Hugo_Symbol"]))
     output_file.close()
     print("Finished extract minigene!")
 
