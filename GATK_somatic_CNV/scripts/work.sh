@@ -1,5 +1,4 @@
-# PON
-
+############################################################
 # CNVTasks.PreprocessIntervals 
 gatk --java-options "-Xmx30G" PreprocessIntervals \
             --sequence-dictionary ${ref_fasta_dict} \
@@ -52,6 +51,21 @@ gatk --java-options "-Xmx30G" CollectReadCounts \
             --format HDF5 \
             --interval-merging-rule OVERLAPPING_ONLY \
             --output ${counts_filename}
+
+# CreateReadCountPanelOfNormals 
+gatk --java-options "-Xmx${command_mem_mb}m" CreateReadCountPanelOfNormals \
+            --input ${sep=" --input " read_count_files} \
+            --minimum-interval-median-percentile ${default="10.0" minimum_interval_median_percentile} \
+            --maximum-zeros-in-sample-percentage ${default="5.0" maximum_zeros_in_sample_percentage} \
+            --maximum-zeros-in-interval-percentage ${default="5.0" maximum_zeros_in_interval_percentage} \
+            --extreme-sample-median-percentile ${default="2.5" extreme_sample_median_percentile} \
+            --do-impute-zeros ${default="true" do_impute_zeros} \
+            --extreme-outlier-truncation-percentile ${default="0.1" extreme_outlier_truncation_percentile} \
+            --number-of-eigensamples ${default="20" number_of_eigensamples} \
+            --maximum-chunk-size ${default="16777216" maximum_chunk_size} \
+            ${"--annotated-intervals " + annotated_intervals} \
+            --output ${pon_entity_id}.pon.hdf5
+
 # CollectAllelicCountsTumor
 gatk --java-options "-Xmx30G" CollectAllelicCounts \
             -L ${common_sites} \ ??
