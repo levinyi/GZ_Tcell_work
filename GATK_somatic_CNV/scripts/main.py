@@ -323,7 +323,7 @@ def main():
             --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \n""".format(**config_dict))
         # DenoiseReadCountsNormal
         f.write("""{gatk} --java-options "-Xms{java_mem}G" DenoiseReadCounts \\
-            --INPUT {Normal.read_counts} \\
+            --INPUT {sample_name}.Normal.read_counts_file.txt \\
             --count-panel-of-normals {sample_name}.pon_entity_id.hdf5 \\
             --number-of-eigensamples 20 \\
             --standardized-copy-ratios {sample_name}.Normal.standardizedCR.tsv \\
@@ -357,8 +357,7 @@ def main():
             --output ModelSegmentsTumor \\
             --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
         # ModelSegmentsNormal
-        f.write("""{gatk} --java-options "-Xmx30G" \\
-            ModelSegments \\
+        f.write("""{gatk} --java-options "-Xmx30G" ModelSegments \\
             --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
             --allelic-counts {sample_name}.Normal.allelic_counts_file.txt \\
             --minimum-total-allele-count-case 5 \\
