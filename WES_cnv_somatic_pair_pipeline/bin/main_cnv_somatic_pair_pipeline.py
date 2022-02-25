@@ -65,152 +65,129 @@ def main():
     # rawdata_dict = deal_rawdata(parser.data, data_dir)
 
     with open(shell_name,"w") as f:
-        ## CNVTasks.PreprocessIntervals
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-        PreprocessIntervals \\
-            -L {intervals} \\
-            --reference {ref_fasta} \\
-            --padding 250 \\
-            --bin-length 0 \\
-            --interval-merging-rule OVERLAPPING_ONLY \\
-            --output targets.preprocessed.interval_list \n\n""".format(**config_dict))
-
+        # Section 1
+        # CNVTasks.PreprocessIntervals
         # CNVTasks.CollectCounts as CollectCountsTumor
         # CNVTasks.CollectCounts as CollectCountsNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CollectReadCounts \\
-            -L targets.preprocessed.interval_list \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"   CollectReadCounts \\
+            -L {intervals} \\
             --reference {ref_fasta} \\
             --input  {tumor_bam} \\
             --format HDF5 \\
             --interval-merging-rule OVERLAPPING_ONLY \\
             --output {sample_name}.Tumor.counts.hdf5 \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CollectReadCounts \\
-            -L targets.preprocessed.interval_list \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"   CollectReadCounts \\
+            -L {intervals} \\
             --reference {ref_fasta} \\
             --input  {normal_bam} \\
             --format HDF5 \\
             --interval-merging-rule OVERLAPPING_ONLY \\
             --output {sample_name}.Normal.counts.hdf5 \n\n""".format(**config_dict))
-
-        # CNVTasks.CollectAllelicCounts as CollectAllelicCountsTumor
-        # CNVTasks.CollectAllelicCounts as CollectAllelicCountsNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CollectAllelicCounts \\
-            -I {tumor_bam}  \\
-            -R {ref_fasta} \\
-            -L {common_sites} \\
-            --minimum-base-quality 20 \\
-            -O {sample_name}.Tumor.allelicCounts.tsv \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CollectAllelicCounts \\
-            -I {normal_bam} \\
-            -R {ref_fasta} \\
-            -L {common_sites} \\
-            --minimum-base-quality 20 \\
-            -O {sample_name}.Normal.allelicCounts.tsv \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CreateReadCountPanelOfNormals \\
+        # Section 2
+        #  CreateReadCountPanelOfNormals
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  CreateReadCountPanelOfNormals \\
             -I {sample_name}.Normal.counts.hdf5  \\
-            -O cnv.pon.hdf5 \n""".format(**config_dict))
+            -O {sample_name}.cnv.pon.hdf5 \n""".format(**config_dict))
+        # Section 3
         # DenoiseReadCounts as DenoiseReadCountsTumor
         # DenoiseReadCounts as DenoiseReadCountsNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        DenoiseReadCounts \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"   DenoiseReadCounts \\
             -I {sample_name}.Tumor.counts.hdf5  \\
-            --count-panel-of-normals cnv.pon.hdf5 \\
+            --count-panel-of-normals {sample_name}.cnv.pon.hdf5 \\
             --standardized-copy-ratios {sample_name}.Tumor.standardizedCR.tsv \\
             --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        DenoiseReadCounts \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"   DenoiseReadCounts \\
             -I {sample_name}.Normal.counts.hdf5  \\
-            --count-panel-of-normals cnv.pon.hdf5 \\
+            --count-panel-of-normals {sample_name}.cnv.pon.hdf5 \\
             --standardized-copy-ratios {sample_name}.Normal.standardizedCR.tsv \\
             --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \n\n""".format(**config_dict))
-
-        # ModelSegments as ModelSegmentsTumor
-        # ModelSegments as ModelSegmentsNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        ModelSegments \\
-            --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \\
-            --allelic-counts {sample_name}.Tumor.allelicCounts.tsv \\
-            --normal-allelic-counts {sample_name}.Normal.allelicCounts.tsv \\
-            --output ./ \\
-            --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        ModelSegments \\
-            --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
-            --allelic-counts {sample_name}.Normal.allelicCounts.tsv \\
-            --output ./ \\
-            --output-prefix {sample_name}.Normal \n\n""".format(**config_dict))
-        
-        # CallCopyRatioSegments as CallCopyRatioSegmentsTumor
-        # CallCopyRatioSegments as CallCopyRatioSegmentsNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CallCopyRatioSegments \\
-            --input {sample_name}.Tumor.cr.seg \\
-            --output {sample_name}.Tumor.called.seg \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        CallCopyRatioSegments \\
-            --input {sample_name}.Normal.cr.seg \\
-            --output {sample_name}.Normal.called.seg \n\n""".format(**config_dict))
-        
+        # Section 4
         # PlotDenoisedCopyRatios as PlotDenoisedCopyRatiosTumor
         # PlotDenoisedCopyRatios as PlotDenoisedCopyRatiosNormal
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        PlotDenoisedCopyRatios \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  PlotDenoisedCopyRatios \\
             --standardized-copy-ratios {sample_name}.Tumor.standardizedCR.tsv  \\
             --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv  \\
             --sequence-dictionary {ref_fasta}.dict \\
             --output ./ \\
             --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        PlotDenoisedCopyRatios \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          PlotDenoisedCopyRatios \\
             --standardized-copy-ratios {sample_name}.Normal.standardizedCR.tsv \\
             --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
             --sequence-dictionary {ref_fasta}.dict \\
             --output ./ \\
             --output-prefix {sample_name}.Normal \n\n""".format(**config_dict))
-
+        # Section 5
+        # CNVTasks.CollectAllelicCounts as CollectAllelicCountsTumor
+        # CNVTasks.CollectAllelicCounts as CollectAllelicCountsNormal
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          CollectAllelicCounts \\
+            -I {tumor_bam}  \\
+            -R {ref_fasta} \\
+            -L {common_sites} \\
+            --minimum-base-quality 20 \\
+            -O {sample_name}.Tumor.allelicCounts.tsv \n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          CollectAllelicCounts \\
+            -I {normal_bam} \\
+            -R {ref_fasta} \\
+            -L {common_sites} \\
+            --minimum-base-quality 20 \\
+            -O {sample_name}.Normal.allelicCounts.tsv \n""".format(**config_dict))
+        # Section 6
+        # ModelSegments as ModelSegmentsTumor
+        # ModelSegments as ModelSegmentsNormal
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          ModelSegments \\
+            --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \\
+            --allelic-counts {sample_name}.Tumor.allelicCounts.tsv \\
+            --normal-allelic-counts {sample_name}.Normal.allelicCounts.tsv \\
+            --output ./ \\
+            --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          ModelSegments \\
+            --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
+            --allelic-counts {sample_name}.Normal.allelicCounts.tsv \\
+            --output ./ \\
+            --output-prefix {sample_name}.Normal \n\n""".format(**config_dict))
+        # Section 7. Calls amplification, deletion and neutral events for the segmented copy ratios.
+        # CallCopyRatioSegments as CallCopyRatioSegmentsTumor
+        # CallCopyRatioSegments as CallCopyRatioSegmentsNormal
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          CallCopyRatioSegments \\
+            --input {sample_name}.Tumor.cr.seg \\
+            --output {sample_name}.Tumor.called.seg \n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          CallCopyRatioSegments \\
+            --input {sample_name}.Normal.cr.seg \\
+            --output {sample_name}.Normal.called.seg \n\n""".format(**config_dict))
+        # Section 8. Plots the results of segmentation and estimated allele-specific copy ratios.
         # PlotModeledSegments as PlotModeledSegmentsTumor
         # PlotModeledSegments as PlotModeledSegmentsNormal
-        f.write("""{gatk} \\
-        PlotModeledSegments \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"         PlotModeledSegments \\
             --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \\
             --allelic-counts {sample_name}.Tumor.hets.tsv \\
             --segments {sample_name}.Tumor.modelFinal.seg \\
             --sequence-dictionary {ref_fasta}.dict \\
-            --output ./ \\
+            --output ./plots \\
             --output-prefix {sample_name}.Normal_based_Tumor \n""".format(**config_dict))
-        f.write("""{gatk} \\
-        PlotModeledSegments \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"         PlotModeledSegments \\
             --denoised-copy-ratios {sample_name}.Tumor.denoisedCR.tsv \\
             --segments {sample_name}.Tumor.modelFinal.seg \\
             --sequence-dictionary {ref_fasta}.dict \\
-            --output ./ \\
+            --output ./plots \\
             --output-prefix {sample_name}.Tumor \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
-        PlotModeledSegments \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"        PlotModeledSegments \\
             --denoised-copy-ratios {sample_name}.Normal.denoisedCR.tsv \\
             --allelic-counts {sample_name}.Normal.hets.tsv \\
             --segments {sample_name}.Normal.modelFinal.seg \\
             --sequence-dictionary {ref_fasta}.dict \\
-            --output ./ \\
+            --output ./plots \\
             --output-prefix {sample_name}.Normal \n\n""".format(**config_dict))
 
         # CNVFuncotateSegments.CNVFuncotateSegmentsWorkflow as CNVFuncotateSegmentsWorkflow
         # https://github.com/broadinstitute/gatk/blob/master/scripts/cnv_wdl/somatic/cnv_somatic_funcotate_seg_workflow.wdl
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        FuncotateSegments \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          FuncotateSegments \\
             --data-sources-path {funcotator_dataSources} \\
             --ref-version {funcotator_ref_version} \\
             --output-file-format SEG \\
             -R {ref_fasta} \\
             --segments {sample_name}.Normal.modelFinal.seg \\
             -O {sample_name}.Normal.modelFinal.seg.funcotated.tsv \n\n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-        FuncotateSegments \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          FuncotateSegments \\
             --data-sources-path {funcotator_dataSources} \\
             --ref-version {funcotator_ref_version} \\
             --output-file-format SEG \\
