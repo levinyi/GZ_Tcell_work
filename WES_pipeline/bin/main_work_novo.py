@@ -78,24 +78,22 @@ def main():
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Normal\\tSM:Normal\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {normal_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Normal.sortedByCoord.bam - \n".format(**config_dict))
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Tumor\\tSM:Tumor\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {tumor_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Tumor.sortedByCoord.bam - \n".format(**config_dict))
         # MarkDuplicates
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-            MarkDuplicates \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            MarkDuplicates \\
             --INPUT {sample_name}.Normal.sortedByCoord.bam \\
             --OUTPUT {sample_name}.Normal.duplicates_marked.bam \\
             --METRICS_FILE {sample_name}.Normal.duplicate_metrics \\
             --VALIDATION_STRINGENCY SILENT \\
             --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \\
             --ASSUME_SORT_ORDER \"queryname\" \\
-            --CREATE_MD5_FILE true \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-            MarkDuplicates \\
+            --CREATE_MD5_FILE false \n""".format(**config_dict))
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            MarkDuplicates \\
             --INPUT {sample_name}.Tumor.sortedByCoord.bam \\
             --OUTPUT {sample_name}.Tumor.duplicates_marked.bam \\
             --METRICS_FILE {sample_name}.Tumor.duplicate_metrics \\
             --VALIDATION_STRINGENCY SILENT \\
             --OPTICAL_DUPLICATE_PIXEL_DISTANCE 2500 \\
             --ASSUME_SORT_ORDER \"queryname\" \\
-            --CREATE_MD5_FILE true \n""".format(**config_dict))
+            --CREATE_MD5_FILE false \n""".format(**config_dict))
         f.write("""{gatk} SortSam\\
             --INPUT {sample_name}.Normal.duplicates_marked.bam \\
             --OUTPUT {sample_name}.Normal.duplicates_marked_sorted.bam \\
@@ -118,11 +116,10 @@ def main():
             --INPUT  {sample_name}.Tumor.duplicates_marked_sorted.bam \\
             --OUTPUT {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam \\
             --CREATE_INDEX true \\
-            --CREATE_MD5_FILE true \\
+            --CREATE_MD5_FILE false \\
             --REFERENCE_SEQUENCE {ref_fasta} \n""".format(**config_dict))
         # # BaseRecalibrator
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-            BaseRecalibrator \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            BaseRecalibrator \\
             -R {ref_fasta} \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
             --use-original-qualities \\
@@ -132,8 +129,7 @@ def main():
             --known-sites {known_hapmap_vcf} \\
             --known-sites {known_omni_vcf} \\
             --known-sites {known_1000G_phase1_snps_vcf}\n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-            BaseRecalibrator \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"           BaseRecalibrator \\
             -R {ref_fasta} \\
             -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam \\
             --use-original-qualities \\
@@ -144,8 +140,7 @@ def main():
             --known-sites {known_omni_vcf} \\
             --known-sites {known_1000G_phase1_snps_vcf}\n""".format(**config_dict))
         # # ApplylyBQSR
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\" \\
-            ApplyBQSR \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            ApplyBQSR \\
             -R {ref_fasta} \\
             -I  {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
             -O  {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam \\
@@ -157,8 +152,7 @@ def main():
             --add-output-sam-program-record \\
             --use-original-qualities \\
             --create-output-bam-md5 true\n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"  \\
-            ApplyBQSR \\
+        f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            ApplyBQSR \\
             -R {ref_fasta} \\
             -I  {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam  \\
             -O  {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
@@ -171,14 +165,12 @@ def main():
             --use-original-qualities \\
             --create-output-bam-md5 true \n""".format(**config_dict))
         ## statistic bam
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
-            DepthOfCoverage \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
             -O {sample_name}.Tumor.bam.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\" \\
-            DepthOfCoverage \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam  \\
             -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
             -O {sample_name}.Normal.bam.DepthOfCoverage.txt \\
@@ -187,8 +179,7 @@ def main():
         f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R {sample_name}.Tumor.coverage.depth.rate.xls {sample_name}.Normal.coverage.depth.rate.xls \n""".format(**config_dict))
         
         # # Mutect2
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            Mutect2 \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            Mutect2 \\
             -R {ref_fasta} \\
             -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam \\
@@ -198,33 +189,28 @@ def main():
             -pon {panel_of_normals_vcf}   \\
             -O {sample_name}.unfiltered.vcf \\
             --f1r2-tar-gz {sample_name}.f1r2.tar.gz\n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            LearnReadOrientationModel \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            LearnReadOrientationModel \\
             -I {sample_name}.f1r2.tar.gz \\
             -O {sample_name}.read-orientation-model.tar.gz \n""".format(**config_dict))
         ## contamination.
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            GetPileupSummaries \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            GetPileupSummaries \\
             -I {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam  \\
             -V {variants_for_contamination} \\
             -L {variants_for_contamination} \\
             -O {sample_name}.Tumor.pileups.table \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            GetPileupSummaries \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            GetPileupSummaries \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam  \\
             -V {variants_for_contamination} \\
             -L {variants_for_contamination} \\
             -O {sample_name}.Normal.pileups.table \n""".format(**config_dict))
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            CalculateContamination \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            CalculateContamination \\
             -I {sample_name}.Tumor.pileups.table  \\
             -matched {sample_name}.Normal.pileups.table \\
             -O {sample_name}.Tumor.contamination.table \\
             --tumor-segmentation {sample_name}.segments.table \n""".format(**config_dict))
         
         ## filter mutation
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            FilterMutectCalls \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            FilterMutectCalls \\
             -R {ref_fasta} \\
             -V {sample_name}.unfiltered.vcf \\
             --contamination-table {sample_name}.Tumor.contamination.table \\
@@ -235,8 +221,7 @@ def main():
             -O {sample_name}.filtered.vcf \n""".format(**config_dict))
 
         ## Function anatation.
-        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"  \\
-            Funcotator \\
+        f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            Funcotator \\
             --data-sources-path {funcotator_dataSources} \\
             --ref-version {ref_version} \\
             --output-file-format MAF \\
@@ -256,7 +241,7 @@ def main():
 
 
         ##############################
-        ##### for sequenza
+        ##### purity and ploidy by sequenza
         ##############################
         f.write('''sequenza-utils bam2seqz \\
             -n {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam \\
