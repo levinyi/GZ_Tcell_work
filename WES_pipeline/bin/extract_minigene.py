@@ -127,7 +127,8 @@ def main():
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
         "Start_Position", "End_Position","Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
-        "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "dbSNP_RS", "Genome_Change", "Annotation_Transcript", 
+        "Tumor_Seq_Allele1", "Tumor_Seq_Allele2", "Tumor_Sample_Barcode", "Matched_Norm_Sample_Barcode","dbSNP_RS", 
+        "Genome_Change", "Annotation_Transcript", 
         "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
         "Refseq_mRNA_Id","tumor_f", "t_alt_count", "t_ref_count", "n_alt_count", 
         "n_ref_count", "DP", "Mutated_Minigene", "Wild-Type_Minigene",
@@ -142,6 +143,8 @@ def main():
         "In_Frame_Del": 1, 
         "In_Frame_Ins": 1,
         "Splice_Site": 1,
+        "Translation_Start_Site": 1,
+        "Nonstop_Mutation":1,
         # "Silent": 1,
     }
 
@@ -153,10 +156,11 @@ def main():
                 cDNA_Change = row["cDNA_Change"]
                 Protein_Change = row["Protein_Change"]
                 old_minigene, new_minigene = get_codon_minigene(Chromosome, seq, cDNA_Change, Protein_Change)
-                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                     row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
                     row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
-                    row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], 
+                    row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"], row["dbSNP_RS"], 
+                    row["Genome_Change"], 
                     row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"], cDNA_Change,
                     row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"],
                     row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"], new_minigene, old_minigene,
