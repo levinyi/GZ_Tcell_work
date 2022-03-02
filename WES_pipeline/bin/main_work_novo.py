@@ -229,9 +229,9 @@ def main():
             --variant {sample_name}.filtered.vcf \\
             --output {sample_name}.variants.funcotated.MAF.xls \\
             --remove-filtered-variants true \\
-            --add-output-vcf-command-line false \\
-            --annotation-default normal_barcode:Normal \\
-            --annotation-default tumor_barcode:Tumor \\
+            --add-output-vcf-command-line true \\
+            --annotation-default normal_barcode:{sample_name}.Normal \\
+            --annotation-default tumor_barcode:{sample_name}.Tumor \\
             --annotation-default Center:RootPath \\
             --annotation-default Sequencer:Miseq \n""".format(**config_dict))
         f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
@@ -249,7 +249,7 @@ def main():
             --fasta {ref_fasta} \\
             -gc /cygene/work/00.test/pipeline/sequenza/database/hg38.gc50Base.wig.gz \\
             -o {sample_name}.seqz.gz\n'''.format(**config_dict))
-        f.write('''sequenza-utils seqz_binning --seqz {sample_name}.seqz.gz -w 50 -o {sample_name}.small.seqz.gz\n'''.format(**config_dict))
+        f.write('''sequenza-utils seqz_binning --seqz {sample_name}.seqz.gz --window 50 -o {sample_name}.small.seqz.gz\n'''.format(**config_dict))
         f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scripts/sequenca_analysis_wes.R {sample_name}.small.seqz.gz {sample_name}\n'''.format(**config_dict))
         ##############################
         ####
