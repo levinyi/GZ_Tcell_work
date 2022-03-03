@@ -183,10 +183,15 @@ def main():
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          FuncotateSegments \\
             --data-sources-path {funcotator_dataSources} \\
             --ref-version {funcotator_ref_version} \\
-            --output-file-format SEG \\
+            --output-file-format MAF \\
             -R {ref_fasta} \\
             --segments {sample_name}.Normal.modelFinal.seg \\
-            -O {sample_name}.Normal.modelFinal.seg.funcotated.tsv \n\n""".format(**config_dict))
+            --remove-filtered-variants true \\
+            --annotation-default normal_barcode:Normal \\
+            --annotation-default tumor_barcode:Tumor \\
+            --annotation-default Center:RootPath \\
+            --annotation-default Sequencer:Miseq \\
+            -O {sample_name}.Normal.modelFinal.seg.funcotated.MAF.xls \n\n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"          FuncotateSegments \\
             --data-sources-path {funcotator_dataSources} \\
             --ref-version {funcotator_ref_version} \\
