@@ -3,6 +3,7 @@
 # install.packages("tidyverse")
 library(Seurat)
 library(sctransform)
+library(glmGamPoi)
 library(tidyverse, quietly=T)
 args = commandArgs(T)
 
@@ -47,7 +48,7 @@ write.table(output_RNA_data, file=paste(output_dir,'1QC/RNA.t.csv',sep="/"), sep
 
 sc_seurat_obj <- CreateSeuratObject(data) %>%
 	PercentageFeatureSet(pattern = "^MT-", col.name = "percent.mt") %>%
-	SCTransform(vars.to.regress = "percent.mt") %>%
+	SCTransform(method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE) %>%
 	RunPCA() %>%
 	FindNeighbors(dims = 1:30) %>%
 	RunUMAP(dims = 1:30) %>%
