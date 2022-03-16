@@ -1,6 +1,3 @@
-# install.packages("Seurat")
-# install.packages("tidyr")
-# install.packages("tidyverse")
 library(Seurat)
 library(sctransform)
 library(glmGamPoi)
@@ -25,7 +22,10 @@ if(!dir.exists("4Annotation")){
     dir.create("4Annotation/SingleR", recursive = T)
     dir.create("4Annotation/Garnett", recursive = T)
     dir.create("4Annotation/scCATCH", recursive = T)
-
+} else if (!dir.exists("4Annotation/SingleR") || (!dir.exists("4Annotation/Garnett") || (!dir.exists("4Annotation/scCATCH")){
+    dir.create("4Annotation/SingleR", recursive = T)
+    dir.create("4Annotation/Garnett", recursive = T)
+    dir.create("4Annotation/scCATCH", recursive = T)
 }
 if(!dir.exists("5TrajectoryAnalysis")){
     dir.create("5TrajectoryAnalysis")
@@ -126,7 +126,7 @@ ggsave(filename = paste(output_dir, "1QC/P4.doublets.png",sep="/"), plot = p4, w
 #########################################################
 
 ## select Singlet cells 
-# sc_seurat_obj = subset(sc_seurat_obj,subset=DF=='Singlet')
+sc_seurat_obj = subset(sc_seurat_obj, subset=DF=='Singlet')
 ## sc_seurat_obj # 33538 features across 3283 samples within 1 assay 
 #########################################################
 #########################################################
