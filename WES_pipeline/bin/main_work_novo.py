@@ -233,7 +233,7 @@ def main():
             --annotation-default normal_barcode:{sample_name}.Normal \\
             --annotation-default tumor_barcode:{sample_name}.Tumor \\
             --annotation-default Center:RootPath \\
-            --annotation-default Sequencer:Miseq \n""".format(**config_dict))
+            --annotation-default Sequencer:NovaSeq6000 \n""".format(**config_dict))
         f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
         f.write("""python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls\n""".format(**config_dict))
         #f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{print$5"\\t"$6-1"\\t"$7}}' > {sample_name}.snp.checked.bed\n""".format(**config_dict))
