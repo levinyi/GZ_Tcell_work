@@ -505,7 +505,7 @@ p8_1 = RidgePlot(sc_seurat_obj, features = CITE_seq_genes, ncol = 1)
 p8_2 = RidgePlot(sc_seurat_obj, features = RNA_seq_genes, ncol = 1)
 p8 = plot_grid(p8_1,p8_2)
 p8
-ggsave(filename = paste(output_dir, "P8_1_RidgePlot_adt_VS_RNA.png",sep="/"), plot = p8, path = "./",width=1344,height=960,units="px",)
+ggsave(filename = paste(output_dir, "P8_1_RidgePlot_adt_VS_RNA.png",sep="/"), plot = p8, path = "./",width=1344,height=960,units="px",scaling=0.5)
 
 # adt.markers <- FindAllMarkers(sc_seurat_obj, assay = "ADT", only.pos = TRUE)
 # mean?
