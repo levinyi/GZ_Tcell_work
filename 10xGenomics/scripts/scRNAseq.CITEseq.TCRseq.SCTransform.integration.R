@@ -14,12 +14,18 @@ args = commandArgs(T)
 
 
 # create a output directory in current path.
-dir_list <- c("scRNAseq_CITEseq_TCRseq_analysis","scRNAseq_CITEseq_TCRseq_analysis/1QC",
-              "scRNAseq_CITEseq_TCRseq_analysis/2Cluster","scRNAseq_CITEseq_TCRseq_analysis/3CellMarker",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation","scRNAseq_CITEseq_TCRseq_analysis/5TrajectoryAnalysis",
-              "scRNAseq_CITEseq_TCRseq_analysis/6RNAvelocity","scRNAseq_CITEseq_TCRseq_analysis/7CellPhone",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/SingleR","scRNAseq_CITEseq_TCRseq_analysis/4Annotation/Garnett",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/scCATCH","scRNAseq_CITEseq_TCRseq_analysis/",
+dir_list <- c("scRNAseq_CITEseq_TCRseq_analysis",
+              "scRNAseq_CITEseq_TCRseq_analysis/1QC",
+              "scRNAseq_CITEseq_TCRseq_analysis/2Cluster",
+              "scRNAseq_CITEseq_TCRseq_analysis/3CellMarker",
+              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation",
+              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/SingleR",
+              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/Garnett",
+              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/scCATCH",
+              "scRNAseq_CITEseq_TCRseq_analysis/5TrajectoryAnalysis",
+              "scRNAseq_CITEseq_TCRseq_analysis/6RNAvelocity",
+              "scRNAseq_CITEseq_TCRseq_analysis/7CellPhone",
+              "scRNAseq_CITEseq_TCRseq_analysis/8",
               "scRNAseq_CITEseq_TCRseq_analysis/")
 for (each in dir_list){
   if(!dir.exists(each)){
@@ -47,9 +53,9 @@ write.table(ADT_data_E1, file=paste(output_dir,'HC24_G471E1L3_ADT.t.csv',sep="/"
 write.table(ADT_data_E2, file=paste(output_dir,'HC24_G471E2L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 write.table(ADT_data_E3, file=paste(output_dir,'HC24_G471E3L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 
-# output_RNA_data = data$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-#   select(c("barcode","CD4","CD8A","CD8B","CD3E"))
-# write.table(output_RNA_data, file=paste(output_dir,'RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+output_RNA_data = data1$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+   select(c("barcode","CD4","CD8A","CD8B","CD3E"))
+write.table(output_RNA_data, file=paste(output_dir,'E1.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
 sc1_obj <- CreateSeuratObject(data1$`Gene Expression`, project = "E1")
 sc2_obj <- CreateSeuratObject(data2$`Gene Expression`, project = "E2") 
 sc3_obj <- CreateSeuratObject(data3$`Gene Expression`, project = "E3") 
@@ -91,6 +97,7 @@ FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", 
 FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature", ncol = 1, split.by="orig.ident")
 FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = NULL, ncol = 1, split.by="orig.ident")
 
+VlnPlot(immune.combined.sct, assay = "ADT", features = c("CD8-CITE","IgG1-CITE","CD3-CITE","CD4-CITE"),log=T)
 # ggsave(filename=paste(output_dir,"1QC/P1.VlnPlot.feature.png",sep="/"), plot=p1, width=1344,height=960, units="px", path=".")
 
 # FeatureScatter is typically used to visualize feature-feature relationships, but can be used
@@ -99,8 +106,8 @@ FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", 
 # sc_seurat_obj <- subset(sc_seurat_obj, subset = nFeature_RNA > 20 & nFeature_RNA < 3000 & percent.mt < 25)
 # Identify conserved cell type markers
 DefaultAssay(immune.combined.sct) <- "RNA"
-FeaturePlot(immune.combined.sct, features = c("CD3D", "SELL", "CREM", "CD8A", "GNLY", "CD79A", "FCGR3A",
-                                          "CCL2", "PPBP"), min.cutoff = "q9")
+FeaturePlot(immune.combined.sct, features = c("CD4", "CD8A", "CD8B","MS4A1"), min.cutoff = "q9", keep.scale = "feature")
+
 VlnPlot(immune.combined.sct, assay = "RNA",group.by = "orig.ident",  
         features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), log=F, flip=FALSE)
 FeatureScatter(immune.combined.sct, feature1 = "nCount_RNA", feature2 = "percent.mt",group.by = "orig.ident")
