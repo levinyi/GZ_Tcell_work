@@ -37,6 +37,9 @@ def main():
         'known_hapmap_vcf' : cf.get('GATK', 'known_hapmap_vcf'),
         'known_omni_vcf' : cf.get('GATK', 'known_omni_vcf'),
         'known_1000G_phase1_snps_vcf' : cf.get('GATK', 'known_1000G_phase1_snps_vcf'),
+        
+        # depth of coverage:
+        'WES_targets_interval': cf.get('GATK', "WES_targets_interval"),
 
         # Mutect 2
         'af_only_gnomad_vcf' : cf.get('GATK', 'af_only_gnomad_vcf'),
@@ -169,17 +172,17 @@ def main():
         ## DepthOfCoverage
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
-            -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
-            -O {sample_name}.Tumor.bam.DepthOfCoverage.txt \\
+            -L {WES_targets_interval} \\
+            -O {sample_name}.Tumor.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam  \\
-            -L /cygene/work/00.test/pipeline/WES_cnv_somatic_pair_pipeline/database/whole_exome_illumina_hg38.targets.interval_list \\
-            -O {sample_name}.Normal.bam.DepthOfCoverage.txt \\
+            -L {WES_targets_interval} \\
+            -O {sample_name}.Normal.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Tumor.bam.DepthOfCoverage.txt  \n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Normal.bam.DepthOfCoverage.txt \n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R {sample_name}.Tumor.coverage.depth.rate.xls {sample_name}.Normal.coverage.depth.rate.xls \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Tumor.DepthOfCoverage.txt  \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Normal.DepthOfCoverage.txt \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R {sample_name}.Tumor.DepthOfCoverage.rate.xls {sample_name}.Normal.DepthOfCoverage.rate.xls \n""".format(**config_dict))
         
         # # Mutect2
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            Mutect2 \\
