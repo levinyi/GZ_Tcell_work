@@ -4,7 +4,6 @@
 library(Seurat)
 library(sctransform)
 library(tidyverse, quietly=T)
-
 args = commandArgs(T)
 
 
@@ -14,27 +13,24 @@ args = commandArgs(T)
 
 
 # create a output directory in current path.
-dir_list <- c("scRNAseq_CITEseq_TCRseq_analysis",
-              "scRNAseq_CITEseq_TCRseq_analysis/1QC",
-              "scRNAseq_CITEseq_TCRseq_analysis/2Cluster",
-              "scRNAseq_CITEseq_TCRseq_analysis/3CellMarker",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/SingleR",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/Garnett",
-              "scRNAseq_CITEseq_TCRseq_analysis/4Annotation/scCATCH",
-              "scRNAseq_CITEseq_TCRseq_analysis/5TrajectoryAnalysis",
-              "scRNAseq_CITEseq_TCRseq_analysis/6RNAvelocity",
-              "scRNAseq_CITEseq_TCRseq_analysis/7CellPhone",
-              "scRNAseq_CITEseq_TCRseq_analysis/8",
-              "scRNAseq_CITEseq_TCRseq_analysis/")
+dir_list <- c("1QC",
+              "2Cluster",
+              "3CellMarker",
+              "4Annotation",
+              "4Annotation/SingleR",
+              "4Annotation/Garnett",
+              "4Annotation/scCATCH",
+              "5TrajectoryAnalysis",
+              "6RNAvelocity",
+              "7CellPhone",
+              "8scCNV")
 for (each in dir_list){
   if(!dir.exists(each)){
     dir.create(each)
   }
 }
 
-# dir.create("scRNAseq_CITEseq_TCRseq_analysis")
-# output_dir = "scRNAseq_CITEseq_TCRseq_analysis"
+
 output_dir = "."
 # read scRNAseq folder:
 scRNAseq_path1 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E1L2_scRNAseq_G471E1L3_CITEseq/outs"
@@ -53,9 +49,16 @@ write.table(ADT_data_E1, file=paste(output_dir,'HC24_G471E1L3_ADT.t.csv',sep="/"
 write.table(ADT_data_E2, file=paste(output_dir,'HC24_G471E2L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 write.table(ADT_data_E3, file=paste(output_dir,'HC24_G471E3L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 
-output_RNA_data = data1$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-   select(c("barcode","CD4","CD8A","CD8B","CD3E"))
-write.table(output_RNA_data, file=paste(output_dir,'E1.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+RNA_data_E1 = data1$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+RNA_data_E2 = data2$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+RNA_data_E3 = data3$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+write.table(RNA_data_E1, file=paste(output_dir,'HC24_G471E1L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+write.table(RNA_data_E2, file=paste(output_dir,'HC24_G471E2L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+write.table(RNA_data_E3, file=paste(output_dir,'HC24_G471E3L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+
 sc1_obj <- CreateSeuratObject(data1$`Gene Expression`, project = "E1")
 sc2_obj <- CreateSeuratObject(data2$`Gene Expression`, project = "E2") 
 sc3_obj <- CreateSeuratObject(data3$`Gene Expression`, project = "E3") 
@@ -65,7 +68,7 @@ sc2_obj[['ADT']] <- CreateAssayObject(counts = data2$`Antibody Capture`)
 sc3_obj[['ADT']] <- CreateAssayObject(counts = data3$`Antibody Capture`)
 
 rownames(sc1_obj[["ADT"]])
-## [1] "CD8-TotalSeqC" "CD4-TotalSeqC" "IgG1-TotalSeqC"
+## [1] "CD8-CITE" "CD4-CITE" "CD3-CITE" "IgG1-CITE"
 
 ################
 sc1_obj = PercentageFeatureSet(sc1_obj, pattern = "^MT-", col.name = "percent.mt")
@@ -75,65 +78,6 @@ sc3_obj = PercentageFeatureSet(sc3_obj, pattern = "^MT-", col.name = "percent.mt
 sc1_obj = SCTransform(sc1_obj,method = "glmGamPoi", vars.to.regress = "percent.mt",verbose=FALSE)
 sc2_obj = SCTransform(sc2_obj,method = "glmGamPoi", vars.to.regress = "percent.mt",verbose=FALSE)
 sc3_obj = SCTransform(sc3_obj,method = "glmGamPoi", vars.to.regress = "percent.mt",verbose=FALSE)
-
-
-#################################################
-DefaultAssay(immune.combined.sct) <- "ADT"
-# VariableFeatures(immune.combined.sct) = rownames(immune.combined.sct[["ADT"]])
-# immune.combined.sct <- NormalizeData(immune.combined.sct, normalization.method = "CLR", margin=2) %>% 
-#   ScaleData() %>% RunPCA() %>% RunUMAP()
-# immune.combined.sct <- ScaleData(immune.combined.sct) 
-# immune.combined.sct <- RunPCA(immune.combined.sct)
-# 
-# immune.combined.sct <- FindMultiModalNeighbors(
-#   immune.combined.sct, reduction.list = list("pca","apca"),
-#   dims.list = list(1:30,1:4),modality.weight.name = "RNA.weight"
-# )
-# 
-# immune.combined.sct <- RunUMAP(immune.combined.sct,nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
-CITE_seq_genes = rownames(immune.combined.sct[["ADT"]])
-CITE_seq_genes
-FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = "all", ncol = 1, split.by="orig.ident")
-FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature", ncol = 1, split.by="orig.ident")
-FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = NULL, ncol = 1, split.by="orig.ident")
-
-VlnPlot(immune.combined.sct, assay = "ADT", features = c("CD8-CITE","IgG1-CITE","CD3-CITE","CD4-CITE"),log=T)
-# ggsave(filename=paste(output_dir,"1QC/P1.VlnPlot.feature.png",sep="/"), plot=p1, width=1344,height=960, units="px", path=".")
-
-# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
-# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
-
-# sc_seurat_obj <- subset(sc_seurat_obj, subset = nFeature_RNA > 20 & nFeature_RNA < 3000 & percent.mt < 25)
-# Identify conserved cell type markers
-DefaultAssay(immune.combined.sct) <- "RNA"
-FeaturePlot(immune.combined.sct, features = c("CD4", "CD8A", "CD8B","MS4A1"), min.cutoff = "q9", keep.scale = "feature")
-
-VlnPlot(immune.combined.sct, assay = "RNA",group.by = "orig.ident",  
-        features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), log=F, flip=FALSE)
-FeatureScatter(immune.combined.sct, feature1 = "nCount_RNA", feature2 = "percent.mt",group.by = "orig.ident")
-FeatureScatter(immune.combined.sct, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "orig.ident")
-
-# ##############################
-# annotation
-
-Idents(immune.combined) <- factor(Idents(immune.combined), levels = c("HSPC", "Mono/Mk Doublets",
-                                                                      "pDC", "Eryth", "Mk", "DC", "CD14 Mono", "CD16 Mono", "B Activated", "B", "CD8 T", "NK", "T activated",
-                                                                      "CD4 Naive T", "CD4 Memory T"))
-markers.to.plot <- c("CD3D", "CREM", "HSPH1", "SELL", "GIMAP5", "CACYBP", "GNLY", "NKG7", "CCL5",
-                     "CD8A", "MS4A1", "CD79A", "MIR155HG", "NME1", "FCGR3A", "VMO1", "CCL2", "S100A9", "HLA-DQA1",
-                     "GPR183", "PPBP", "GNG11", "HBA2", "HBB", "TSPAN13", "IL3RA", "IGJ", "PRSS57")
-DotPlot(immune.combined, features = markers.to.plot, cols = c("blue", "red"), dot.scale = 8, split.by = "stim") +
-  RotatedAxis()
-
-
-
-
-p3 <- DimPlot(sc_seurat_obj, reduction = "umap")
-p3_2 <- DimPlot(sc_seurat_obj, reduction = "tsne")
-p3
-p3_2
-ggsave(filename = paste(output_dir,"/2Cluster/P3.raw.umap.png",sep="/"),plot = p3, width=1344,height=960,units="px",path = "." )
-ggsave(filename = paste(output_dir,"/2Cluster/P3.raw.tsne.png",sep="/"),plot = p3_2, width=1344,height=960,units="px",path = "." )
 
 
 #########################################
@@ -447,6 +391,65 @@ write.table(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj
 
 #########################################
 ############### for  CITEseq
+#################################################
+DefaultAssay(immune.combined.sct) <- "ADT"
+# VariableFeatures(immune.combined.sct) = rownames(immune.combined.sct[["ADT"]])
+# immune.combined.sct <- NormalizeData(immune.combined.sct, normalization.method = "CLR", margin=2) %>% 
+#   ScaleData() %>% RunPCA() %>% RunUMAP()
+# immune.combined.sct <- ScaleData(immune.combined.sct) 
+# immune.combined.sct <- RunPCA(immune.combined.sct)
+# 
+# immune.combined.sct <- FindMultiModalNeighbors(
+#   immune.combined.sct, reduction.list = list("pca","apca"),
+#   dims.list = list(1:30,1:4),modality.weight.name = "RNA.weight"
+# )
+# 
+# immune.combined.sct <- RunUMAP(immune.combined.sct,nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+CITE_seq_genes = rownames(immune.combined.sct[["ADT"]])
+CITE_seq_genes
+FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = "all", ncol = 1, split.by="orig.ident")
+FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature", ncol = 1, split.by="orig.ident")
+FeaturePlot(immune.combined.sct, features = CITE_seq_genes, reduction = "umap", keep.scale = NULL, ncol = 1, split.by="orig.ident")
+
+VlnPlot(immune.combined.sct, assay = "ADT", features = c("CD8-CITE","IgG1-CITE","CD3-CITE","CD4-CITE"),log=T)
+# ggsave(filename=paste(output_dir,"1QC/P1.VlnPlot.feature.png",sep="/"), plot=p1, width=1344,height=960, units="px", path=".")
+
+# FeatureScatter is typically used to visualize feature-feature relationships, but can be used
+# for anything calculated by the object, i.e. columns in object metadata, PC scores etc.
+
+# sc_seurat_obj <- subset(sc_seurat_obj, subset = nFeature_RNA > 20 & nFeature_RNA < 3000 & percent.mt < 25)
+# Identify conserved cell type markers
+DefaultAssay(immune.combined.sct) <- "RNA"
+FeaturePlot(immune.combined.sct, features = c("CD4", "CD8A", "CD8B","MS4A1"), min.cutoff = "q9", keep.scale = "feature")
+
+VlnPlot(immune.combined.sct, assay = "RNA",group.by = "orig.ident",  
+        features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), log=F, flip=FALSE)
+FeatureScatter(immune.combined.sct, feature1 = "nCount_RNA", feature2 = "percent.mt",group.by = "orig.ident")
+FeatureScatter(immune.combined.sct, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "orig.ident")
+
+# ##############################
+# annotation
+
+Idents(immune.combined) <- factor(Idents(immune.combined), levels = c("HSPC", "Mono/Mk Doublets",
+                                                                      "pDC", "Eryth", "Mk", "DC", "CD14 Mono", "CD16 Mono", "B Activated", "B", "CD8 T", "NK", "T activated",
+                                                                      "CD4 Naive T", "CD4 Memory T"))
+markers.to.plot <- c("CD3D", "CREM", "HSPH1", "SELL", "GIMAP5", "CACYBP", "GNLY", "NKG7", "CCL5",
+                     "CD8A", "MS4A1", "CD79A", "MIR155HG", "NME1", "FCGR3A", "VMO1", "CCL2", "S100A9", "HLA-DQA1",
+                     "GPR183", "PPBP", "GNG11", "HBA2", "HBB", "TSPAN13", "IL3RA", "IGJ", "PRSS57")
+DotPlot(immune.combined, features = markers.to.plot, cols = c("blue", "red"), dot.scale = 8, split.by = "stim") +
+  RotatedAxis()
+
+
+
+
+p3 <- DimPlot(sc_seurat_obj, reduction = "umap")
+p3_2 <- DimPlot(sc_seurat_obj, reduction = "tsne")
+p3
+p3_2
+ggsave(filename = paste(output_dir,"/2Cluster/P3.raw.umap.png",sep="/"),plot = p3, width=1344,height=960,units="px",path = "." )
+ggsave(filename = paste(output_dir,"/2Cluster/P3.raw.tsne.png",sep="/"),plot = p3_2, width=1344,height=960,units="px",path = "." )
+
+
 Key(sc_seurat_obj[["ADT"]])
 # p6_1 <- FeaturePlot(sc_seurat_obj, "adt_CITE-CD4", cols = c("lightgrey", "darkgreen")) + ggtitle("CD4 antibody")
 # p6_2 <- FeaturePlot(sc_seurat_obj, "adt_CITE-CD8", cols = c("lightgrey", "darkgreen")) + ggtitle("CD8 antibody")
