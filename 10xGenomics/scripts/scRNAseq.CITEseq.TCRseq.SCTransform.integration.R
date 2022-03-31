@@ -6,11 +6,9 @@ library(sctransform)
 library(tidyverse, quietly=T)
 args = commandArgs(T)
 
-
 ## setting for linux
 # scRNAseq_path = args[1]   # scRNAseq data must contain ADT information.
 # tcr_path = args[2]
-
 
 # create a output directory in current path.
 dir_list <- c("1QC",
@@ -79,7 +77,6 @@ sc1_obj = SCTransform(sc1_obj,method = "glmGamPoi", vars.to.regress = "percent.m
 sc2_obj = SCTransform(sc2_obj,method = "glmGamPoi", vars.to.regress = "percent.mt",verbose=FALSE)
 sc3_obj = SCTransform(sc3_obj,method = "glmGamPoi", vars.to.regress = "percent.mt",verbose=FALSE)
 
-
 #########################################
 #########################################
 # for TCR seq
@@ -108,7 +105,6 @@ sc1_obj = add_clonotype(TCR_path1, sc1_obj)
 sc2_obj = add_clonotype(TCR_path2, sc2_obj)
 sc3_obj = add_clonotype(TCR_path3, sc3_obj)
 
-
 #########################################
 #########################################
 
@@ -127,8 +123,8 @@ immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>%
 # Visualization
 p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident")
 p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
-p1 + p2
-ggsave()
+p3 = p1 + p2
+ggsave(path = output_dir, filename = "integration.UMAP.png",plot = p3, width = 11, height = 7,bg = "transparent",device = "png")
 # To visualize the two conditions side-by-side, we can use the split.by argument to show each condition colored by cluster.
 DimPlot(immune.combined.sct, reduction = "umap", split.by = "orig.ident")
 ggsave()
@@ -138,9 +134,29 @@ DimPlot(immune.combined.sct, reduction = "umap", cells.highlight = barcode,split
 ggsave()
 # change unselected, and group_1
 ######
+FeaturePlot(immune.combined.sct,features = c("CD8A","CD14"))+ 
+  # ggtitle("")+
+  theme(
+    axis.text=element_blank(), # keduwenzi
+    axis.ticks = element_blank(), # kedu
+    axis.line = element_blank(),
+    panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
+  ) +xlab("")+ylab("")+
+  # annotate(geom="point",x=-1,y=0)+
+  # annotate(geom="text", x=1,y=0, label="yes")+
+  NoLegend()
+ 
+other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
+                   "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
+                   "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
+tumor_marker = c("AFP","GPC3")
+LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
 
-
-
+FeaturePlot(immune.combined.sct, features = other_celltype)
+FeaturePlot(immune.combined.sct,features = tumor_marker)
+FeaturePlot(immune.combined.sct, features = LCSC_marker)
+DefaultAssay(immune.combined.sct) <- "RNA"
+RidgePlot(immune.combined.sct,features=tumor_marker,)
 
 library(SingleR)
 library(celldex)
@@ -233,8 +249,8 @@ library(garnett)
 library(org.Hs.eg.db)
 # Garnett 是基于monocle3， 所以它输入的数据格式是CellDataSet(CDS)
 # create CDS object:
-expression_matrix = GetAssayData(sc_seurat_obj, assay="RNA", slot = 'counts')
-cell_metadata <- sc_seurat_obj@meta.data
+expression_matrix = GetAssayData(immune.combined.sct, assay="RNA", slot = 'counts')
+cell_metadata <- immune.combined.sct@meta.data
 gene_annotation <- data.frame(gene_short_name = rownames(expression_matrix))
 rownames(gene_annotation) <- rownames(expression_matrix)
 
@@ -328,7 +344,7 @@ ggsave(filename = paste(output_dir, "P6.monocle3.genes.in.pseudotime.png", sep="
 # 演示利用marker file训练分类器
 # 2.3 marker 基因评估
 # 对marker file中的marker基因评分
-marker_file = "/cygene/work/00.test/pipeline/10xGenomics/scripts/RootPathPBMC_TCell_markers.txt"
+marker_file = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/G471_E1E2E3_scRNAseq_integration_analysis_dsy/HC_markers.txt"
 marker_check <- check_markers(cds, marker_file,
                               db=org.Hs.eg.db,
                               cds_gene_id_type = "SYMBOL",
@@ -368,10 +384,10 @@ cds <- classify_cells(cds, sc_seurat_obj_classifier, db=org.Hs.eg.db, cluster_ex
 ## 将结果返回给seurat对象# 提取分类结果
 cds.meta <- subset(pData(cds), select = c("cell_type","cluster_ext_type")) %>% as.data.frame()
 # cds.meta <- subset(pData(cds), select = c("cell_type", "cluster_ext_type")) %>% as.data.frame()
-sc_seurat_obj <- AddMetaData(sc_seurat_obj, metadata = cds.meta)
+immune.combined.sct <- AddMetaData(immune.combined.sct, metadata = cds.meta)
 
 # 查看结果
-p <- DimPlot(sc_seurat_obj, group.by = "cluster_ext_type", label = T, label.size = 3, repel = TRUE) + ggtitle("Classified by Garnett")
+p <- DimPlot(immune.combined.sct, group.by = "cluster_ext_type", label = T, label.size = 3, repel = TRUE) + ggtitle("Classified by Garnett")
 p
 ggsave(filename = paste(output_dir, "4Anntotion/Garnett/Garnett.png", sep = "/"), plot = p, width=1344,height=960,units="px", path = "./")
 
