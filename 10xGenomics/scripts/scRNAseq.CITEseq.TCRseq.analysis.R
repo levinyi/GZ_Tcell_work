@@ -77,14 +77,14 @@ add_clonotype <- function(tcr_path, seurat_obj){
     dplyr::rename(clonotype_id = raw_clonotype_id)
   # Clonotype-centric info.
   clono <- read.csv(paste(tcr_path,"outs/clonotypes.csv", sep="/"))
-  head(clono[, c("clonotype_id", "cdr3s_aa")])
+  # head(clono[, c("clonotype_id", "cdr3s_aa")])
   # Slap the AA sequences onto our original table by clonotype_id.
   tcr_data <- merge(tcr_data, clono[, c("clonotype_id", "cdr3s_aa")])
   # Reorder so barcodes are first column and set them as rownames.
   tcr_data <- tcr_data %>% tibble::column_to_rownames("barcode")
 
   # Add to the Seurat object's metadata.
-  clono_seurat <- Seurat::AddMetaData(object=sc_seurat_obj, metadata=tcr_data)
+  clono_seurat <- Seurat::AddMetaData(object=seurat_obj, metadata=tcr_data)
   return(clono_seurat)
 }
 sc_seurat_obj = add_clonotype(tcr_path, sc_seurat_obj)
