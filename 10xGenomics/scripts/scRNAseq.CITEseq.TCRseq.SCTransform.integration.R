@@ -40,28 +40,99 @@ write.table(RNA_data_E3, file=paste(output_dir,'HC24_G471E3L2.RNA.t.csv',sep="/"
 sc1_obj <- CreateSeuratObject(data1$`Gene Expression`, project = "E1")
 sc2_obj <- CreateSeuratObject(data2$`Gene Expression`, project = "E2") 
 sc3_obj <- CreateSeuratObject(data3$`Gene Expression`, project = "E3") 
+#####################################
+#############################
+# for TCR seq
+TCR_path1 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E1L1_TCRseq_IMGT"
+TCR_path2 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E2L1_TCRseq_IMGT"
+TCR_path3 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E3L1_TCRseq_IMGT"
 
+add_clonotype <- function(tcr_path, seurat_obj){
+  tcr_data = read.csv(paste(tcr_path, "outs/filtered_contig_annotations.csv", sep = "/"))
+  tcr_data <- tcr_data[!duplicated(tcr_data$barcode), ] %>%
+    dplyr::select(barcode, raw_clonotype_id) %>%
+    dplyr::rename(clonotype_id = raw_clonotype_id)
+  # Clonotype-centric info.
+  clono <- read.csv(paste(tcr_path,"outs/clonotypes.csv", sep="/"))
+  # head(clono[, c("clonotype_id", "cdr3s_aa")])
+  # Slap the AA sequences onto our original table by clonotype_id.
+  tcr_data <- merge(tcr_data, clono[, c("clonotype_id", "cdr3s_aa")])
+  # Reorder so barcodes are first column and set them as rownames.
+  tcr_data <- tcr_data %>% tibble::column_to_rownames("barcode")
+  
+  # Add to the Seurat object's metadata.
+  clono_seurat <- Seurat::AddMetaData(object=seurat_obj, metadata=tcr_data)
+  return(clono_seurat)
+}
+sc1_obj = add_clonotype(TCR_path1, sc1_obj)
+sc2_obj = add_clonotype(TCR_path2, sc2_obj)
+sc3_obj = add_clonotype(TCR_path3, sc3_obj)
+
+########################################
 #########################################
 #################  QC
 ################# before QC
 merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471M")
 merged_obj
-merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% ScaleData() %>% FindVariableFeatures() %>% RunPCA() %>% RunUMAP(dims=1:30)
-DimPlot(merged_obj)
+merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% 
+  ScaleData() %>% FindVariableFeatures() %>% RunPCA() %>% RunUMAP(dims=1:30) %>% 
+  FindNeighbors(dims = 1:30) %>% FindClusters(resolution = 0.5)
+before_integration_umap_sample = DimPlot(merged_obj, group.by = "orig.ident")
+before_integration_umap_cluster = DimPlot(merged_obj)
+before_integration_umap_sample
+before_integration_umap_cluster
 
 # head(colnames(merged_obj))
 # unique(sapply(X = strsplit(colnames(merged_obj), split = "_"), FUN = "[", 1))
 # table(merged_obj$orig.ident)
-
-
-VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3)
+VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3, group.by = "orig.ident")
 FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
 FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+################# expressing gene in cells to find T cell and Non-T cell
+# other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
+#                    "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
+#                    "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
+# tumor_marker = c("AFP","GPC3")
+# LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
+# FeaturePlot(merged_obj, features = other_celltype, label = T)
+
+T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
+FeaturePlot(merged_obj, features = T_cell_marker, label = T)
+RidgePlot(merged_obj, features = T_cell_marker, log = FALSE)
+RidgePlot(merged_obj, features = T_cell_marker, log = TRUE)
+bcell_marker = c("CD19","CD79A")
+RidgePlot(merged_obj, features = bcell_marker, log=T)
+table(Idents(merged_obj))
+table(Idents(merged_obj), merged_obj$orig.ident)
+
+write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
+write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
+###### check TCRseq data
+TCRseq_barcode = rownames(merged_obj@meta.data[which(merged_obj@meta.data$clonotype_id != "NA"),])
+DimPlot(merged_obj, reduction = "umap", cells.highlight = TCRseq_barcode, label = T) + 
+  scale_color_discrete(breaks=c("Unselected","Group_1"),labels = c("Others","TCR cells"))
+
+###### extract cellsData to Drag
+T_cells_clusters = c(3,7,8,11,12)
+
+T_cells_barcodes = WhichCells(merged_obj, idents = T_cells_clusters)
+head(T_cells_barcodes)
+head(colnames(merged_obj@meta.data))
+head(rownames(merged_obj@meta.data))
+merged_obj$before_cell_type <- "Non-T Cell"
+merged_obj$before_cell_type[rownames(merged_obj@meta.data) %in% T_cells_barcodes] <- "T-cell"
+write.table(table(Idents(merged_obj), merged_obj$before_cell_type), file = "Tcell_number_of_cell_type_before_qc.xls", sep = "\t", row.names = T)
+
+DimPlot(merged_obj, group.by = "before_cell_type")+ ggtitle("cell type (before QC)")
+table(Idents(merged_obj), merged_obj$before_cell_type)
+
+
+
 ################# after QC
-merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & nFeature_RNA < 4500 & percent.mt < 10)
+merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & percent.mt < 10)
 merged_obj
-VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3)
-##### integration
+VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3,group.by = "orig.ident")
+################# integration
 sc.list <- SplitObject(merged_obj, split.by = "orig.ident")
 sc.list <- lapply(X=sc.list, FUN = function(x){
   x <- PercentageFeatureSet(x, pattern = "^MT",col.name = "percent.mt")
@@ -81,6 +152,15 @@ p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident") +
 p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
 p1
 p2
+T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
+FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)Data to Drag
+RidgePlot(immune.combined.sct, features = T_cell_marker, log = FALSE)
+RidgePlot(immune.combined.sct, features = T_cell_marker, log = TRUE)
+bcell_marker = c("CD19","CD79A")
+RidgePlot(immune.combined.sct, features = bcell_marker, log=T)
+table(Idents(immune.combined.sct))
+table(Idents(immune.combined.sct), immune.combined.sct$orig.ident)
+
 ggsave(path = output_dir, filename = "integration.UMAP.png",plot = p3, width = 11, height = 7,bg = "transparent",device = "png")
 # To visualize the two conditions side-by-side, we can use the split.by argument to show each condition colored by cluster.
 DimPlot(immune.combined.sct, reduction = "umap", split.by = "orig.ident")
@@ -355,36 +435,7 @@ write.table(data.frame("barcode"=rownames(sc_seurat_obj@meta.data),sc_seurat_obj
             sep=",", row.names=FALSE)
 
 #########################################
-# for TCR seq
-TCR_path1 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E1L1_TCRseq_IMGT"
-TCR_path2 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E2L1_TCRseq_IMGT"
-TCR_path3 = "/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/HC24_G471E3L1_TCRseq_IMGT"
-
-add_clonotype <- function(tcr_path, seurat_obj){
-  tcr_data = read.csv(paste(tcr_path, "outs/filtered_contig_annotations.csv", sep = "/"))
-  tcr_data <- tcr_data[!duplicated(tcr_data$barcode), ] %>%
-    dplyr::select(barcode, raw_clonotype_id) %>%
-    dplyr::rename(clonotype_id = raw_clonotype_id)
-  # Clonotype-centric info.
-  clono <- read.csv(paste(tcr_path,"outs/clonotypes.csv", sep="/"))
-  # head(clono[, c("clonotype_id", "cdr3s_aa")])
-  # Slap the AA sequences onto our original table by clonotype_id.
-  tcr_data <- merge(tcr_data, clono[, c("clonotype_id", "cdr3s_aa")])
-  # Reorder so barcodes are first column and set them as rownames.
-  tcr_data <- tcr_data %>% tibble::column_to_rownames("barcode")
-  
-  # Add to the Seurat object's metadata.
-  clono_seurat <- Seurat::AddMetaData(object=seurat_obj, metadata=tcr_data)
-  return(clono_seurat)
-}
-sc1_obj = add_clonotype(TCR_path1, sc1_obj)
-sc2_obj = add_clonotype(TCR_path2, sc2_obj)
-sc3_obj = add_clonotype(TCR_path3, sc3_obj)
-
-barcode = rownames(immune.combined.sct@meta.data[which(immune.combined.sct@meta.data$clonotype_id != "NA"),])
-DimPlot(immune.combined.sct, reduction = "umap", cells.highlight = barcode,split.by = "orig.ident")
-
-#########################################
+#
 #########################################
 
 #########################################
