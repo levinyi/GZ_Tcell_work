@@ -153,7 +153,7 @@ p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRU
 p1
 p2
 T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
-FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)Data to Drag
+FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = FALSE)
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = TRUE)
 bcell_marker = c("CD19","CD79A")
