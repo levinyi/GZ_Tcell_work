@@ -71,7 +71,7 @@ sc3_obj = add_clonotype(TCR_path3, sc3_obj)
 ########################################
 #########################################
 #################  QC
-################# before QC
+################# integration before QC
 merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471M")
 merged_obj
 merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% 
