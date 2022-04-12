@@ -3,7 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(hrbrthemes) # for theme_ipsum()
 
-# args = c("HC22_TU_CL1-P0-gDNA.Tumor.coverage.depth.rate.xls")
+# args = c("/cygene2/work/P0000-Blackbird/2103-GB001/GB001001/GB001001_WES_RNAseq/DepthOfCoverage/GB001001.Tumor.DepthOfCoverage.rate.xls")
 # chr     chr_len total_depth     coverage_leng   rate1   rate2
 # chr1    4046489 234630948       3795965 57.983834380867 0.938088550345744
 # chr10   1488150 86518107        1464131 58.138028424554 0.983859825958405
@@ -30,6 +30,7 @@ common_themes = theme(plot.title = element_text(size = 20, hjust = 0.5),
 )
 for (each_file in args){
   output = dirname(each_file)
+  print(paste("output dir:",output,sep = ""))
   file_name = basename(each_file)
   title_name = paste(unlist(strsplit(file_name, "\\."))[1:2], collapse=".")
   print(title_name)
@@ -51,12 +52,41 @@ for (each_file in args){
   		theme_bw() +theme_x_axis + common_themes +
   		theme(axis.text.x = element_text(angle = 90, hjust=0.1, vjust=0.5))+
       scale_y_continuous(name=expression("Mean Depth"),
-                         limits = c(0,t),breaks = seq(0,t,20),
+                         limits = c(0,t), breaks = seq(0, t, floor(t/5)),
                          sec.axis = sec_axis(~./t, name = "Proportion of Covered Bases"))
-  ggsave(filename = paste(paste(output,title_name,sep="/"), "DepthOfCoverage.png", sep="."), plot = p, width=9, height=7, path = "./" )
+  ggsave(filename = paste(file.path(output, title_name), "DepthOfCoverage.png", sep="."), plot = p, width=9, height=7)
   print(paste(title_name,"DepthOfCoverage.png", sep="."))
 }
 print("all done")
+
+##############################
+# each_file = args[1]
+# output = dirname(each_file)
+# output
+# file_name = basename(each_file)
+# title_name = paste(unlist(strsplit(file_name, "\\."))[1:2], collapse=".")
+# print(title_name)
+# data = read.table(each_file, header=T)
+# # print(data)
+# max_data = max(data$rate1)
+# print(max_data)
+# print(paste("max_data=",max_data,sep = ""))
+# if (max_data>=100){
+#   t = floor(max_data*1.1)
+# }else{
+#   t = 100
+# }
+# print(paste("t=",t,sep=""))
+# ggplot(data) + 
+#   geom_bar(aes(x=chr, y=rate1), stat = 'identity',fill = "#8CC53E", width = 0.7)+
+#   geom_line( aes(x=chr, y=rate2*t/1),group=1) +
+#   geom_point(aes(x=chr, y=rate2*t/1))+
+#   xlab("")+
+#   theme_bw() +theme_x_axis + common_themes +
+#   theme(axis.text.x = element_text(angle = 90, hjust=0.1, vjust=0.5))+
+#   scale_y_continuous(name=expression("Mean Depth"),
+#                      limits = c(0,t), breaks = seq(0, t, floor(t/5)),
+#                      sec.axis = sec_axis(~./t, name = "Proportion of Covered Bases"))
 
 
 # ggplot(data,aes(x=chr)) +
