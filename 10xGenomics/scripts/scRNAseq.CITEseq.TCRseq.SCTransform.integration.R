@@ -1,6 +1,4 @@
-# install.packages("Seurat")
-# install.packages("tidyr")
-# install.packages("tidyverse")
+setwd("/cygene2/work/P0000-Blackbird/2103-HC002/HC002004/G471_E1E2E3_scRNAseq_integration_analysis_dsy")
 library(Seurat)
 library(sctransform)
 library(tidyverse, quietly=T)
@@ -105,8 +103,9 @@ RidgePlot(merged_obj, features = bcell_marker, log=T)
 table(Idents(merged_obj))
 table(Idents(merged_obj), merged_obj$orig.ident)
 
-write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
-write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
+prop.table(table(Idents(merged_obj)))
+# write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
+# write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
 ###### check TCRseq data
 TCRseq_barcode = rownames(merged_obj@meta.data[which(merged_obj@meta.data$clonotype_id != "NA"),])
 DimPlot(merged_obj, reduction = "umap", cells.highlight = TCRseq_barcode, label = T) + 
@@ -117,15 +116,18 @@ T_cells_clusters = c(3,7,8,11,12)
 
 T_cells_barcodes = WhichCells(merged_obj, idents = T_cells_clusters)
 head(T_cells_barcodes)
+
+
 head(colnames(merged_obj@meta.data))
 head(rownames(merged_obj@meta.data))
 merged_obj$before_cell_type <- "Non-T Cell"
 merged_obj$before_cell_type[rownames(merged_obj@meta.data) %in% T_cells_barcodes] <- "T-cell"
+head(merged_obj@meta.data)
 write.table(table(Idents(merged_obj), merged_obj$before_cell_type), file = "Tcell_number_of_cell_type_before_qc.xls", sep = "\t", row.names = T)
 
 DimPlot(merged_obj, group.by = "before_cell_type")+ ggtitle("cell type (before QC)")
-table(Idents(merged_obj), merged_obj$before_cell_type)
-
+b = table(Idents(merged_obj), merged_obj$before_cell_type)
+colSums(b)
 
 
 ################# after QC
@@ -150,10 +152,13 @@ immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>%
 # Visualization
 p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident") +ggtitle("")
 p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
-p1
+p1# 图没保存
 p2
 T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
 FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
+
+
+
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = FALSE)
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = TRUE)
 bcell_marker = c("CD19","CD79A")
@@ -163,7 +168,22 @@ table(Idents(immune.combined.sct), immune.combined.sct$orig.ident)
 
 ggsave(path = output_dir, filename = "integration.UMAP.png",plot = p3, width = 11, height = 7,bg = "transparent",device = "png")
 # To visualize the two conditions side-by-side, we can use the split.by argument to show each condition colored by cluster.
-DimPlot(immune.combined.sct, reduction = "umap", split.by = "orig.ident")
+# DimPlot(immune.combined.sct, reduction = "umap", split.by = "orig.ident")
+
+T_cells_clusters = c(1,4,6,8,12,14)
+
+T_cells_barcodes = WhichCells(immune.combined.sct, idents = T_cells_clusters)
+head(T_cells_barcodes)
+
+
+immune.combined.sct$after_cell_type <- "Non-T Cell"
+immune.combined.sct$after_cell_type[rownames(immune.combined.sct@meta.data) %in% T_cells_barcodes] <- "T-cell"
+head(immune.combined.sct@meta.data)
+write.table(table(Idents(immune.combined.sct), immune.combined.sct$after_cell_type), file = "Tcell_number_of_cell_type_after_qc.xls", sep = "\t", row.names = T)
+
+DimPlot(immune.combined.sct, group.by = "after_cell_type")+ ggtitle("cell type (after QC)")
+table(Idents(immune.combined.sct), immune.combined.sct$after_cell_type)
+
 
 ######
 FeaturePlot(immune.combined.sct,features = c("CD8A","CD14"))+ 
