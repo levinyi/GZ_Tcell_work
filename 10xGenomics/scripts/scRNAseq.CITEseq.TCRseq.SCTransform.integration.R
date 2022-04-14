@@ -184,13 +184,68 @@ write.table(table(Idents(immune.combined.sct), immune.combined.sct$after_cell_ty
 DimPlot(immune.combined.sct, group.by = "after_cell_type")+ ggtitle("cell type (after QC)")
 table(Idents(immune.combined.sct), immune.combined.sct$after_cell_type)
 
+####### 给cluster重命名：
+# 现在已知T 细胞的cluster为：（1,4,6,8,12,14）
+# B 细胞的cluster为15.
+immune.combined.sct <- RenameIdents(immune.combined.sct, 
+                                    "1" = "T cells","4"="T cells",
+                                    "6"="T cells","8"="T cells",
+                                    "12"="T cells","14"="T cells",
+                                    "15"="B cells")
+DimPlot(immune.combined.sct,label = T)
+
+
+#########################################
+# find doublets
+## install.packages('remotes')
+## remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
+library(DoubletFinder)
+sc_seurat_obj = immune.combined.sct
+# doublets_detecte <- function(sc_seurat_obj){
+# Do not apply DoubletFinder to aggregated scRNA-seq data representing multiple distinct samples
+## -------------- pK Identification (no ground-truth) --------------------------------------
+sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:20, sct = TRUE, num.cores = 64)
+sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
+bcmvn <- find.pK(sweep.stats)
+mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
+
+## ----------------- DoubletFinder:Homotypic Doublet Proportion Estimate ------------------------
+annotations <- sc_seurat_obj@meta.data$seurat_clusters
+homotypic.prop <- modelHomotypic(annotations)
+nExp_poi <- round(0.075*nrow(sc_seurat_obj@meta.data)) ## Assuming 7.5% doublet formation rate
+# DoubletRate = 0.039  # 5000 Cells correspond to doublets rate yes 3.9%
+# nExp_poi <- round(DoubletRate*ncol(sc_seurat_obj))
+nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
+
+## ------------DoubletFinder:Run DoubletFinder with varying classification stringencies ---------
+sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:10, pN = 0.25, pK = mpK,
+                                  nExp = nExp_poi, reuse.pANN = FALSE, sct = TRUE)
+sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:10, pN = 0.25, pK = mpK,
+                                  nExp = nExp_poi.adj, reuse.pANN = paste("pANN_0.25",mpK,nExp_poi,sep = "_"), sct = TRUE)
+
+## ---------------------Doublets by DoubletFinder --------------------------------------------
+sc_seurat_obj$DF = sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi,sep = "_"),colnames(sc_seurat_obj@meta.data))]
+doublets_rate = round(length(which(sc_seurat_obj$DF=="Doublet"))/ nrow(sc_seurat_obj@meta.data)*100,2)
+print(paste("doublets_rate : ", doublets_rate,"%", sep=""))
+sc_seurat_obj$DF[which((sc_seurat_obj$DF == "Doublet") & (sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))] == "Singlet"))] <- "Doublet_lo"
+sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet")] <- "Doublet_hi"
+
+p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF", label.size = 5, label = TRUE, pt.size = 1) +
+  ggtitle(paste("Doublets rate : ",doublets_rate,"%", sep=""))
+ggsave(filename = paste(output_dir, "1QC/P4.doublets.png",sep="/"), plot = p4, width=9, height=7, path = "./" )
+p4
+########################## finish Doubletsfinder.
+##########################################################
+#########################################################
+
+
 
 ######
-FeaturePlot(immune.combined.sct,features = c("CD8A","CD14"))+ 
+FeaturePlot(immune.combined.sct,features = c("CD8A"))+ 
   theme(
-    axis.text=element_blank(), # keduwenzi
+    axis.text  = element_blank(), # keduwenzi
     axis.ticks = element_blank(), # kedu
-    axis.line = element_blank(),
+    axis.line  = element_blank(),
     panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
   ) +xlab("")+ylab("")+
   NoLegend()
@@ -200,6 +255,7 @@ other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
                    "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
 tumor_marker = c("AFP","GPC3")
 LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
+
 DefaultAssay(immune.combined.sct) <- ""
 FeaturePlot(immune.combined.sct, features = other_celltype)
 FeaturePlot(immune.combined.sct,features = tumor_marker)
