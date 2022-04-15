@@ -241,27 +241,27 @@ p4
 
 
 ######
-FeaturePlot(immune.combined.sct,features = c("CD8A"))+ 
-  theme(
-    axis.text  = element_blank(), # keduwenzi
-    axis.ticks = element_blank(), # kedu
-    axis.line  = element_blank(),
-    panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
-  ) +xlab("")+ylab("")+
-  NoLegend()
- 
-other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
-                   "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
-                   "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
-tumor_marker = c("AFP","GPC3")
-LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
-
-DefaultAssay(immune.combined.sct) <- ""
-FeaturePlot(immune.combined.sct, features = other_celltype)
-FeaturePlot(immune.combined.sct,features = tumor_marker)
-FeaturePlot(immune.combined.sct, features = LCSC_marker)
-DefaultAssay(immune.combined.sct) <- "RNA"
-RidgePlot(immune.combined.sct,features=tumor_marker,)
+# FeaturePlot(immune.combined.sct,features = c("CD8A"))+ 
+#   theme(
+#     axis.text  = element_blank(), # keduwenzi
+#     axis.ticks = element_blank(), # kedu
+#     axis.line  = element_blank(),
+#     panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
+#   ) +xlab("")+ylab("")+
+#   NoLegend()
+#  
+# other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
+#                    "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
+#                    "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
+# tumor_marker = c("AFP","GPC3")
+# LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
+# 
+# DefaultAssay(immune.combined.sct) <- ""
+# FeaturePlot(immune.combined.sct, features = other_celltype)
+# FeaturePlot(immune.combined.sct,features = tumor_marker)
+# FeaturePlot(immune.combined.sct, features = LCSC_marker)
+# DefaultAssay(immune.combined.sct) <- "RNA"
+# RidgePlot(immune.combined.sct,features=tumor_marker,)
 
 library(SingleR)
 library(celldex)
@@ -317,9 +317,12 @@ ggsave(filename=paste(output_dir,"4Annotation/SingleR/P5_cluster.annotation.with
 ########################################
 ######## scCATCH
 library(scCATCH)
+as.character(immune.combined.sct@meta.data$seurat_clusters)
 scCATCH_obj <- scCATCH::createscCATCH(immune.combined.sct[["RNA"]]@data, cluster = as.character(immune.combined.sct@meta.data$seurat_clusters))
+scCATCH_obj <- scCATCH::createscCATCH(immune.combined.sct[["SCT"]]@data, cluster = as.character(immune.combined.sct@meta.data$seurat_clusters))
+tumor_cluster = c(0,2,3,5,7,9,10,11,13)
 clu_markers <- scCATCH::findmarkergene(scCATCH_obj, species = "Human", 
-                                        cluster = "All", cancer = "Hepatocellular Cancer", 
+                                        cluster = tumor_cluster, cancer = "Hepatocellular Cancer", 
                                         marker = cellmatch,
                                         tissue = c("Liver"), 
                                         use_method = "1", cell_min_pct = 0.25,
