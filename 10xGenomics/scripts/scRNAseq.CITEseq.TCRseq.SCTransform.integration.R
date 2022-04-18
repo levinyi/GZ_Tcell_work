@@ -26,11 +26,11 @@ write.table(ADT_data_E2, file=paste(output_dir,'HC24_G471E2L3_ADT.t.csv',sep="/"
 write.table(ADT_data_E3, file=paste(output_dir,'HC24_G471E3L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 
 RNA_data_E1 = data1$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
 RNA_data_E2 = data2$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
 RNA_data_E3 = data3$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D"))
+  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
 write.table(RNA_data_E1, file=paste(output_dir,'HC24_G471E1L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
 write.table(RNA_data_E2, file=paste(output_dir,'HC24_G471E2L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
 write.table(RNA_data_E3, file=paste(output_dir,'HC24_G471E3L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
@@ -65,27 +65,33 @@ add_clonotype <- function(tcr_path, seurat_obj){
 sc1_obj = add_clonotype(TCR_path1, sc1_obj)
 sc2_obj = add_clonotype(TCR_path2, sc2_obj)
 sc3_obj = add_clonotype(TCR_path3, sc3_obj)
+# 验证TCR的数量：验证clonotype是不是全部在：
+
+# 数据整合：
+
+# 验证CD4表达的数量：
+length(WhichCells(sc1_obj, expression = CD4 >0))
 
 ########################################
 #########################################
 #################  QC
 ################# integration before QC
-merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471M")
+merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471")
 merged_obj
-merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% 
-  ScaleData() %>% FindVariableFeatures() %>% RunPCA() %>% RunUMAP(dims=1:30) %>% 
-  FindNeighbors(dims = 1:30) %>% FindClusters(resolution = 0.5)
-before_integration_umap_sample = DimPlot(merged_obj, group.by = "orig.ident")
-before_integration_umap_cluster = DimPlot(merged_obj)
-before_integration_umap_sample
-before_integration_umap_cluster
+# merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% 
+  # ScaleData() %>% FindVariableFeatures() %>% RunPCA() %>% RunUMAP(dims=1:30) %>% 
+  # FindNeighbors(dims = 1:30) %>% FindClusters(resolution = 0.5)
+# before_integration_umap_sample = DimPlot(merged_obj, group.by = "orig.ident")
+# before_integration_umap_cluster = DimPlot(merged_obj)
+# before_integration_umap_sample
+# before_integration_umap_cluster
 
 # head(colnames(merged_obj))
 # unique(sapply(X = strsplit(colnames(merged_obj), split = "_"), FUN = "[", 1))
 # table(merged_obj$orig.ident)
-VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3, group.by = "orig.ident")
-FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
-FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+# VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3, group.by = "orig.ident")
+# FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
+# FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
 ################# expressing gene in cells to find T cell and Non-T cell
 # other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
 #                    "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
@@ -94,56 +100,57 @@ FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
 # LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
 # FeaturePlot(merged_obj, features = other_celltype, label = T)
 
-T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
-FeaturePlot(merged_obj, features = T_cell_marker, label = T)
-RidgePlot(merged_obj, features = T_cell_marker, log = FALSE)
-RidgePlot(merged_obj, features = T_cell_marker, log = TRUE)
-bcell_marker = c("CD19","CD79A")
-RidgePlot(merged_obj, features = bcell_marker, log=T)
-table(Idents(merged_obj))
-table(Idents(merged_obj), merged_obj$orig.ident)
+# T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
+# FeaturePlot(merged_obj, features = T_cell_marker, label = T)
+# RidgePlot(merged_obj, features = T_cell_marker, log = FALSE)
+# RidgePlot(merged_obj, features = T_cell_marker, log = TRUE)
+# bcell_marker = c("CD19","CD79A")
+# RidgePlot(merged_obj, features = bcell_marker, log=T)
+# table(Idents(merged_obj))
+# table(Idents(merged_obj), merged_obj$orig.ident)
 
-prop.table(table(Idents(merged_obj)))
+# prop.table(table(Idents(merged_obj)))
 # write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
 # write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
 ###### check TCRseq data
-TCRseq_barcode = rownames(merged_obj@meta.data[which(merged_obj@meta.data$clonotype_id != "NA"),])
-DimPlot(merged_obj, reduction = "umap", cells.highlight = TCRseq_barcode, label = T) + 
-  scale_color_discrete(breaks=c("Unselected","Group_1"),labels = c("Others","TCR cells"))
+# TCRseq_barcode = rownames(merged_obj@meta.data[which(merged_obj@meta.data$clonotype_id != "NA"),])
+# DimPlot(merged_obj, reduction = "umap", cells.highlight = TCRseq_barcode, label = T) + 
+  # scale_color_discrete(breaks=c("Unselected","Group_1"),labels = c("Others","TCR cells"))
 
 ###### extract cellsData to Drag
-T_cells_clusters = c(3,7,8,11,12)
+# T_cells_clusters = c(3,7,8,11,12)
 
-T_cells_barcodes = WhichCells(merged_obj, idents = T_cells_clusters)
-head(T_cells_barcodes)
-
-
-head(colnames(merged_obj@meta.data))
-head(rownames(merged_obj@meta.data))
-merged_obj$before_cell_type <- "Non-T Cell"
-merged_obj$before_cell_type[rownames(merged_obj@meta.data) %in% T_cells_barcodes] <- "T-cell"
-head(merged_obj@meta.data)
-write.table(table(Idents(merged_obj), merged_obj$before_cell_type), file = "Tcell_number_of_cell_type_before_qc.xls", sep = "\t", row.names = T)
-
-DimPlot(merged_obj, group.by = "before_cell_type")+ ggtitle("cell type (before QC)")
-b = table(Idents(merged_obj), merged_obj$before_cell_type)
-colSums(b)
-
-
-################# after QC
-merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & percent.mt < 10)
-merged_obj
-VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3,group.by = "orig.ident")
+# T_cells_barcodes = WhichCells(merged_obj, idents = T_cells_clusters)
+# head(T_cells_barcodes)
+# 
+# 
+# head(colnames(merged_obj@meta.data))
+# head(rownames(merged_obj@meta.data))
+# merged_obj$before_cell_type <- "Non-T Cell"
+# merged_obj$before_cell_type[rownames(merged_obj@meta.data) %in% T_cells_barcodes] <- "T-cell"
+# head(merged_obj@meta.data)
+# write.table(table(Idents(merged_obj), merged_obj$before_cell_type), file = "Tcell_number_of_cell_type_before_qc.xls", sep = "\t", row.names = T)
+# 
+# DimPlot(merged_obj, group.by = "before_cell_type")+ ggtitle("cell type (before QC)")
+# b = table(Idents(merged_obj), merged_obj$before_cell_type)
+# colSums(b)
+# 
+# 
+# ################# after QC
+# merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & percent.mt < 10)
+# merged_obj
+# VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3,group.by = "orig.ident")
 ################# integration
 sc.list <- SplitObject(merged_obj, split.by = "orig.ident")
 sc.list <- lapply(X=sc.list, FUN = function(x){
-  x <- PercentageFeatureSet(x, pattern = "^MT",col.name = "percent.mt")
+  x <- PercentageFeatureSet(x, pattern = "^MT", col.name = "percent.mt")
   x <- SCTransform(x, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
 })
 features <- SelectIntegrationFeatures(object.list = sc.list, nfeatures=3000)
 sc.list <- PrepSCTIntegration(object.list = sc.list, anchor.features = features)
 
-immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.method = "SCT", anchor.features = features) # In CheckDuplicateCellNames(object.list = object.list) :
+immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.method = "SCT", anchor.features = features) 
+# In CheckDuplicateCellNames(object.list = object.list) :
 # Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.
 immune.combined.sct <- IntegrateData(anchorset = immune.anchors, normalization.method = "SCT") 
 immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>% 
@@ -152,10 +159,29 @@ immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>%
 # Visualization
 p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident") +ggtitle("")
 p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
+
 p1# 图没保存
 p2
 T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
 FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
+RidgePlot(immune.combined.sct, features = T_cell_marker)
+
+CD4_barcode = WhichCells(immune.combined.sct, expression = CD4>0)
+length(CD4_barcode)
+CD8_barcode = WhichCells(immune.combined.sct, expression = CD8A>0 | CD8B>0)
+
+immune.combined.sct$manual_label_cells <- "Non-T Cell"
+immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD4_barcode] <- "CD4"
+immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD8_barcode] <- "CD8"
+
+DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells")
+
+
+
+
+
+
+
 
 
 
@@ -241,31 +267,34 @@ p4
 
 
 ######
-# FeaturePlot(immune.combined.sct,features = c("CD8A"))+ 
-#   theme(
-#     axis.text  = element_blank(), # keduwenzi
-#     axis.ticks = element_blank(), # kedu
-#     axis.line  = element_blank(),
-#     panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
-#   ) +xlab("")+ylab("")+
-#   NoLegend()
+FeaturePlot(immune.combined.sct, features = c("CD4"))
+  theme(
+    axis.text  = element_blank(), # keduwenzi
+    axis.ticks = element_blank(), # kedu
+    axis.line  = element_blank(),
+    panel.border = element_rect(fill=NA, color = "black", size=1, linetype = "solid")
+  ) +xlab("")+ylab("")+
+  NoLegend()
 #  
-# other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
-#                    "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
-#                    "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
-# tumor_marker = c("AFP","GPC3")
-# LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
+other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
+                   "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
+                   "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
+tumor_marker = c("AFP","GPC3")
+LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
+
+umap_data = Embeddings(immune.combined.sct, reduction = "umap")
+head(immune.combined.sct@)
 # 
 # DefaultAssay(immune.combined.sct) <- ""
-# FeaturePlot(immune.combined.sct, features = other_celltype)
-# FeaturePlot(immune.combined.sct,features = tumor_marker)
-# FeaturePlot(immune.combined.sct, features = LCSC_marker)
-# DefaultAssay(immune.combined.sct) <- "RNA"
-# RidgePlot(immune.combined.sct,features=tumor_marker,)
+FeaturePlot(immune.combined.sct, features = other_celltype)
+FeaturePlot(immune.combined.sct,features = tumor_marker)
+FeaturePlot(immune.combined.sct, features = LCSC_marker)
+DefaultAssay(immune.combined.sct) <- "RNA"
+RidgePlot(immune.combined.sct,features=tumor_marker,)
 
 library(SingleR)
 library(celldex)
-DefaultAssay(immune.combined.sct) <- "RNA"
+DefaultAssay(immune.combined.sct) <- "SCT"
 sc_seurat_obj_SingleR = GetAssayData(immune.combined.sct, slot="data")
 sc_seurat_obj_clusters = immune.combined.sct@meta.data$seurat_clusters
 
@@ -275,6 +304,7 @@ dice = celldex::DatabaseImmuneCellExpressionData()
 mona = celldex::MonacoImmuneData()
 novershter = celldex::NovershternHematopoieticData()
 
+sc_seurat_obj = immune.combined.sct
 # choose label.main or label.fine
 pred.hpca = SingleR(test = sc_seurat_obj_SingleR, ref = hpca, labels = hpca$label.fine, clusters = sc_seurat_obj_clusters )
 pred.blue = SingleR(test = sc_seurat_obj_SingleR, ref = blueprint_encode,labels = blueprint_encode$label.fine,clusters = sc_seurat_obj_clusters )
@@ -296,6 +326,7 @@ p5_0 = DimPlot(immune.combined.sct, reduction = "umap", label = T, group.by = 's
 p5_0
 immune.combined.sct@meta.data$singleR.blue = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'blue']
 p5_1 = DimPlot(immune.combined.sct, reduction = "umap", label = T, group.by = 'singleR.blue',)+ggtitle("BlueprintEncodeData")
+p5_1
 immune.combined.sct@meta.data$singleR.dice = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'Dice']
 p5_2 = DimPlot(immune.combined.sct, reduction = "umap", label = T, group.by = 'singleR.dice',)+ggtitle("DatabaseImmuneCellExpressionData")
 immune.combined.sct@meta.data$singleR.mona = sc_seurat_obj_cellType[match(sc_seurat_obj_clusters, sc_seurat_obj_cellType$ClusterID),'mona']
@@ -345,6 +376,7 @@ ggsave(filename=paste(output_dir, "4Annotation/scCATCH/P5_6.cluster.annotation.w
 # find markers for every cluster compared to all remaining cells, report only the positive
 # ones
 immune.combined.sct.markers <- FindAllMarkers(immune.combined.sct, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+FindMarkers(immune.combined.sct, ident.1 = "1",only.pos = T, min.pct = 0.25, logfc.threshold = 0.25)
 top5_marker_genes = immune.combined.sct.markers %>%
   group_by(cluster) %>%
   slice_max(n = 5, order_by = avg_log2FC)
