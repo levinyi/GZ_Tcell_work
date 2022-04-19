@@ -74,18 +74,120 @@ length(WhichCells(sc1_obj, expression = CD4 >0))
 
 ########################################
 #########################################
-#################  QC
-################# integration before QC
-merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471")
-merged_obj
+#################  integration
+################# 
+sc.list <- list("E1" = sc1_obj, "E2" = sc2_obj,"E3" = sc3_obj)
+sc.list <- lapply(X=sc.list, FUN = function(x){
+  x <- PercentageFeatureSet(x, pattern = "^MT", col.name = "percent.mt")
+  x <- SCTransform(x, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
+})
+features <- SelectIntegrationFeatures(object.list = sc.list, nfeatures=3000)
+sc.list <- PrepSCTIntegration(object.list = sc.list, anchor.features = features)
+
+immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.method = "SCT", anchor.features = features) 
+immune.combined.sct <- IntegrateData(anchorset = immune.anchors, normalization.method = "SCT") 
+immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>% 
+  FindNeighbors(dims=1:30) %>% FindClusters(resolution=0.5)
+DimPlot(immune.combined.sct)
+
+# merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471")
+# merged_obj
 # merged_obj = PercentageFeatureSet(merged_obj, pattern = "^MT-", col.name = "percent.mt") %>% 
   # ScaleData() %>% FindVariableFeatures() %>% RunPCA() %>% RunUMAP(dims=1:30) %>% 
   # FindNeighbors(dims = 1:30) %>% FindClusters(resolution = 0.5)
 # before_integration_umap_sample = DimPlot(merged_obj, group.by = "orig.ident")
-# before_integration_umap_cluster = DimPlot(merged_obj)
-# before_integration_umap_sample
-# before_integration_umap_cluster
 
+# doubletsfinder
+#########################################
+# find doublets
+## install.packages('remotes')
+## remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
+library(DoubletFinder)
+sc_seurat_obj = immune.combined.sct
+# doublets_detecte <- function(sc_seurat_obj){
+# Do not apply DoubletFinder to aggregated scRNA-seq data representing multiple distinct samples
+## -------------- pK Identification (no ground-truth) --------------------------------------
+sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:30, sct = TRUE, num.cores = 64)
+sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
+bcmvn <- find.pK(sweep.stats)
+bcmvn
+mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
+# mpK ?
+## ----------------- DoubletFinder:Homotypic Doublet Proportion Estimate ------------------------
+annotations <- sc_seurat_obj@meta.data$seurat_clusters
+homotypic.prop <- modelHomotypic(annotations)
+nExp_poi <- round(0.075*nrow(sc_seurat_obj@meta.data)) ## Assuming 7.5% doublet formation rate
+# DoubletRate = 0.039  # 5000 Cells correspond to doublets rate yes 3.9%
+# nExp_poi <- round(DoubletRate*ncol(sc_seurat_obj))
+nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
+
+## ------------DoubletFinder:Run DoubletFinder with varying classification stringencies ---------
+sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:30, pN = 0.25, pK = mpK,
+                                  nExp = nExp_poi, reuse.pANN = FALSE, sct = TRUE)
+sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:30, pN = 0.25, pK = mpK,
+                                  nExp = nExp_poi.adj, reuse.pANN = paste("pANN_0.25",mpK,nExp_poi,sep = "_"), sct = TRUE)
+
+## ---------------------Doublets by DoubletFinder --------------------------------------------
+sc_seurat_obj$DF = sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi,sep = "_"),colnames(sc_seurat_obj@meta.data))]
+doublets_rate = round(length(which(sc_seurat_obj$DF=="Doublet"))/ nrow(sc_seurat_obj@meta.data)*100,2)
+print(paste("doublets_rate : ", doublets_rate,"%", sep=""))
+sc_seurat_obj$DF[which((sc_seurat_obj$DF == "Doublet") & (sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))] == "Singlet"))] <- "Doublet_lo"
+sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet")] <- "Doublet_hi"
+
+p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF", label.size = 5, label = TRUE, pt.size = 1) +
+  ggtitle(paste("Doublets rate : ",doublets_rate,"%", sep=""))
+ggsave(filename = paste(output_dir, "1QC/P4.doublets.png",sep="/"), plot = p4, width=9, height=7, path = "./" )
+p4
+
+########################## finish Doubletsfinder.
+##########################################################
+#########################################################
+# QC
+VlnPlot(immune.combined.sct,features = c("nFeature_RNA", "nCount_RNA","percent.mt"), group.by = "orig.ident")
+# immune.combined.sct = subset(immune.combined.sct)
+# Visualization
+p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident") +ggtitle("")
+p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
+
+p1# 图没保存
+p2
+T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
+FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
+FeaturePlot(immune.combined.sct, features = "CD4", label = T, blend.threshold = 100)
+DotPlot(immune.combined.sct, features = T_cell_marker,)
+RidgePlot(immune.combined.sct, features = T_cell_marker)
+GetAssay(immune.combined.sct)
+
+DefaultAssay(immune.combined.sct) <- "RNA"
+DefaultAssay(immune.combined.sct) <- "integrated"
+DefaultAssay(immune.combined.sct) <- "SCT"
+GetAssay(immune.combined.sct)
+CD4_barcode = WhichCells(immune.combined.sct, expression = CD4>0, slot = "data",)
+length(CD4_barcode)
+
+CD8_barcode = WhichCells(immune.combined.sct, expression = CD8A>0 | CD8B>0)
+length(CD8_barcode)
+immune.combined.sct$manual_label_cells <- "Others"
+immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD4_barcode] <- "CD4"
+immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD8_barcode] <- "CD8"
+
+DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells", cols = c("red","blue","grey80"), pt.size = 0.3) + ggtitle("")
+
+combined.SCT.integration.raw.count <- immune.combined.sct@assays$SCT@data %>% 
+  as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
+
+write.table(combined.SCT.integration.raw.count, file=paste(output_dir,'HC24_combined.SCT.integration.Raw.RNA.count.t.csv',sep="/"), sep = ",", row.names = FALSE)
+###### check TCRseq data
+TCRseq_barcode = rownames(immune.combined.sct@meta.data[which(immune.combined.sct@meta.data$clonotype_id != "NA"),])
+length(TCRseq_barcode)
+immune.combined.sct$TCR_cells <- "Others"
+immune.combined.sct$TCR_cells[rownames(immune.combined.sct@meta.data) %in% TCRseq_barcode] <- "TCR Cells"
+DimPlot(immune.combined.sct, reduction = "umap", group.by = "TCR_cells", cols = c("grey70","forestgreen"),pt.size = 0.2) + ggtitle("")
+# DimPlot(immune.combined.sct, reduction = "umap", cells.highlight = TCRseq_barcode, pt.size = 0.3)+
+#   scale_color_manual(labels = c("Others","TCR cells"),values = c("grey50","blue")) #  + labs(color = "legend title")
+
+breaks=c("Unselected","Group_1")
 # head(colnames(merged_obj))
 # unique(sapply(X = strsplit(colnames(merged_obj), split = "_"), FUN = "[", 1))
 # table(merged_obj$orig.ident)
@@ -112,10 +214,6 @@ merged_obj
 # prop.table(table(Idents(merged_obj)))
 # write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
 # write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
-###### check TCRseq data
-# TCRseq_barcode = rownames(merged_obj@meta.data[which(merged_obj@meta.data$clonotype_id != "NA"),])
-# DimPlot(merged_obj, reduction = "umap", cells.highlight = TCRseq_barcode, label = T) + 
-  # scale_color_discrete(breaks=c("Unselected","Group_1"),labels = c("Others","TCR cells"))
 
 ###### extract cellsData to Drag
 # T_cells_clusters = c(3,7,8,11,12)
@@ -140,45 +238,6 @@ merged_obj
 # merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & percent.mt < 10)
 # merged_obj
 # VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3,group.by = "orig.ident")
-################# integration
-sc.list <- SplitObject(merged_obj, split.by = "orig.ident")
-sc.list <- lapply(X=sc.list, FUN = function(x){
-  x <- PercentageFeatureSet(x, pattern = "^MT", col.name = "percent.mt")
-  x <- SCTransform(x, method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE)
-})
-features <- SelectIntegrationFeatures(object.list = sc.list, nfeatures=3000)
-sc.list <- PrepSCTIntegration(object.list = sc.list, anchor.features = features)
-
-immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.method = "SCT", anchor.features = features) 
-# In CheckDuplicateCellNames(object.list = object.list) :
-# Some cell names are duplicated across objects provided. Renaming to enforce unique cell names.
-immune.combined.sct <- IntegrateData(anchorset = immune.anchors, normalization.method = "SCT") 
-immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>% 
-  FindNeighbors(dims=1:30) %>% FindClusters(resolution=0.5)
-
-# Visualization
-p1 <- DimPlot(immune.combined.sct, reduction = "umap",group.by = "orig.ident") +ggtitle("")
-p2 <- DimPlot(immune.combined.sct, reduction = "umap", label = TRUE, repel = TRUE)
-
-p1# 图没保存
-p2
-T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
-FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
-RidgePlot(immune.combined.sct, features = T_cell_marker)
-
-CD4_barcode = WhichCells(immune.combined.sct, expression = CD4>0)
-length(CD4_barcode)
-CD8_barcode = WhichCells(immune.combined.sct, expression = CD8A>0 | CD8B>0)
-
-immune.combined.sct$manual_label_cells <- "Non-T Cell"
-immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD4_barcode] <- "CD4"
-immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %in% CD8_barcode] <- "CD8"
-
-DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells")
-
-
-
-
 
 
 
@@ -221,48 +280,7 @@ immune.combined.sct <- RenameIdents(immune.combined.sct,
 DimPlot(immune.combined.sct,label = T)
 
 
-#########################################
-# find doublets
-## install.packages('remotes')
-## remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
-library(DoubletFinder)
-sc_seurat_obj = immune.combined.sct
-# doublets_detecte <- function(sc_seurat_obj){
-# Do not apply DoubletFinder to aggregated scRNA-seq data representing multiple distinct samples
-## -------------- pK Identification (no ground-truth) --------------------------------------
-sweep.res.list <- DoubletFinder::paramSweep_v3(sc_seurat_obj, PCs = 1:20, sct = TRUE, num.cores = 64)
-sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
-bcmvn <- find.pK(sweep.stats)
-mpK <- as.numeric(as.vector(bcmvn$pK[which.max(bcmvn$BCmetric)]))
 
-## ----------------- DoubletFinder:Homotypic Doublet Proportion Estimate ------------------------
-annotations <- sc_seurat_obj@meta.data$seurat_clusters
-homotypic.prop <- modelHomotypic(annotations)
-nExp_poi <- round(0.075*nrow(sc_seurat_obj@meta.data)) ## Assuming 7.5% doublet formation rate
-# DoubletRate = 0.039  # 5000 Cells correspond to doublets rate yes 3.9%
-# nExp_poi <- round(DoubletRate*ncol(sc_seurat_obj))
-nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
-
-## ------------DoubletFinder:Run DoubletFinder with varying classification stringencies ---------
-sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:10, pN = 0.25, pK = mpK,
-                                  nExp = nExp_poi, reuse.pANN = FALSE, sct = TRUE)
-sc_seurat_obj <- doubletFinder_v3(sc_seurat_obj, PCs = 1:10, pN = 0.25, pK = mpK,
-                                  nExp = nExp_poi.adj, reuse.pANN = paste("pANN_0.25",mpK,nExp_poi,sep = "_"), sct = TRUE)
-
-## ---------------------Doublets by DoubletFinder --------------------------------------------
-sc_seurat_obj$DF = sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi,sep = "_"),colnames(sc_seurat_obj@meta.data))]
-doublets_rate = round(length(which(sc_seurat_obj$DF=="Doublet"))/ nrow(sc_seurat_obj@meta.data)*100,2)
-print(paste("doublets_rate : ", doublets_rate,"%", sep=""))
-sc_seurat_obj$DF[which((sc_seurat_obj$DF == "Doublet") & (sc_seurat_obj@meta.data[,match(paste("DF.classifications_0.25",mpK,nExp_poi.adj,sep = "_"),colnames(sc_seurat_obj@meta.data))] == "Singlet"))] <- "Doublet_lo"
-sc_seurat_obj$DF[which(sc_seurat_obj$DF == "Doublet")] <- "Doublet_hi"
-
-p4 = DimPlot(sc_seurat_obj, reduction = "umap", group.by = "DF", label.size = 5, label = TRUE, pt.size = 1) +
-  ggtitle(paste("Doublets rate : ",doublets_rate,"%", sep=""))
-ggsave(filename = paste(output_dir, "1QC/P4.doublets.png",sep="/"), plot = p4, width=9, height=7, path = "./" )
-p4
-########################## finish Doubletsfinder.
-##########################################################
-#########################################################
 
 
 
