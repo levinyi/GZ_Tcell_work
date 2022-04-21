@@ -699,5 +699,51 @@ adt.markers
 
 # source : https://satijalab.org/seurat/archive/v3.1/multimodal_vignette.html
 # source : https://satijalab.org/seurat/articles/multimodal_vignette.html
+#####################################################################################################
+# troubleshooting
+sc1_obj <- PercentageFeatureSet(sc1_obj, pattern = "^MT-", col.name = "percent.mt") %>%
+  SCTransform(method = "glmGamPoi", vars.to.regress = "percent.mt", verbose = FALSE) %>%
+  RunPCA(npcs=30) %>%
+  FindNeighbors(dims = 1:10) %>%
+  RunUMAP(dims = 1:10) %>%
+  FindClusters(resolution=0.5)
 
+DimPlot(sc1_obj,label = T)
+DefaultAssay(sc1_obj) # is SCT
+sc1_obj
 
+FeaturePlot(sc1_obj, features = c("CD4","CD8A","CD8B"))
+
+TCRseq_barcode = rownames(sc1_obj@meta.data[which(sc1_obj@meta.data$clonotype_id != "NA"),])
+length(TCRseq_barcode)
+
+# DimPlot(sc1_obj, reduction = "umap", cells.highlight = TCRseq_barcode, pt.size = 0.3)+
+#   scale_color_manual(labels = c("Others","TCR cells"),values = c("grey50","blue")) #  + labs(color = "legend title")
+
+sc1_obj$TCR_cells <- "Others"
+sc1_obj$TCR_cells[rownames(sc1_obj@meta.data) %in% TCRseq_barcode] <- "TCR Cells"
+DimPlot(sc1_obj, reduction = "umap", group.by = "TCR_cells", cols = c("grey50","blue"),pt.size = 0.2) + ggtitle("")
+
+#########################################
+############### for  CITEseq
+#################################################
+sc1_obj[['ADT']] <- CreateAssayObject(counts = data1$`Antibody Capture`)
+
+rownames(sc1_obj[["ADT"]])
+## [1] "CD8-CITE" "CD4-CITE" "CD3-CITE" "IgG1-CITE"
+
+DefaultAssay(sc1_obj) <- "ADT"
+
+# CITE_seq_genes = c("CD8-CITE", "CD4-CITE", "IgG1-CITE")
+CITE_seq_genes = rownames(sc1_obj[["ADT"]])
+FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "all")
+FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature")
+
+# huatu :
+library(ggplot2)
+head(ADT_data_E1)
+summary(ADT_data_E1)
+class(ADT_data_E1)
+table(ADT_data_E1)
+rowsum.data.frame(ADT_data_E1,group = )
+ADT_data_E1 = ADT_data_E1 
