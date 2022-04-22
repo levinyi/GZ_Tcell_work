@@ -176,23 +176,7 @@ DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells"
 combined.SCT.integration.raw.count <- immune.combined.sct@assays$SCT@data %>% 
   as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
-
-write.table(combined.SCT.integration.raw.count, file=paste(output_dir,'HC24_combined.SCT.integration.Raw.RNA.count.t.csv',sep="/"), sep = ",", row.names = FALSE)
-###### check TCRseq data
-TCRseq_barcode = rownames(immune.combined.sct@meta.data[which(immune.combined.sct@meta.data$clonotype_id != "NA"),])
-length(TCRseq_barcode)
-immune.combined.sct$TCR_cells <- "Others"
-immune.combined.sct$TCR_cells[rownames(immune.combined.sct@meta.data) %in% TCRseq_barcode] <- "TCR Cells"
-DimPlot(immune.combined.sct, reduction = "umap", group.by = "TCR_cells", cols = c("grey70","forestgreen"),pt.size = 0.2) + ggtitle("")
-# DimPlot(immune.combined.sct, reduction = "umap", cells.highlight = TCRseq_barcode, pt.size = 0.3)+
-#   scale_color_manual(labels = c("Others","TCR cells"),values = c("grey50","blue")) #  + labs(color = "legend title")
-
-breaks=c("Unselected","Group_1")
-# head(colnames(merged_obj))
-# unique(sapply(X = strsplit(colnames(merged_obj), split = "_"), FUN = "[", 1))
-# table(merged_obj$orig.ident)
-# VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3, group.by = "orig.ident")
-# FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
+ture2 = "percent.mt")
 # FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
 ################# expressing gene in cells to find T cell and Non-T cell
 # other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
@@ -736,6 +720,7 @@ DefaultAssay(sc1_obj) <- "ADT"
 
 # CITE_seq_genes = c("CD8-CITE", "CD4-CITE", "IgG1-CITE")
 CITE_seq_genes = rownames(sc1_obj[["ADT"]])
+CITE_seq_genes
 FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "all")
 FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature")
 
@@ -746,4 +731,22 @@ summary(ADT_data_E1)
 class(ADT_data_E1)
 table(ADT_data_E1)
 rowsum.data.frame(ADT_data_E1,group = )
-ADT_data_E1 = ADT_data_E1 
+t = ADT_data_E1 %>% tibble::column_to_rownames("barcode")
+head(t)
+p1 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`CD4-CITE`), stat = "count") + theme_dose()
+p2 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`CD8-CITE`), stat = "count") + theme_dose()
+p3 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`IgG1-CITE`), stat = "count") + theme_dose()
+p1 + p2 + p3
+getwd()
+d = read.table("../HC24_G471E1L2_scRNAseq_G471E1L3_CITEseq/outs/filtered_feature_bc_matrix/ADT_matrix.xls")
+head(d)
+ggplot(d) + geom_bar(aes(V2), stat = "count", group = d$V1)
+
+RNA_ADT_merge_E1 = merge(RNA_data_E1,ADT_data_E1)
+RNA_ADT_merge_E2 = merge(RNA_data_E2,ADT_data_E2)
+RNA_ADT_merge_E3 = merge(RNA_data_E3,ADT_data_E3)
+
+write.table(RNA_ADT_merge_E1, file=paste(output_dir,'HC002004_G471E1.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
+write.table(RNA_ADT_merge_E2, file=paste(output_dir,'HC002004_G471E2.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
+write.table(RNA_ADT_merge_E3, file=paste(output_dir,'HC002004_G471E3.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
+
