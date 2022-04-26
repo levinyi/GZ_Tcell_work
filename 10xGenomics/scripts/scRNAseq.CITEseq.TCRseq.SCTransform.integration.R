@@ -54,7 +54,7 @@ add_clonotype <- function(tcr_path, seurat_obj){
   clono <- read.csv(paste(tcr_path,"outs/clonotypes.csv", sep="/"))
   # head(clono[, c("clonotype_id", "cdr3s_aa")])
   # Slap the AA sequences onto our original table by clonotype_id.
-  tcr_data <- merge(tcr_data, clono[, c("clonotype_id", "cdr3s_aa")])
+  tcr_data <- merge(tcr_data, clono[, c("clonotype_id", "cdr3s_aa","frequency","proportion")])
   # Reorder so barcodes are first column and set them as rownames.
   tcr_data <- tcr_data %>% tibble::column_to_rownames("barcode")
   
@@ -65,12 +65,8 @@ add_clonotype <- function(tcr_path, seurat_obj){
 sc1_obj = add_clonotype(TCR_path1, sc1_obj)
 sc2_obj = add_clonotype(TCR_path2, sc2_obj)
 sc3_obj = add_clonotype(TCR_path3, sc3_obj)
-# 验证TCR的数量：验证clonotype是不是全部在：
 
 # 数据整合：
-
-# 验证CD4表达的数量：
-length(WhichCells(sc1_obj, expression = CD4 >0))
 
 ########################################
 #########################################
@@ -88,7 +84,30 @@ immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.me
 immune.combined.sct <- IntegrateData(anchorset = immune.anchors, normalization.method = "SCT") 
 immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>% 
   FindNeighbors(dims=1:30) %>% FindClusters(resolution=0.5)
-DimPlot(immune.combined.sct)
+immune.combined.sct <- FindClusters(immune.combined.sct, resolution = 0.8)
+############################################ UMAP 
+DimPlot(immune.combined.sct, label=T) 
+p = FeaturePlot(immune.combined.sct, features = c("CD4","CD8A","FOXP3","CCR7","IL26","EOMES","KLRD1","IFNG","PDCD1")) +
+  theme(
+    panel.background = element_rect(fill = 'transparent'), # bg of the panel
+    plot.background = element_rect(fill = 'transparent', color = NA), # bg of the plot
+    panel.grid.major = element_blank(), # get rid of major grid
+    panel.grid.minor = element_blank(), # get rid of minor grid
+    legend.background = element_rect(fill = 'transparent'), # get rid of legend bg
+    legend.box.background = element_rect(fill = 'transparent'), # get rid of legend panel bg
+    legend.key = element_rect(fill = "transparent", colour = NA), # get rid of key legend fill, and of the surrounding
+    axis.line = element_line(colour = "black") # adding a black line for x and y axis
+  )
+p = FeaturePlot(immune.combined.sct, features = c("CD4","CD8A","FOXP3","CCR7","IL26","EOMES","KLRD1","IFNG","PDCD1")) +
+  theme(
+    rect = element_rect(fill = "transparent")
+  )
+ggsave(filename = "myplot.png", p, device = "png", width =1200, height = 900,units = "px",dpi = 72, bg="transparent")
+ggsave(filename = "myplot.png", p, device = "png", width =120, height = 90,  units = "cm",dpi = 72, bg="transparent")
+#########################################
+
+
+
 
 # merged_obj = merge(sc1_obj, y=c(sc2_obj, sc3_obj),add.cell.ids = c("E1","E2","E3"), project = "G471")
 # merged_obj
@@ -176,7 +195,7 @@ DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells"
 combined.SCT.integration.raw.count <- immune.combined.sct@assays$SCT@data %>% 
   as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
-ture2 = "percent.mt")
+
 # FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
 ################# expressing gene in cells to find T cell and Non-T cell
 # other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
@@ -285,7 +304,6 @@ tumor_marker = c("AFP","GPC3")
 LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
 
 umap_data = Embeddings(immune.combined.sct, reduction = "umap")
-head(immune.combined.sct@)
 # 
 # DefaultAssay(immune.combined.sct) <- ""
 FeaturePlot(immune.combined.sct, features = other_celltype)
