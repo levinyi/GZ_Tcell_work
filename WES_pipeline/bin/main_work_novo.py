@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import configparser
+from telnetlib import TTYPE
 
 
 def _argparse():
@@ -56,6 +57,12 @@ def main():
         'samtools': cf.get('Config', 'samtools'),
         'samtools_threads': cf.get('Config', 'samtools_threads'),
         'scripts_dir': cf.get('Config', 'scripts_dir'),
+
+        # 'HLA'
+        'OptiType': cf.get('HLA', 'OptiType'),
+        'OptiType_reference': cf.get('HLA', 'OptiType_reference'),
+        'hla_scan': cf.get('HLA', 'hla_scan'),
+        'hla_scan_db': cf.get('HLA','hla_scan_db'),
         
         # database
         'ref_fasta': cf.get('Config', 'ref_fasta'),
@@ -67,14 +74,17 @@ def main():
     }
     #make directories:
     project_dir = os.path.abspath(".") + '/' + config_dict['project_name']
-    make_dir(project_dir)
+    hla_scan_dir = os.path.abspath(project_dir + '/' + "hla_scan-analysis")
+    Optitype_dir = os.path.abspath(project_dir + '/' + "OptiType-analysis")
+    sequenza_dir = os.path.abspath(project_dir + '/' + "Sequenza-analysis")
+    depth_dir = os.path.abspath(project_dir + '/' + "DepthOfCoverage")
+    make_dir(project_dir, hla_scan_dir, Optitype_dir, sequenza_dir, depth_dir)
     print("# Create work directory")
 
     # generate shell
     shell_name = project_dir + '/work.' + config_dict['project_name'] + '.WES.sh'
-    #shell_name = shell_dir + '/work.' + config_dict['project_name'] + '.sh'
+    # shell_name = shell_dir + '/work.' + config_dict['project_name'] + '.sh'
     # only open a file so use try:finally to close.
-    # rawdata_dict = deal_rawdata(parser.data, data_dir)
 
     with open(shell_name,"w") as f:
         # bwa.
@@ -169,21 +179,24 @@ def main():
             --create-output-bam-md5 true \n""".format(**config_dict))
         ## statistic bam
 
-        ## DepthOfCoverage
+        #################################################
+        ###### DepthOfCoverage
+        #################################################
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             -L {WES_targets_interval} \\
-            -O {sample_name}.Tumor.DepthOfCoverage.txt \\
+            -O DepthOfCoverage/{sample_name}.Tumor.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            DepthOfCoverage \\
             --input {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam  \\
             -L {WES_targets_interval} \\
-            -O {sample_name}.Normal.DepthOfCoverage.txt \\
+            -O DepthOfCoverage/{sample_name}.Normal.DepthOfCoverage.txt \\
             -R {ref_fasta}\n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Tumor.DepthOfCoverage.txt  \n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R {sample_name}.Normal.DepthOfCoverage.txt \n""".format(**config_dict))
-        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R {sample_name}.Tumor.DepthOfCoverage.rate.xls {sample_name}.Normal.DepthOfCoverage.rate.xls \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R DepthOfCoverage/{sample_name}.Tumor.DepthOfCoverage.txt  \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step1.deal.data.R DepthOfCoverage/{sample_name}.Normal.DepthOfCoverage.txt \n""".format(**config_dict))
+        f.write("""Rscript {scripts_dir}/DepthOfCoverage.step2.draw.plot.R DepthOfCoverage/{sample_name}.Tumor.DepthOfCoverage.rate.xls DepthOfCoverage/{sample_name}.Normal.DepthOfCoverage.rate.xls \n""".format(**config_dict))
         
+        #################################################
         # # Mutect2
         f.write("""{gatk} --java-options \"-Xmx{java_mem}G\"            Mutect2 \\
             -R {ref_fasta} \\
@@ -254,12 +267,32 @@ def main():
             -t {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
             --fasta {ref_fasta} \\
             -gc /cygene/work/00.test/pipeline/sequenza/database/hg38.gc50Base.wig.gz \\
-            -o {sample_name}.seqz.gz\n'''.format(**config_dict))
-        f.write('''sequenza-utils seqz_binning --seqz {sample_name}.seqz.gz --window 50 -o {sample_name}.small.seqz.gz\n'''.format(**config_dict))
-        f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scripts/sequenca_analysis_wes.R {sample_name}.small.seqz.gz {sample_name}\n'''.format(**config_dict))
+            -o Sequenza-analysis/{sample_name}.seqz.gz\n'''.format(**config_dict))
+        f.write('''sequenza-utils seqz_binning --seqz Sequenza-analysis/{sample_name}.seqz.gz --window 50 -o Sequenza-analysis/{sample_name}.small.seqz.gz\n'''.format(**config_dict))
+        f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scripts/sequenca_analysis_wes.R Sequenza-analysis/{sample_name}.small.seqz.gz Sequenza-analysis/{sample_name}\n'''.format(**config_dict))
         ##############################
-        ####
+        #### HLA : OptiType
         ##############################
+        f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Normal.fished_1.bam {OptiType_reference} {normal_fastq_rd1}\n'''.format(**{'normal_fastq_rd1':config_dict['normal_fastq'].split()[0]},**config_dict,))
+        f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Normal.fished_2.bam {OptiType_reference} {normal_fastq_rd2}\n'''.format(**{'normal_fastq_rd2':config_dict['normal_fastq'].split()[1]},**config_dict,))
+        f.write('''samtools bam2fq {sample_name}.Normal.fished_1.bam > {sample_name}.Normal.fished_1.fastq\n'''.format(**config_dict))
+        f.write('''samtools bam2fq {sample_name}.Normal.fished_2.bam > {sample_name}.Normal.fished_2.fastq\n'''.format(**config_dict))
+        f.write('''python3 {OptiType} -i {sample_name}.Normal.fished_1.fastq {sample_name}.Normal.fished_2.fastq --dna -v -o OptiType-analysis -p {sample_name}.Normal \n'''.format(**config_dict))
+
+        f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Tumor.fished_1.bam {OptiType_reference} {tumor_fastq_rd1}\n'''.format(**{'tumor_fastq_rd1':config_dict['tumor_fastq'].split()[0]},**config_dict))
+        f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Tumor.fished_2.bam {OptiType_reference} {tumor_fastq_rd2}\n'''.format(**{'tumor_fastq_rd2':config_dict['tumor_fastq'].split()[1]},**config_dict))
+        f.write('''samtools bam2fq {sample_name}.Tumor.fished_1.bam > {sample_name}.Tumor.fished_1.fastq\n'''.format(**config_dict))
+        f.write('''samtools bam2fq {sample_name}.Tumor.fished_2.bam > {sample_name}.Tumor.fished_2.fastq\n'''.format(**config_dict))
+        f.write('''python3 {OptiType} -i {sample_name}.Tumor.fished_1.fastq {sample_name}.Tumor.fished_2.fastq --dna -v -o  OptiType-analysis -p {sample_name}.Tumor\n'''.format(**config_dict))
+
+        f.write('''rm {sample_name}.*.fished_*.bam {sample_name}.*.fished_*.fastq\n'''.format(**config_dict))
+        ##############################
+        #### HLA : HLA-scan 
+        ##############################
+        for hla_type in ["HLA-A","HLA-B","HLA-C","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQB1","HLA-DRA","HLA-DRB1","HLA-DRB5","HLA-E","HLA-F","HLA-G","MICA","MICB","TAP1","TAP2"]:
+            for t_type in ["Normal","Tumor"]:
+                f.write('''hla_scan -t 10 -b {sample_name}.{t_type}.duplicates_marked_sorted_fixed.BQSR.bam -d {hla_scan_db} -g {hla_type} -v 38 >hla_scan-analysis/{sample_name}.{t_type}.{hla_type}.out.txt\n'''.format(**config_dict,**{'t_type':t_type,'hla_type':hla_type}))
+
     print("all finished!")
 
 if __name__ == '__main__':
