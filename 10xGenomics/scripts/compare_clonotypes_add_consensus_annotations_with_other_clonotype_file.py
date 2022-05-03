@@ -35,18 +35,25 @@ def main():
 
     df1 = deal_with_clonotypes(afile=file1, sep=sep1, sample_name=sample1_name, assigned_field=file1_assigned_field, trim=False)
     df2 = deal_with_clonotypes(afile=file2, sep=sep2, sample_name=sample2_name, assigned_field=file2_assigned_field, trim=True )
-    
+    ###### temporary add df3.
+    file3 = sys.argv[5]
+    sample3_name = sys.argv[6]
+    df3 = deal_with_clonotypes(afile=file3, sep=sep2, sample_name=sample3_name, assigned_field=file2_assigned_field, trim=True )
+     
     #big_DataFrame = pd.DataFrame()
-    big_DataFrame = pd.merge(df1, df2, on='clonotype_pair_id', how='outer')
+    big_DataFrame = pd.merge(df1, df2, on='clonotype_pair_id', how='outer').merge(df3, on="clonotype_pair_id", how="outer")
     
     # to big dataframe
-    sample_name_list = [sample1_name,sample2_name] # for sample name
-    big_DataFrame.to_csv("_".join(sample_name_list)+ ".xls", sep="\t", index=False)
+    sample_name_list = [sample1_name,sample2_name,sample3_name] # for sample name
+    header_list = ["clonotype_pair_id"]+sample_name_list
+    print(header_list)
+    big_DataFrame.to_csv("_".join(sample_name_list)+ ".xls", sep="\t", index=False, header=header_list)
     
     # to venn 
     venn_dict = {}
     venn_dict.setdefault(sample1_name, set(df1['clonotype_pair_id'].tolist()))
     venn_dict.setdefault(sample2_name, set(df2['clonotype_pair_id'].tolist()))
+    venn_dict.setdefault(sample3_name, set(df3['clonotype_pair_id'].tolist()))
 
     # print(big_DataFrame.head())
     #print(venn_dict)
