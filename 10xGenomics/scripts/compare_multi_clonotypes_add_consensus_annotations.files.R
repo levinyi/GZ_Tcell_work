@@ -35,7 +35,6 @@ file_list <- lapply(args, function(x) {
     tidyr::unite(clonotype_trb_id, c(v_gene.1, cdr3.1, j_gene.1,), sep = "", remove = FALSE) %>% 
     unite(clonotype_pair_id, c(clonotype_tra_id, clonotype_trb_id), sep = "_")
 })
-rm()
 
 # class(file_list)
 print(file_list)
@@ -49,14 +48,6 @@ for (i in 1:length(file_list)) {
   file_name = unlist(strsplit(x, "_"))[1]
 }
 
-# pair_identify <- function(data){
-#   data = data %>% 
-#     tidyr::unite(clonotype_tra_id, c(v_gene, cdr3, j_gene, ), sep = "", remove = FALSE) %>% 
-#     tidyr::unite(clonotype_trb_id, c(v_gene.1, cdr3, j_gene.1,), sep = "", remove = FALSE)
-#   data = data %>% unite(clonotype_pair_id, c(clonotype_tra_id, clonotype_trb_id), sep = "_")
-#   return(data)
-# }
-# 
 # data1 = pair_identify(data1)
 # data2 = pair_identify(data2)
 # 
