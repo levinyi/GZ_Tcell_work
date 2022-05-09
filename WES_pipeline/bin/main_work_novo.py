@@ -117,7 +117,7 @@ def main():
             --INPUT  {sample_name}.Normal.duplicates_marked_sorted.bam\\
             --OUTPUT {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
             --CREATE_INDEX true \\
-            --CREATE_MD5_FILE true \\
+            --CREATE_MD5_FILE false \\
             --REFERENCE_SEQUENCE {ref_fasta} \n""".format(**config_dict))
         f.write("""{gatk} SortSam\\
             --INPUT {sample_name}.Tumor.duplicates_marked.bam \\
@@ -164,7 +164,7 @@ def main():
             --static-quantized-quals 30 \\
             --add-output-sam-program-record \\
             --use-original-qualities \\
-            --create-output-bam-md5 true\n""".format(**config_dict))
+            --create-output-bam-md5 false\n""".format(**config_dict))
         f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            ApplyBQSR \\
             -R {ref_fasta} \\
             -I  {sample_name}.Tumor.duplicates_marked_sorted_fixed.bam  \\
@@ -176,7 +176,7 @@ def main():
             --add-output-sam-program-record \\
             --create-output-bam-index \\
             --use-original-qualities \\
-            --create-output-bam-md5 true \n""".format(**config_dict))
+            --create-output-bam-md5 false \n""".format(**config_dict))
         ## statistic bam
 
         #################################################
@@ -292,7 +292,12 @@ def main():
         for hla_type in ["HLA-A","HLA-B","HLA-C","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQB1","HLA-DRA","HLA-DRB1","HLA-DRB5","HLA-E","HLA-F","HLA-G","MICA","MICB","TAP1","TAP2"]:
             for t_type in ["Normal","Tumor"]:
                 f.write('''hla_scan -t 10 -b {sample_name}.{t_type}.duplicates_marked_sorted_fixed.BQSR.bam -d {hla_scan_db} -g {hla_type} -v 38 >hla_scan-analysis/{sample_name}.{t_type}.{hla_type}.out.txt\n'''.format(**config_dict,**{'t_type':t_type,'hla_type':hla_type}))
+        f.write('''python3 /cygene/work/00.test/pipeline/HLA-pipeline/HLAscan/merge_HLA_result.py hla_scan-analysis/*.txt > hla_scan-analysis/HLA.results.txt\n'''.format(**config_dict))
 
+        ############################
+        #### delete temp files
+        ############################
+        f.write('''rm *.duplicates_marked_sorted_fixed.ba* *.duplicates_marked.ba* \n'''.format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
