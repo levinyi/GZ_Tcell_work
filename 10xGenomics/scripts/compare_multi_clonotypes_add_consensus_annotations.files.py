@@ -4,7 +4,6 @@ from venn import venn
 from matplotlib import pyplot as plt
 
 
-
 def main():
     venn_dict = {} # for venn diagram
     big_DataFrame = pd.DataFrame()
@@ -25,8 +24,13 @@ def main():
         df1 = df1[['clonotype_pair_id','clonotype_id','proportion']]
         # print(df1.head())
         # add suffixes name for each sample:
-        df1 = df1.rename(columns={'clonotype_id':'clonotype_id_'+sample_name,'proportion':'proportion_'+sample_name},)
-        if big_DataFrame.empty :
+        df1 = df1.rename(
+                columns={
+                    'clonotype_id': 'clonotype_id_' + sample_name,
+                      'proportion': 'proportion_'   + sample_name,
+                },
+            )
+        if big_DataFrame.empty:
             big_DataFrame = df1
         else:
             big_DataFrame = pd.merge(big_DataFrame, df1, on='clonotype_pair_id', how='outer')
@@ -38,7 +42,7 @@ def main():
     print("write xls file: {}.xls".format("_".join(sample_name_list)))
 
     venn(venn_dict)
-    plt.savefig("_".join(sample_name_list)+".venn.png",dpi=300)
+    plt.savefig("_".join(sample_name_list)+".venn.png", dpi=300) # transparent background.
     print("draw plot: {}.venn.png".format("_".join(sample_name_list)))
 
 
