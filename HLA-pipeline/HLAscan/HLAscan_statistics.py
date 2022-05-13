@@ -58,7 +58,7 @@ for each_file in input_files:
 
 df = pd.DataFrame.from_records(items, columns=['sample_name','sample_type','hla_type','type1','type2'])
 print(df)
-df = df.
+# df = df.
 results = df.to_dict('inndex')
 
 # df2 = df.pivot(index=['hla_type'], columns=['sample_name','sample_type'],values=['type1','type2'])
