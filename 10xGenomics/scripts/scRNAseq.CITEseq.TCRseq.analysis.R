@@ -13,8 +13,11 @@ args = commandArgs(T)
 ## setup for windows
 # setwd("C:\\Users\\CEID\\Nutstore\\.nutstore_c2hpeWlAcm9vdHBhdGhneC5jb20=\\DuShiYi\\P0000-blackbird\\2103-CR001\\CR001003\\CR001003_PD1_CD4_CD8\\G082E5L1_scRNAseq_G082E6L1_CITEseq")
 # list.dirs()
-scRNAseq_path = "./"
-tcr_path = "../../G471E1L1_TCR_IMGT"
+# setwd("/cygene2/work/P0000-Blackbird/2103-BL001/BL001002/BL001002_PD1_CD4_CD8/BL001002_G422E123_analysis_dsy")
+setwd("/cygene2/work/P0000-Blackbird/2103-BL001/BL001004/BL14-PBMCs-CD3-PD1orCD39.T.cells_G328E2/BL001004_G328E2_analysis_dsy")
+list.files()
+scRNAseq_path = "../G328E2L2_scRNAseq_G328E2L3_CITEseq/outs/"
+tcr_path = "../G328E2L1_TCRseq_IMGT/outs/"
 
 ## setting for linux
 scRNAseq_path = args[1]   # scRNAseq data must contain ADT information.
@@ -36,18 +39,21 @@ for (each in dir_list){
 }
 
 # dir.create("scRNAseq_CITEseq_TCRseq_analysis")
-output_dir = "scRNAseq_CITEseq_TCRseq_analysis"
+# output_dir = "scRNAseq_CITEseq_TCRseq_analysis"
+output_dir = "./"
 
 # read scRNAseq folder:
 data = Seurat::Read10X(data.dir = paste(scRNAseq_path, '/filtered_feature_bc_matrix', sep = "/"))
 # 10X data contains more than one type and is being returned as a list containing matrices of each type.
 
-output_ADT_data = data$`Antibody Capture` %>% as.matrix() %>% t() %>% as.data.frame() %>% rownames_to_column("barcode")
-write.table(output_ADT_data, file=paste(output_dir,'ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
+ADT_data = data$`Antibody Capture` %>% as.matrix() %>% t() %>% as.data.frame() %>% rownames_to_column("barcode")
+# write.table(ADT_data, file=paste(output_dir,'ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 
-output_RNA_data = data$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
+RNA_data = data$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
   select(c("barcode","CD4","CD8A","CD8B","CD3E"))
-write.table(output_RNA_data, file=paste(output_dir,'RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+# write.table(RNA_data, file=paste(output_dir,'RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+merged_data = merge(ADT_data, RNA_data)
+write.table(merged_data, file=paste(output_dir,'BL001002_G422E123.RNA.ADT.csv', sep="/"), sep=",", row.names=FALSE)
 
 sc_seurat_obj <- CreateSeuratObject(data$`Gene Expression`, project = "scRNAseq_object") 
 
