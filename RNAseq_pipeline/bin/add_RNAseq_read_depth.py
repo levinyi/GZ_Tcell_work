@@ -88,6 +88,7 @@ for index, row in data.iterrows():
             RNA_muta_reads = int(mpileup_dict[Position_start].get("I", 0))
     else:
         print("position start not in mpileup dict. please check!")
+        print(Position_start, Variant_Type, index, row)
         RNA_wild_reads = 0
         RNA_muta_reads = 0
     output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
