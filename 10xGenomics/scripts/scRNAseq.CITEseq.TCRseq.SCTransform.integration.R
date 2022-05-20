@@ -21,9 +21,6 @@ data3 = Seurat::Read10X(data.dir = paste(scRNAseq_path3, '/filtered_feature_bc_m
 ADT_data_E1 = data1$`Antibody Capture` %>% as.matrix() %>% t() %>% as.data.frame() %>% rownames_to_column("barcode")
 ADT_data_E2 = data2$`Antibody Capture` %>% as.matrix() %>% t() %>% as.data.frame() %>% rownames_to_column("barcode")
 ADT_data_E3 = data3$`Antibody Capture` %>% as.matrix() %>% t() %>% as.data.frame() %>% rownames_to_column("barcode")
-write.table(ADT_data_E1, file=paste(output_dir,'HC24_G471E1L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
-write.table(ADT_data_E2, file=paste(output_dir,'HC24_G471E2L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
-write.table(ADT_data_E3, file=paste(output_dir,'HC24_G471E3L3_ADT.t.csv',sep="/"), sep = ",",row.names = FALSE)
 
 RNA_data_E1 = data1$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
    select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
@@ -31,9 +28,14 @@ RNA_data_E2 = data2$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame
   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
 RNA_data_E3 = data3$`Gene Expression` %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
   select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
-write.table(RNA_data_E1, file=paste(output_dir,'HC24_G471E1L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
-write.table(RNA_data_E2, file=paste(output_dir,'HC24_G471E2L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
-write.table(RNA_data_E3, file=paste(output_dir,'HC24_G471E3L2.RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
+
+RNA_ADT_merge_E1 = merge(RNA_data_E1,ADT_data_E1)
+RNA_ADT_merge_E2 = merge(RNA_data_E2,ADT_data_E2)
+RNA_ADT_merge_E3 = merge(RNA_data_E3,ADT_data_E3)
+
+write.table(RNA_ADT_merge_E1, file=paste(output_dir,'HC002004_G471E1.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
+write.table(RNA_ADT_merge_E2, file=paste(output_dir,'HC002004_G471E2.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
+write.table(RNA_ADT_merge_E3, file=paste(output_dir,'HC002004_G471E3.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
 
 sc1_obj <- CreateSeuratObject(data1$`Gene Expression`, project = "E1")
 sc2_obj <- CreateSeuratObject(data2$`Gene Expression`, project = "E2") 
@@ -84,7 +86,7 @@ immune.anchors <- FindIntegrationAnchors(object.list = sc.list, normalization.me
 immune.combined.sct <- IntegrateData(anchorset = immune.anchors, normalization.method = "SCT") 
 immune.combined.sct <- RunPCA(immune.combined.sct) %>% RunUMAP(dims = 1:30) %>% 
   FindNeighbors(dims=1:30) %>% FindClusters(resolution=0.5)
-immune.combined.sct <- FindClusters(immune.combined.sct, resolution = 0.8)
+
 ############################################ UMAP 
 DimPlot(immune.combined.sct, label=T) 
 p = FeaturePlot(immune.combined.sct, features = c("CD4","CD8A","FOXP3","CCR7","IL26","EOMES","KLRD1","IFNG","PDCD1")) +
@@ -97,10 +99,6 @@ p = FeaturePlot(immune.combined.sct, features = c("CD4","CD8A","FOXP3","CCR7","I
     legend.box.background = element_rect(fill = 'transparent'), # get rid of legend panel bg
     legend.key = element_rect(fill = "transparent", colour = NA), # get rid of key legend fill, and of the surrounding
     axis.line = element_line(colour = "black") # adding a black line for x and y axis
-  )
-p = FeaturePlot(immune.combined.sct, features = c("CD4","CD8A","FOXP3","CCR7","IL26","EOMES","KLRD1","IFNG","PDCD1")) +
-  theme(
-    rect = element_rect(fill = "transparent")
   )
 ggsave(filename = "myplot.png", p, device = "png", width =1200, height = 900,units = "px",dpi = 72, bg="transparent")
 ggsave(filename = "myplot.png", p, device = "png", width =120, height = 90,  units = "cm",dpi = 72, bg="transparent")
@@ -172,13 +170,14 @@ p1# 图没保存
 p2
 T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
 FeaturePlot(immune.combined.sct, features = T_cell_marker, label = T)
-FeaturePlot(immune.combined.sct, features = "CD4", label = T, blend.threshold = 100)
 DotPlot(immune.combined.sct, features = T_cell_marker,)
 RidgePlot(immune.combined.sct, features = T_cell_marker)
 GetAssay(immune.combined.sct)
+B_cell_marker = c("CD19","CD79A")
 
-DefaultAssay(immune.combined.sct) <- "RNA"
-DefaultAssay(immune.combined.sct) <- "integrated"
+RidgePlot(immune.combined.sct, features = B_cell_marker)
+# DefaultAssay(immune.combined.sct) <- "RNA"
+# DefaultAssay(immune.combined.sct) <- "integrated"
 DefaultAssay(immune.combined.sct) <- "SCT"
 GetAssay(immune.combined.sct)
 CD4_barcode = WhichCells(immune.combined.sct, expression = CD4>0, slot = "data",)
@@ -192,60 +191,21 @@ immune.combined.sct$manual_label_cells[rownames(immune.combined.sct@meta.data) %
 
 DimPlot(immune.combined.sct, reduction = "umap", group.by = "manual_label_cells", cols = c("red","blue","grey80"), pt.size = 0.3) + ggtitle("")
 
-combined.SCT.integration.raw.count <- immune.combined.sct@assays$SCT@data %>% 
-  as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% 
-  select(c("barcode","CD4","CD8A","CD8B","CD3E","CD3D","IL7R","NKG7"))
 
-# FeatureScatter(merged_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
-################# expressing gene in cells to find T cell and Non-T cell
-# other_celltype = c("PTPRC","CD14","CD68","CD163","ITGAX","ITGAM","CD33",
-#                    "CD19","CD79A","NCAM1","FCGR3A", "CD3E","CD4","IL7R",
-#                    "CD8A","NKG7","CD4","IL2RA","FOXP3","PECAM1","CD34")
-# tumor_marker = c("AFP","GPC3")
-# LCSC_marker = c("ALDH1A1","EPCAM","KRT19","ANPEP","CD24","CD44","CD47","THY1","PROM1")
-# FeaturePlot(merged_obj, features = other_celltype, label = T)
-
-# T_cell_marker = c("CD3E","CD4","IL7R","CD8A","CD8B","NKG7")
-# FeaturePlot(merged_obj, features = T_cell_marker, label = T)
-# RidgePlot(merged_obj, features = T_cell_marker, log = FALSE)
-# RidgePlot(merged_obj, features = T_cell_marker, log = TRUE)
-# bcell_marker = c("CD19","CD79A")
-# RidgePlot(merged_obj, features = bcell_marker, log=T)
-# table(Idents(merged_obj))
-# table(Idents(merged_obj), merged_obj$orig.ident)
+(immune.combined.sct)
 
 # prop.table(table(Idents(merged_obj)))
 # write.table(table(Idents(merged_obj), merged_obj$orig.ident), file = "mytest.csv", sep="\t", row.names = T)
 # write.table(prop.table(table(Idents(merged_obj))),file = "mytest.prop.csv", sep = "\t",row.names = T)
 
-###### extract cellsData to Drag
-# T_cells_clusters = c(3,7,8,11,12)
 
-# T_cells_barcodes = WhichCells(merged_obj, idents = T_cells_clusters)
-# head(T_cells_barcodes)
-# 
-# 
-# head(colnames(merged_obj@meta.data))
-# head(rownames(merged_obj@meta.data))
-# merged_obj$before_cell_type <- "Non-T Cell"
-# merged_obj$before_cell_type[rownames(merged_obj@meta.data) %in% T_cells_barcodes] <- "T-cell"
-# head(merged_obj@meta.data)
-# write.table(table(Idents(merged_obj), merged_obj$before_cell_type), file = "Tcell_number_of_cell_type_before_qc.xls", sep = "\t", row.names = T)
-# 
-# DimPlot(merged_obj, group.by = "before_cell_type")+ ggtitle("cell type (before QC)")
-# b = table(Idents(merged_obj), merged_obj$before_cell_type)
-# colSums(b)
-# 
-# 
 # ################# after QC
-# merged_obj <- subset(merged_obj, subset = nFeature_RNA > 100 & percent.mt < 10)
-# merged_obj
-# VlnPlot(merged_obj, features = c("nFeature_RNA", "nCount_RNA","percent.mt"), ncol = 3,group.by = "orig.ident")
-
-
-
-
-
+after_obj <- subset(immune.combined.sct, subset = nFeature_RNA > 100 & percent.mt < 10)
+after_obj
+CD4_barcode = WhichCells(after_obj, expression = CD4>0, slot = "data",)
+length(CD4_barcode)
+CD8_barcode = WhichCells(after_obj, expression = CD8A>0 | CD8B>0)
+length(CD8_barcode)
 
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = FALSE)
 RidgePlot(immune.combined.sct, features = T_cell_marker, log = TRUE)
@@ -741,30 +701,4 @@ CITE_seq_genes = rownames(sc1_obj[["ADT"]])
 CITE_seq_genes
 FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "all")
 FeaturePlot(sc1_obj, features = CITE_seq_genes, reduction = "umap", keep.scale = "feature")
-
-# huatu :
-library(ggplot2)
-head(ADT_data_E1)
-summary(ADT_data_E1)
-class(ADT_data_E1)
-table(ADT_data_E1)
-rowsum.data.frame(ADT_data_E1,group = )
-t = ADT_data_E1 %>% tibble::column_to_rownames("barcode")
-head(t)
-p1 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`CD4-CITE`), stat = "count") + theme_dose()
-p2 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`CD8-CITE`), stat = "count") + theme_dose()
-p3 = ggplot(ADT_data_E1)+ geom_bar(aes(x=`IgG1-CITE`), stat = "count") + theme_dose()
-p1 + p2 + p3
-getwd()
-d = read.table("../HC24_G471E1L2_scRNAseq_G471E1L3_CITEseq/outs/filtered_feature_bc_matrix/ADT_matrix.xls")
-head(d)
-ggplot(d) + geom_bar(aes(V2), stat = "count", group = d$V1)
-
-RNA_ADT_merge_E1 = merge(RNA_data_E1,ADT_data_E1)
-RNA_ADT_merge_E2 = merge(RNA_data_E2,ADT_data_E2)
-RNA_ADT_merge_E3 = merge(RNA_data_E3,ADT_data_E3)
-
-write.table(RNA_ADT_merge_E1, file=paste(output_dir,'HC002004_G471E1.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
-write.table(RNA_ADT_merge_E2, file=paste(output_dir,'HC002004_G471E2.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
-write.table(RNA_ADT_merge_E3, file=paste(output_dir,'HC002004_G471E3.RNA.ADT.csv',sep="/"), sep = ",",row.names = FALSE)
 
