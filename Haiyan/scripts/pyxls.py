@@ -56,47 +56,115 @@ def read_TCRdb_file(tcr_db_file):
     return well_dict
 
 
-def calculate_well():
-    well_list = []
-    for j in range(1,13):
-        for i in range(ord('A'),ord('H')+1):
-            well_list.append(chr(i)+str(j))
-    return well_list
+def transfer_volume(Concentration,Type):
+    if Type == "CDR3J":
+        volume = 6*10*1000/(Concentration*10**6/(160*660))
+    elif Type == "TSV-TRA":
+        volume = 2 * 10 * 1000 / (Concentration * 10**6 / (1020 * 660))
+    elif Type == "TSV-TRB":
+        volume = 2 * 10 * 1000 / (Concentration * 10**6 / (495 * 660))
+    else:
+        print("wrong Type : must be ['CDR3J','TSV-TRA','TSV-TRB']")
+    return volume
 
 
 def deal_with_main_file(main_file, well_dict, tcrdb_dict):
+    # 读取主文件input file
     wb = openpyxl.load_workbook(main_file)
-    well_num = calculate_well()
+    # 获取384孔板字典的sheet信息
     well_sheets_name = list(well_dict.keys())
     # print(list(well_sheets_name))
-    ################ for CDR3
-    worksheets=["Echo_calculate_forCDR3aJ","Echo_calculate_forCDR3bJ",]
+    ################ for CDR3J
+    worksheets=["Echo_calculate_forCDR3aJ", "Echo_calculate_forCDR3bJ",]
+    # 需要匹配的正则表达式:
     prog = re.compile(r'([A-Z])(\d*)')
+
+    # 将读入的文件,按sheet处理,每个sheet中按行处理,将每行信息写入到两个xlsx中,一个是给人工查看的,有详细信息,一个是给机器的只需要简要信息.
+    # 准备三个xlsx, 最后一个是输出water 信息的xlsx
+    workbook1 = openpyxl.Workbook()
+    workbook2 = openpyxl.Workbook()
+    # 创建表格
+    worksheet1 = workbook1.create_sheet(index=0, title="Sheet1") # index表示表格要插入的位置,从0开始也就是从第一个位置开始.
+    worksheet2 = workbook2.create_sheet(index=0, title="Sheet1")
+    # 先写第一行的title
+    worksheet1_title =  ["TCR ID","Source Plate Name","Source Well","Destination Plate Name","Destination Well","Transfer volume","ID"]
+    worksheet1.append(worksheet1_title)
+    worksheet2_title =["Source Plate Name","Source Well","Destination Plate Name","Destination Well","Transfer Volume"]
+    worksheet2.append(worksheet2_title)
+    
+    # 开始读输入文件,每读一行,写到两个文件中.
     for worksheet in worksheets:
         ws = wb[worksheet]
-        i = 0
         for row in ws.iter_rows(min_row=2, min_col=1):
             result = prog.match(row[1].value)
             a, b = result.group(1, 2)
             volume = well_dict[well_sheets_name[0]][a][int(b)]
-            print("{}\tTempPlate1\t{}\tDestPlate1\t{}\t{}\t{}".format(worksheet, row[1].value, well_num[i], volume, row[0].value))
-            i += 1
-    
+            transfered_volume = transfer_volume(volume, "CDR3J")
+            # print("{}\tTempPlate1\t{}\tDestPlate1\t{}\t{}\t{}".format(worksheet, row[1].value, row[2].value, round(transfered_volume,4), row[0].value))
+            content_for_human = [worksheet, "TempPlate1", row[1].value, "DestPlate1", row[2].value, round(transfered_volume,4), row[0].value]
+            content_for_stone = ["TempPlate1",row[1].value, "DestPlate1",row[2].value, round(transfered_volume,4)]
+            worksheet1.append(content_for_human)
+            worksheet2.append(content_for_stone)
+
     ################ for TSV 
-    worksheets=["Echo_calculate_forTSV-A","Echo_calculate_forTSV-B",]
+    worksheets=["Echo_calculate_forTSV-A", "Echo_calculate_forTSV-B",]
     for worksheet in worksheets:
+        if worksheet == 'Echo_calculate_forTSV-A':
+            Type = "TSV-TRA"
+        else:
+            Type = "TSV-TRB"
         ws = wb[worksheet]
-        i = 0
         for row in ws.iter_rows(min_row=2, min_col=1):
             tcr = row[0].value
-            well_96  = tcrdb_dict[tcr]['96well']
+            # well_96  = tcrdb_dict[tcr]['96well']
             well_384 = tcrdb_dict[tcr]['384well']
             result = prog.match(well_384)
             a, b = result.group(1, 2)
             volume = well_dict[well_sheets_name[1]][a][int(b)]
-            print("{}\tTSVPlate2\t{}\tDestPlate1\t{}\t{}\t{}".format(worksheet, well_384, well_num[i], volume, tcr))
-            i += 1
+            transfered_volume = transfer_volume(volume, Type)
+            # print("{}\tTSVPlate2\t{}\tDestPlate1\t{}\t{}\t{}".format(worksheet, well_384, row[1].value, round(transfered_volume,4), tcr))
+            content_for_human = [worksheet, "TSVPlate2", well_384, "DestPlate1", row[1].value, round(transfered_volume,4), tcr]
+            content_for_stone = ["TSVPlate2", well_384, "DestPlate1", row[1].value, round(transfered_volume,4)]
+            worksheet1.append(content_for_human)
+            worksheet2.append(content_for_stone)
+    
 
+    ################ calculate water volume for new sheet
+    workbook3 = openpyxl.Workbook()
+    worksheet3 = workbook3.create_sheet(index=0, title="Sheet1")
+    worksheet3_title = ["Destination Well","Volume(nL)for CDR3aJ",	"Volume(nL)for CDR3bJ",	"Volume(nL)for TSV-TRA",	"Volume(nL)for TSV-TRB", "Total Volume(nL)","Water(nL)"]
+    worksheet3.append(worksheet3_title)
+    # 写正文,按列写,
+    total_number = wb['Echo_calculate_forTSV-A'].max_row
+    
+    for row in range(2, total_number+1):
+        # Destination Well	
+        column1 = worksheet2.cell(row=row, column=4).value
+        # Volume(nL)for CDR3aJ	
+        column2 = worksheet2.cell(row=row, column=5).value
+        # Volume(nL)for CDR3bJ	
+        column3 = worksheet2.cell(row=row+total_number, column=5).value
+        # Volume(nL)for TSV-TRA	
+        column4 = worksheet2.cell(row=row+total_number*2, column=5).value
+        # Volume(nL)for TSV-TRB	
+        column5 = worksheet2.cell(row=row+total_number*3, column=5).value
+        # Total Volume(nL)	
+        column6 = 4000
+        # Water(nL)
+        print(column1, column2, column3,column4,column5)
+        total_water = sum([column2,column3,column4,column5])
+        print(column1, column2, column3,column4,column5,total_water)
+        if total_water >= 4000:
+            total_water = (4000 - column4 - column5)/2
+        
+        content_for_water = [column1,column2,column3,column4,column5,column6, total_water]
+        print(content_for_water)
+        worksheet3.append(content_for_water)
+
+    ################ save to excel.
+    workbook1.save("workbook1.for.human.xlsx")
+    workbook2.save("workbook2.for.stone.xlsx")
+    workbook3.save("workbook3.water.xlsx")
 
 def main():
     file1 = "test.input.xlsx"
@@ -107,7 +175,7 @@ def main():
     # print(well_dict)
     tcrdb_dict = read_TCRdb_file(file3)
     # print(tcrdb_dict)
-    print("TCR ID\tSource Plate Name\tSource Well\tDestination Plate Name\tDestination Well\tTransfer volume\tTCR ID".format())
+    # print("TCR ID\tSource Plate Name\tSource Well\tDestination Plate Name\tDestination Well\tTransfer volume\tTCR ID".format())
     deal_with_main_file(file1, well_dict, tcrdb_dict)
 
 
