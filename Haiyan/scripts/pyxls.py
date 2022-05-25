@@ -132,12 +132,14 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict):
     ################ calculate water volume for new sheet
     workbook3 = openpyxl.Workbook()
     worksheet3 = workbook3.create_sheet(index=0, title="Sheet1")
-    worksheet3_title = ["Destination Well","Volume(nL)for CDR3aJ",	"Volume(nL)for CDR3bJ",	"Volume(nL)for TSV-TRA",	"Volume(nL)for TSV-TRB", "Total Volume(nL)","Water(nL)"]
+    worksheet3_title = ["Destination Well","Volume(nL)for CDR3aJ","Volume(nL)for CDR3bJ","Volume(nL)for TSV-TRA","Volume(nL)for TSV-TRB", "Total Volume(nL)","Water(nL)"]
     worksheet3.append(worksheet3_title)
     # 写正文,按列写,
-    total_number = wb['Echo_calculate_forTSV-A'].max_row
+    total_number = wb['Echo_calculate_forTSV-A'].max_row -1
+    # print(total_number)
     
     for row in range(2, total_number+1):
+        # print(row)
         # Destination Well	
         column1 = worksheet2.cell(row=row, column=4).value
         # Volume(nL)for CDR3aJ	
@@ -145,21 +147,30 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict):
         # Volume(nL)for CDR3bJ	
         column3 = worksheet2.cell(row=row+total_number, column=5).value
         # Volume(nL)for TSV-TRA	
-        column4 = worksheet2.cell(row=row+total_number*2, column=5).value
+        column4 = worksheet2.cell(row=1+row+total_number*2, column=5).value
         # Volume(nL)for TSV-TRB	
-        column5 = worksheet2.cell(row=row+total_number*3, column=5).value
+        column5 = worksheet2.cell(row=1+row+total_number*3, column=5).value
         # Total Volume(nL)	
         column6 = 4000
         # Water(nL)
-        print(column1, column2, column3,column4,column5)
-        total_water = sum([column2,column3,column4,column5])
-        print(column1, column2, column3,column4,column5,total_water)
-        if total_water >= 4000:
-            total_water = (4000 - column4 - column5)/2
+        # print(column1, column2, column3,column4,column5)
+        total_volume = sum([column2,column3,column4,column5])
+        # print(column1, column2, column3,column4,column5,total_water)
+        if total_volume > 4000:
+            water = (4000 - column4 - column5)/2
+        elif total_volume == 4000:
+            water = 0
+            print(column1,column2,column3,column4,column5,column6, water)
+        else:
+            water = 4000 - total_volume
         
-        content_for_water = [column1,column2,column3,column4,column5,column6, total_water]
-        print(content_for_water)
+        content_for_water = [column1,column2,column3,column4,column5,column6, water]
+        # print(content_for_water)
         worksheet3.append(content_for_water)
+        content_for_human = ['Water', 'TSVPlate2','{A24:P24}','DestPlate1', column1,water, 'Water']
+        content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1',column1,water]
+        worksheet1.append(content_for_human)
+        worksheet2.append(content_for_stone)
 
     ################ save to excel.
     workbook1.save("workbook1.for.human.xlsx")
