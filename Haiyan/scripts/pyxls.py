@@ -68,7 +68,7 @@ def transfer_volume(Concentration,Type):
     return volume
 
 
-def deal_with_main_file(main_file, well_dict, tcrdb_dict):
+def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     # 读取主文件input file
     wb = openpyxl.load_workbook(main_file)
     # 获取384孔板字典的sheet信息
@@ -173,21 +173,22 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict):
         worksheet2.append(content_for_stone)
 
     ################ save to excel.
-    workbook1.save("workbook1.for.human.xlsx")
-    workbook2.save("workbook2.for.stone.xlsx")
-    workbook3.save("workbook3.water.xlsx")
+    workbook1.save(output + "/workbook1.for.human.xlsx")
+    workbook2.save(output + "/workbook2.for.stone.xlsx")
+    workbook3.save(output + "/workbook3.water.xlsx")
 
 def main():
-    file1 = "test.input.xlsx"
-    file2 = "test.384wells.xlsx"
-    file3 = "../TSV_wells_map.txt"
+    file1 = sys.argv[1] # "test.input.xlsx"
+    file2 = sys.argv[2] # "test.384wells.xlsx"
+    file3 = "/cygene/work/00.test/pipeline/Haiyan/TSV_wells_map.txt"
+    output = sys.argv[3]
     
     well_dict = read_384_wells(file2)
     # print(well_dict)
     tcrdb_dict = read_TCRdb_file(file3)
     # print(tcrdb_dict)
     # print("TCR ID\tSource Plate Name\tSource Well\tDestination Plate Name\tDestination Well\tTransfer volume\tTCR ID".format())
-    deal_with_main_file(file1, well_dict, tcrdb_dict)
+    deal_with_main_file(file1, well_dict, tcrdb_dict, output)
 
 
 if __name__ == '__main__':
