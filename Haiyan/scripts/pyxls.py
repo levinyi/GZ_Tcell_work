@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import sys
-import os
 import re
 import argparse
 import openpyxl
+from openpyxl.styles import PatternFill
 import pandas as pd
+from regex import R
 
 
 def usage():
@@ -25,7 +27,7 @@ def _argparse():
 
 
 def read_384_wells(wells_file):
-    """store a dict"""
+    """读取384孔板浓度信息,根据行（1,2,3）和列名（A,B,C）生成对应的字典，用于后续查找"""
     wells_dict = {}
     wb = openpyxl.load_workbook(wells_file)
     
@@ -39,11 +41,11 @@ def read_384_wells(wells_file):
         df = df.T
         a_dict = df.to_dict()
         wells_dict.setdefault(sheetname, a_dict)
-
     return wells_dict
 
 
 def read_TCRdb_file(tcr_db_file):
+    """读取TCRdb文件，生成字典,用于后续查找"""
     well_dict = {}
     with open(tcr_db_file,"r") as f:
         for line in f:
@@ -57,6 +59,7 @@ def read_TCRdb_file(tcr_db_file):
 
 
 def transfer_volume(Concentration,Type):
+    """根据浓度信息和类型，使用相应的公式转换成容积信息"""
     if Type == "CDR3J":
         volume = 6*10*1000/(Concentration*10**6/(160*660))
     elif Type == "TSV-TRA":
@@ -69,37 +72,38 @@ def transfer_volume(Concentration,Type):
 
 
 def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
-    # 读取主文件input file
+    # 预先获取384孔板字典的sheet信息, # test.384wells.xlsx, 有两个sheet，分别是Sheet1(cd3J)和Sheet2(TSV)
+    well_sheets_name = list(well_dict.keys()) # ['Sheet1', 'Sheet2']
+
+    #### 先处理input 文件中的CDR3aJ 和 CDR3BJ，也就是前两个sheet
+    # 读取主文件input file, # test.input.xlsx
     wb = openpyxl.load_workbook(main_file)
-    # 获取384孔板字典的sheet信息
-    well_sheets_name = list(well_dict.keys())
-    # print(list(well_sheets_name))
-    ################ for CDR3J
     worksheets=["Echo_calculate_forCDR3aJ", "Echo_calculate_forCDR3bJ",]
     # 需要匹配的正则表达式:
     prog = re.compile(r'([A-Z])(\d*)')
 
     # 将读入的文件,按sheet处理,每个sheet中按行处理,将每行信息写入到两个xlsx中,一个是给人工查看的,有详细信息,一个是给机器的只需要简要信息.
-    # 准备三个xlsx, 最后一个是输出water 信息的xlsx
+    # 准备两个excel 文件, 用于写入内容，第一个写详细信息，第二个写简要信息。这两个excel是同时写入的。
     workbook1 = openpyxl.Workbook()
     workbook2 = openpyxl.Workbook()
     # 创建表格
     worksheet1 = workbook1.create_sheet(index=0, title="Sheet1") # index表示表格要插入的位置,从0开始也就是从第一个位置开始.
-    worksheet2 = workbook2.create_sheet(index=0, title="Sheet1")
-    # 先写第一行的title
+    worksheet2 = workbook2.create_sheet(index=0, title="Sheet1") # title表示表格的名字
+    # 先写第一行的title，将title存成list，直接append到worksheet1中，worksheet2中也是一样的。
     worksheet1_title =  ["TCR ID","Source Plate Name","Source Well","Destination Plate Name","Destination Well","Transfer volume","ID"]
     worksheet1.append(worksheet1_title)
     worksheet2_title =["Source Plate Name","Source Well","Destination Plate Name","Destination Well","Transfer Volume"]
     worksheet2.append(worksheet2_title)
     
-    # 开始读输入文件,每读一行,写到两个文件中.
-    for worksheet in worksheets:
+    # 开始读输入wb文件,每读一行,写到上面两个worksheet中.先处理前两个sheet,再处理后两个sheet.
+    for worksheet in worksheets: # 先处理前两个sheet（CDR3aJ和CDR3bJ）
         ws = wb[worksheet]
-        for row in ws.iter_rows(min_row=2, min_col=1):
-            result = prog.match(row[1].value)
+        for row in ws.iter_rows(min_row=2, min_col=1): #
+            result = prog.match(row[1].value) # 匹配表格中的第二列的值,返回一个match对象
             a, b = result.group(1, 2)
             volume = well_dict[well_sheets_name[0]][a][int(b)]
             transfered_volume = transfer_volume(volume, "CDR3J")
+            # print("volume,a,b,transfered_volume:",volume,a,b,transfered_volume)
             # print("{}\tTempPlate1\t{}\tDestPlate1\t{}\t{}\t{}".format(worksheet, row[1].value, row[2].value, round(transfered_volume,4), row[0].value))
             content_for_human = [worksheet, "TempPlate1", row[1].value, "DestPlate1", row[2].value, round(transfered_volume,4), row[0].value]
             content_for_stone = ["TempPlate1",row[1].value, "DestPlate1",row[2].value, round(transfered_volume,4)]
@@ -108,7 +112,7 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
 
     ################ for TSV 
     worksheets=["Echo_calculate_forTSV-A", "Echo_calculate_forTSV-B",]
-    for worksheet in worksheets:
+    for worksheet in worksheets: # 再处理后两个sheet（TSV-TRA和TSV-TRB）
         if worksheet == 'Echo_calculate_forTSV-A':
             Type = "TSV-TRA"
         else:
@@ -130,16 +134,19 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     
 
     ################ calculate water volume for new sheet
+    # 准备第三个excel，用于输出water 信息，也要将water信息写入到human和stone两个excel中.
     workbook3 = openpyxl.Workbook()
     worksheet3 = workbook3.create_sheet(index=0, title="Sheet1")
     worksheet3_title = ["Destination Well","Volume(nL)for CDR3aJ","Volume(nL)for CDR3bJ","Volume(nL)for TSV-TRA","Volume(nL)for TSV-TRB", "Total Volume(nL)","Water(nL)"]
     worksheet3.append(worksheet3_title)
+    workbook4 = openpyxl.Workbook()
+    worksheet4 = workbook4.create_sheet(index=0, title="Sheet1")
+    worksheet4.append(worksheet3_title)
     # 写正文,按列写,
-    total_number = wb['Echo_calculate_forTSV-A'].max_row -1
+    total_number = wb['Echo_calculate_forTSV-A'].max_row -1 # 表示总共有多少行
     # print(total_number)
-    
+    Error_line = [] # 存放错误的行号,用于后面的提示
     for row in range(2, total_number+1):
-        # print(row)
         # Destination Well	
         column1 = worksheet2.cell(row=row, column=4).value
         # Volume(nL)for CDR3aJ	
@@ -152,36 +159,85 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
         column5 = worksheet2.cell(row=1+row+total_number*3, column=5).value
         # Total Volume(nL)	
         column6 = 4000
-        # Water(nL)
-        # print(column1, column2, column3,column4,column5)
         total_volume = sum([column2,column3,column4,column5])
-        # print(column1, column2, column3,column4,column5,total_water)
+        # print(column1, column2, column3, column4, column5, total_volume) # 测试用
+
+        # Water(nL)
         if total_volume > 4000:
-            water = (4000 - column4 - column5)/2
+            water = 0 # 最终的表格中要删掉
+            # print(row, ":", "water is 0") # 测试用
+            # 将worksheet1中的row行第3列输出
+            ta = worksheet1.cell(row=row, column=3).value
+            tb = worksheet1.cell(row=total_number+row, column=3).value
+            ### 取出ca的值
+            result = prog.match(ta)
+            a, b = result.group(1, 2)
+            # 判断一下，如果是在2*total_number以内，就是第一个sheet，如果大于2*total_number，就是第二个sheet
+            if row <= 2*total_number:
+                worksheet = 0 # worksheet=0表示第一个sheet（CD3J），1表示第二个sheet（TSV）
+            else:
+                worksheet = 1
+            ca = well_dict[well_sheets_name[worksheet]][a][int(b)]
+            # print("ta:{},a:{},b:{},ca:{},worksheet:{}".format(ta, a, b, ca, worksheet)) # 测试用
+            ### 同理，取出cb的值
+            result = prog.match(tb)
+            a, b = result.group(1, 2)
+            cb = well_dict[well_sheets_name[worksheet]][a][int(b)]
+            # print("tb:{},a:{},b:{},cb:{},worksheet:{}".format(tb, a, b, cb, worksheet)) # 测试用
+            # 取worksheet2中的row,column，输出看一下
+            # print(worksheet2.cell(row=row, column=5).value)
+            if column2+column3 > 4000-(column4+column5) :
+                new_column3 = (4000-column4-column5) / (1+(cb/ca)) # cb / ca = 0.5
+                new_column2 = (4000-column4-column5)-new_column3
+                content_for_water = [column1, new_column2, new_column3, column4, column5, column6, water, 
+                "Ca:"+str(ca), "Cb:"+str(cb),
+                "Old_Col2:"+str(column2), "Old_Col3:"+str(column3)]
+            else:
+                print("Error line:{}".format(row))
+            # 将该行号记录下来，用于后面的颜色设置
+            Error_line.append(row)
         elif total_volume == 4000:
-            water = 0
-            print(column1,column2,column3,column4,column5,column6, water)
+            water = 0 # 最终的表格中要删掉
+            # 将该行号记录下来，用于后面的颜色设置
+            Error_line.append(row)
+            content_for_water = [column1, column2, column3, column4, column5, column6, water]
+            worksheet4.append(content_for_water)
         else:
             water = 4000 - total_volume
-        
-        content_for_water = [column1,column2,column3,column4,column5,column6, water]
-        # print(content_for_water)
+            content_for_water = [column1, column2, column3, column4, column5, column6, water]
+            worksheet4.append(content_for_water)
+
         worksheet3.append(content_for_water)
-        content_for_human = ['Water', 'TSVPlate2','{A24:P24}','DestPlate1', column1,water, 'Water']
-        content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1',column1,water]
+        content_for_human = ['Water', 'TSVPlate2','{A24:P24}','DestPlate1', column1, water, 'Water']
+        content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1', column1, water ]
         worksheet1.append(content_for_human)
         worksheet2.append(content_for_stone)
 
     ################ save to excel.
+    for row in Error_line:
+        # row 表示CD3aJ的行号，row+total_number表示CD3bJ的行号,
+        # row+total_number*2表示TSV-TRA的行号,row+total_number*3表示TSV-TRB的行号,
+        # row+total_number*4表示water的行号
+        cd3bJ_row = row + total_number
+        water_row = row + 4*total_number
+        for column in range(1, 8):
+            # 给worksheet1中的错误的行设置颜色
+            worksheet1.cell(row=row, column=column).fill = PatternFill(fgColor="FF0000", fill_type="solid")
+            worksheet1.cell(row=cd3bJ_row, column=column).fill = PatternFill(fgColor="FF0000", fill_type="solid")
+            worksheet1.cell(row=water_row, column=column).fill = PatternFill(fgColor="FF0000", fill_type="solid")
+            # 给worksheet3中的错误的行设置颜色, 这里的row表示water文件中的行号
+            worksheet3.cell(row=row, column=column).fill = PatternFill(fgColor="FF0000", fill_type="solid")
+    
     workbook1.save(output + "/workbook1.for.human.xlsx")
-    workbook2.save(output + "/workbook2.for.stone.xlsx")
-    workbook3.save(output + "/workbook3.water.xlsx")
+    workbook2.save(output + "/workbook2.for.software.xlsx")
+    workbook3.save(output + "/workbook3.for.human.water.xlsx")
+    workbook4.save(output + "/workbook4.for.software.water.xlsx")
 
 def main():
     file1 = sys.argv[1] # "test.input.xlsx"
     file2 = sys.argv[2] # "test.384wells.xlsx"
     file3 = "/cygene/work/00.test/pipeline/Haiyan/TSV_wells_map.txt"
-    output = sys.argv[3]
+    output = sys.argv[3] # 结果路径
     
     well_dict = read_384_wells(file2)
     # print(well_dict)
