@@ -139,9 +139,6 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     worksheet3 = workbook3.create_sheet(index=0, title="Sheet1")
     worksheet3_title = ["Destination Well","Volume(nL)for CDR3aJ","Volume(nL)for CDR3bJ","Volume(nL)for TSV-TRA","Volume(nL)for TSV-TRB", "Total Volume(nL)","Water(nL)"]
     worksheet3.append(worksheet3_title)
-    workbook4 = openpyxl.Workbook()
-    worksheet4 = workbook4.create_sheet(index=0, title="Sheet1")
-    worksheet4.append(worksheet3_title)
     # 写正文,按列写,
     total_number = wb['Echo_calculate_forTSV-A'].max_row -1 # 表示总共有多少行
     # print(total_number)
@@ -196,22 +193,23 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
                 print("Error line:{}".format(row))
             # 将该行号记录下来，用于后面的颜色设置
             Error_line.append(row)
+            # 修改worksheet2中的row,column的值
+            worksheet2.cell(row=row, column=5).value = new_column2
+            worksheet2.cell(row=total_number+row, column=5).value = new_column3
         elif total_volume == 4000:
             water = 0 # 最终的表格中要删掉
             # 将该行号记录下来，用于后面的颜色设置
-            Error_line.append(row)
             content_for_water = [column1, column2, column3, column4, column5, column6, water]
-            worksheet4.append(content_for_water)
+            Error_line.append(row)
         else:
             water = 4000 - total_volume
             content_for_water = [column1, column2, column3, column4, column5, column6, water]
-            worksheet4.append(content_for_water)
+            content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1', column1, water ]
+            worksheet2.append(content_for_stone)
 
         worksheet3.append(content_for_water)
         content_for_human = ['Water', 'TSVPlate2','{A24:P24}','DestPlate1', column1, water, 'Water']
-        content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1', column1, water ]
         worksheet1.append(content_for_human)
-        worksheet2.append(content_for_stone)
 
     ################ save to excel.
     for row in Error_line:
@@ -231,7 +229,6 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     workbook1.save(output + "/workbook1.for.human.xlsx")
     workbook2.save(output + "/workbook2.for.software.xlsx")
     workbook3.save(output + "/workbook3.for.human.water.xlsx")
-    workbook4.save(output + "/workbook4.for.software.water.xlsx")
 
 def main():
     file1 = sys.argv[1] # "test.input.xlsx"
