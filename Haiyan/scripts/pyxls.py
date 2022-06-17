@@ -71,7 +71,7 @@ def transfer_volume(Concentration,Type):
     return volume
 
 
-def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
+def deal_with_main_file(main_file, well_dict, tcrdb_dict, total_input_volume, output):
     # 预先获取384孔板字典的sheet信息, # test.384wells.xlsx, 有两个sheet，分别是Sheet1(cd3J)和Sheet2(TSV)
     well_sheets_name = list(well_dict.keys()) # ['Sheet1', 'Sheet2']
 
@@ -143,7 +143,8 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     total_number = wb['Echo_calculate_forTSV-A'].max_row -1 # 表示总共有多少行
     # print(total_number)
     Error_line = [] # 存放错误的行号,用于后面的提示
-    for row in range(2, total_number+1):
+    for row in range(2, total_number+2):
+        # print("row:",row)
         # Destination Well	
         column1 = worksheet2.cell(row=row, column=4).value
         # Volume(nL)for CDR3aJ	
@@ -151,16 +152,16 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
         # Volume(nL)for CDR3bJ	
         column3 = worksheet2.cell(row=row+total_number, column=5).value
         # Volume(nL)for TSV-TRA	
-        column4 = worksheet2.cell(row=1+row+total_number*2, column=5).value
+        column4 = worksheet2.cell(row=row+total_number*2, column=5).value
         # Volume(nL)for TSV-TRB	
-        column5 = worksheet2.cell(row=1+row+total_number*3, column=5).value
+        column5 = worksheet2.cell(row=row+total_number*3, column=5).value
         # Total Volume(nL)	
-        column6 = 4000
+        column6 = total_input_volume
         total_volume = sum([column2,column3,column4,column5])
         # print(column1, column2, column3, column4, column5, total_volume) # 测试用
 
         # Water(nL)
-        if total_volume > 4000:
+        if total_volume > total_input_volume:
             water = 0 # 最终的表格中要删掉
             # print(row, ":", "water is 0") # 测试用
             # 将worksheet1中的row行第3列输出
@@ -183,9 +184,9 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
             # print("tb:{},a:{},b:{},cb:{},worksheet:{}".format(tb, a, b, cb, worksheet)) # 测试用
             # 取worksheet2中的row,column，输出看一下
             # print(worksheet2.cell(row=row, column=5).value)
-            if column2+column3 > 4000-(column4+column5) :
-                new_column3 = (4000-column4-column5) / (1+(cb/ca)) # cb / ca = 0.5
-                new_column2 = (4000-column4-column5)-new_column3
+            if column2+column3 > total_input_volume-(column4+column5) :
+                new_column3 = (total_input_volume-column4-column5) / (1+(cb/ca)) # cb / ca = 0.5
+                new_column2 = (total_input_volume-column4-column5)-new_column3
                 content_for_water = [column1, new_column2, new_column3, column4, column5, column6, water, 
                 "Ca:"+str(ca), "Cb:"+str(cb),
                 "Old_Col2:"+str(column2), "Old_Col3:"+str(column3)]
@@ -196,13 +197,13 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
             # 修改worksheet2中的row,column的值
             worksheet2.cell(row=row, column=5).value = new_column2
             worksheet2.cell(row=total_number+row, column=5).value = new_column3
-        elif total_volume == 4000:
+        elif total_volume == total_input_volume:
             water = 0 # 最终的表格中要删掉
             # 将该行号记录下来，用于后面的颜色设置
             content_for_water = [column1, column2, column3, column4, column5, column6, water]
             Error_line.append(row)
         else:
-            water = 4000 - total_volume
+            water = total_input_volume - total_volume
             content_for_water = [column1, column2, column3, column4, column5, column6, water]
             content_for_stone = ['TSVPlate2','{A24:P24}','DestPlate1', column1, water ]
             worksheet2.append(content_for_stone)
@@ -231,17 +232,18 @@ def deal_with_main_file(main_file, well_dict, tcrdb_dict, output):
     workbook3.save(output + "/workbook3.for.human.water.xlsx")
 
 def main():
-    file1 = sys.argv[1] # "test.input.xlsx"
-    file2 = sys.argv[2] # "test.384wells.xlsx"
+    total_input_volume = int(sys.argv[1])  # 4000
+    file1 = sys.argv[2] # "test.input.xlsx"
+    file2 = sys.argv[3] # "test.384wells.xlsx"
     file3 = "/cygene/work/00.test/pipeline/Haiyan/TSV_wells_map.txt"
-    output = sys.argv[3] # 结果路径
+    output = sys.argv[4] # 结果路径
     
     well_dict = read_384_wells(file2)
     # print(well_dict)
     tcrdb_dict = read_TCRdb_file(file3)
     # print(tcrdb_dict)
     # print("TCR ID\tSource Plate Name\tSource Well\tDestination Plate Name\tDestination Well\tTransfer volume\tTCR ID".format())
-    deal_with_main_file(file1, well_dict, tcrdb_dict, output)
+    deal_with_main_file(file1, well_dict, tcrdb_dict, total_input_volume, output)
 
 
 if __name__ == '__main__':
