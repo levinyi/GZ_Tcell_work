@@ -1,3 +1,5 @@
+from dis import dis
+from functools import partial
 import sys
 import os
 import re
@@ -6,6 +8,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 import warnings
 from Bio import BiopythonWarning
+from regex import R
+from tables import Unknown
 warnings.simplefilter('ignore', BiopythonWarning)
 
 
@@ -27,6 +31,7 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20220711    Add 5 columns to output file: doNotsyn,MutMG_ID_for_order, Mut_AA29_for_order, wtMG_ID_for_order, wt_AA29_for_order.
     20220217    Fix bugs: DtypeWarning: Columns (56,88,101,103,107,108,111,147) have mixed types.Specify dtype option on import or set low_memory=False. [at pandas read file]
     20210423    Fix bugs: if mutation occurs in Mitochondrial, use coding_dna.translate(table="Vertebrate Mitochondrial")
     20200709    Add "End_Position" field to result.
@@ -96,16 +101,95 @@ def get_codon_minigene(Chromosome, seq, cDNA_Change, Protein_Change):
         seq_aa = Seq(seq).translate()
         new_seq_aa = Seq(new_seq).translate()
     
+    # if new_seq_aa contain "*", it means the stop codon occured. and find the position of "*" in new_seq_aa.
+    if "*" in new_seq_aa:
+        stop_codon_position = new_seq_aa.find("*")
+
+    # if aa_position occurs before 14aa, it means the mutation is in the first 14aa.
     if aa_position < 14:
         old_minigene = seq_aa[: aa_position] + seq_aa[aa_position: aa_position + 14]
         new_minigene = new_seq_aa[: aa_position] + new_seq_aa[aa_position: aa_position + 14]
     else:
         old_minigene = seq_aa[aa_position -1 - 14: aa_position] + seq_aa[aa_position: aa_position + 14]
         new_minigene = new_seq_aa[aa_position -1 - 14: aa_position] + new_seq_aa[aa_position: aa_position + 14]
-
     return old_minigene, new_minigene
-    # return old_minigene, new_minigene, aa_position
 
+
+def get_cDNA_Change_Info(cDNA_Change):
+    # Four examples of cDNA_Change item:
+    # c.1518_1519insAAACAGACCA
+    # c.550_551insGGGGCCGCC
+    # c.2953_2972delCTAAATCACACTCCTGTATC 
+    # c.4113delG 
+    # c.3335A>G , c.11119_11120CC>AT
+    cDNA_Change = cDNA_Change.lstrip("c.")
+    if "ins" in cDNA_Change:
+        position_components, middle_seq = cDNA_Change.split("ins") 
+        # c.204_205insT   c.(205-207)tttfs        p.E70fs 
+        start, end = position_components.split("_")
+        start = int(start)
+        end = int(end)
+        return "ins", start, end, middle_seq
+    elif "del" in cDNA_Change:
+        position_components, middle_seq = cDNA_Change.split("del")
+        # deletion_length = len(middle_seq) # interger.
+        if "_" in position_components:
+            start, end = position_components.split("_")
+            start = int(start)
+            end = int(end)
+        else:
+            start = position_components
+            start = int(start)
+            end = int(start)
+        return "del", start, end, middle_seq
+    elif ">" in cDNA_Change:
+        # c.11119_11120CC>AT
+        position_components, after_mutation = cDNA_Change.split(">")
+        starts = re.findall(r'\d+', position_components)
+        if len(starts) == 2:
+            start = int(starts[0])
+            end = int(starts[1])
+        elif len(starts) == 1:
+            start = int(starts[0])
+            end = int(starts[0])
+        else:
+            print("Ops! Unexpected format in cDNA_Change: {}".format(cDNA_Change))
+        return ">", start, end, after_mutation
+    else:
+        print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
+        return "unknown"
+
+def multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2):
+    result = re.findall(r'\d+', cDNA_Change1)
+    start1 = int(result[0])
+    result = re.findall(r'\d+', cDNA_Change2)
+    start2 = int(result[0])
+    # sort cDNA_Change1 and cDNA_Change2 by position.
+    if start1 > start2:
+        cDNA_Change1, cDNA_Change2 = cDNA_Change2, cDNA_Change1
+    
+    # get the Type of cDNA_Change1 and cDNA_Change2.
+    c1_type, c1_start, c1_end, c1_seq = get_cDNA_Change_Info(cDNA_Change1)
+    c2_type, c2_start, c2_end, c2_seq = get_cDNA_Change_Info(cDNA_Change2)
+    print("cDNA_Change1: {}, c1_type: {}, c1_start: {}, c1_end: {}, c1_seq: {}".format(cDNA_Change1, c1_type, c1_start, c1_end, c1_seq))
+    print("cDNA_Change2: {}, c2_type: {}, c2_start: {}, c2_end: {}, c2_seq: {}".format(cDNA_Change2, c2_type, c2_start, c2_end, c2_seq))
+    
+    if c1_type == "ins":
+        partial_seq = raw_seq[:c1_start] + c1_seq + raw_seq[c1_start:c2_start]
+    elif c1_type == "del":
+        partial_seq = raw_seq[:c1_start-1] + raw_seq[c1_end: c2_start]
+    elif c1_type == ">":
+        partial_seq = raw_seq[:c1_start-1] + c1_seq + raw_seq[c1_start:c2_start]
+    # print("partial_seq: {}".format(partial_seq))
+    if c2_type == "ins":
+        full_seq = partial_seq + c2_seq + raw_seq[c2_start:]
+    elif c2_type == "del":
+        full_seq = partial_seq[:-1] + raw_seq[c2_end:]
+    elif c2_type == ">":
+        full_seq = partial_seq[:-1] + c2_seq + raw_seq[c2_start:]
+    # print("full_seq: {}".format(full_seq))
+    return full_seq
+            
 
 def main():
     if len(sys.argv) == 1:
@@ -123,7 +207,7 @@ def main():
     cds_file.close()
 
     # read maf file as a dataframe and first line stored as header.
-    maf_data = pd.read_table(maf_file, sep="\t",dtype='str').fillna(value="NA")
+    maf_data = pd.read_table(maf_file, sep="\t", dtype='str').fillna(value="NA")
     contain_fields = [
         "Hugo_Symbol", "Entrez_Gene_Id", "Center", "NCBI_Build", "Chromosome",
         "Start_Position", "End_Position","Strand", "Variant_Classification", "Variant_Type", "Reference_Allele",
@@ -132,6 +216,7 @@ def main():
         "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
         "Refseq_mRNA_Id","tumor_f", "t_alt_count", "t_ref_count", "n_alt_count", 
         "n_ref_count", "DP", "Mutated_Minigene", "Wild-Type_Minigene",
+        "doNotSyn","MutMG_ID_for_order","Mut_AA29_for_order","wtMG_ID_for_order","WT_AA29_for_order",
     ]
     output_file.write("{}\n".format("\t".join(contain_fields)))
 
@@ -145,12 +230,96 @@ def main():
         "Splice_Site": 1,
         "Translation_Start_Site": 1,
         "Nonstop_Mutation":1,
+        "Nonstop_Mutation": 1,
         # "Silent": 1,
     }
 
+    gene_dict = {}
+    total_number_of_mutations = 0
+    Unknown_Gene = 0
+    unknown_type_count = 0
+    for index, row in maf_data.iterrows():
+        gene_id = row["Hugo_Symbol"]
+        var_type = row["Variant_Classification"] = row["Variant_Classification"]
+        if gene_id != "Unknown":
+            if var_type in saved_Variant_Classification:
+                total_number_of_mutations += 1
+                gene_dict.setdefault(gene_id,[]).append(row)
+            else:
+                unknown_type_count += 1
+        else:
+            Unknown_Gene += 1
+    print("Total number of mutations: {}".format(total_number_of_mutations))
+    print("Total number of Unknown_type_count: {}".format(unknown_type_count))
+    print("Total number of Unknown_Gene: {}".format(Unknown_Gene))
+    print("Total number of uniq genes: {}".format(len(gene_dict)))
+
+
+    for gene_id, rows in gene_dict.items():
+        if len(rows) == 1:
+            pass
+        else:
+            positions = [row["Start_Position"] for row in rows]
+            if len(positions) == 2:
+                if abs(int(positions[0]) - int(positions[1])) > 45:
+                    print("they are not disturbed by position")
+                else:
+                    print("they are disturbed by position")
+                    cDNA_Change1 = rows[0]["cDNA_Change"] # c.2666G>T
+                    cDNA_Change2 = rows[1]["cDNA_Change"] # c.2666_2667insT
+                    # print("Test: {} must be same as {}".format(rows[0]["Annotation_Transcript"], rows[1]["Annotation_Transcript"]))
+                    # raw_seq = adict[rows[0]["Annotation_Transcript"]]
+
+                    raw_seq = "GAATGCTGGGAGAGTCCGACGAGCGCTGCACTAACGCAGGATCCGGCTGCCGAAGGTCCTCGCCAGCAGGATGAAGTTAAAGGAAGTAGATCGTACAGCC"
+                    print(raw_seq)
+                    # test1:
+                    cDNA_Change1 = "c.30_31insC"
+                    cDNA_Change2 = "c.80_81insG"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test2:
+                    cDNA_Change1 = "c.30_31insC"
+                    cDNA_Change2 = "c.50_53delCCGA" 
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test3:
+                    cDNA_Change1 = "c.30_31insC"
+                    cDNA_Change2 = "c.50C>G"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test4:
+                    cDNA_Change1 = "c.50delC"
+                    cDNA_Change2 = "c.80_82insGC"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test5:
+                    cDNA_Change1 = "c.50delC"
+                    cDNA_Change2 = "c.80_82delAAG"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test6:
+                    cDNA_Change1 = "c.50delC"
+                    cDNA_Change2 = "c.80A>G"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test7:
+                    cDNA_Change1 = "c.50C>G"
+                    cDNA_Change2 = "c.80_81insG"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test8:
+                    cDNA_Change1 = "c.50C>G"
+                    cDNA_Change2 = "c.80_82delAAG"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                    # test9:
+                    cDNA_Change1 = "c.50C>G"
+                    cDNA_Change2 = "c.80A>G"
+                    new_seq = multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2)
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            else:
+                print("Error: {}".format(gene_id))
+
+            print("gene:{}, positions: {}".format(gene_id, positions))
+         
+
+    '''
     for index, row in maf_data.iterrows():
         if row["Variant_Classification"] in saved_Variant_Classification and row["Protein_Change"] != "NA" :
             if row["Annotation_Transcript"] in adict:
+                gene_name = row["Hugo_Symbol"]
                 Chromosome = row["Chromosome"]
                 seq = adict[row["Annotation_Transcript"]]
                 cDNA_Change = row["cDNA_Change"]
@@ -168,6 +337,8 @@ def main():
                 )
             else:
                 print("Annotation_Transcript not found {} {}".format(row["Annotation_Transcript"],row["Hugo_Symbol"]))
+                print("please check the annotation file version, better use the same version as the cds file!")
+    '''
     output_file.close()
     print("Finished extract minigene!")
 
