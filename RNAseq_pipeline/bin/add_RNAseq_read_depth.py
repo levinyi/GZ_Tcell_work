@@ -69,6 +69,7 @@ contain_fields = [
         "Transcript_Strand", "Transcript_Exon", "cDNA_Change", "Codon_Change", "Protein_Change",
         "Refseq_mRNA_Id", "tumor_f", "t_alt_count", "t_ref_count", "n_alt_count",
         "n_ref_count", "DP", "Mutated_Minigene", "Wild-Type_Minigene",
+        "doNotSyn","MutMG_ID_for_order","Mut_AA29_for_order","wtMG_ID_for_order","WT_AA29_for_order",
         "MutatedReads(RNA)", "Wild-typeReads(RNA)", "TPM",
     ]
 output_file = open(os.path.basename(xls_file).rstrip("xls")+'RNA_Depth.xls', "w")
@@ -88,15 +89,16 @@ for index, row in data.iterrows():
             RNA_muta_reads = int(mpileup_dict[Position_start].get("I", 0))
     else:
         print("position start not in mpileup dict. please check!")
-        print(Position_start, Variant_Type, index, row)
+        # print(Position_start, Variant_Type, index, row)
         RNA_wild_reads = 0
         RNA_muta_reads = 0
-    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
         row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],
         row["Start_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"], row["Reference_Allele"],
         row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["dbSNP_RS"], row["Genome_Change"], row["Annotation_Transcript"],
         row["Transcript_Strand"], row["Transcript_Exon"], row["cDNA_Change"], row["Codon_Change"], row["Protein_Change"],
         row["Refseq_mRNA_Id"], row["tumor_f"], row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], 
-        row["n_ref_count"], row["DP"],row["Mutated_Minigene"],row["Wild-Type_Minigene"],RNA_muta_reads, RNA_wild_reads, 
-        row["TPM"],
+        row["n_ref_count"], row["DP"],row["Mutated_Minigene"],row["Wild-Type_Minigene"],
+        row["doNotSyn"],row["MutMG_ID_for_order"],row["Mut_AA29_for_order"],row["wtMG_ID_for_order"],row["WT_AA29_for_order"],
+        RNA_muta_reads, RNA_wild_reads, row["TPM"],
         ))
