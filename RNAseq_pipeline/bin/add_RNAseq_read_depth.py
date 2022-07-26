@@ -3,12 +3,14 @@ import sys
 import os
 import re
 import pandas as pd
+import numpy as np
 
 
 def usage():
     print("""
         python {} <xls> <tpm file>
     Update:
+        20220725    re-write the function to print NAN to empty.
         20210410    add parmaters.
         20200703    Created.
     """.format(os.path.basename(sys.argv[0])))
@@ -64,6 +66,7 @@ def main():
     output_file.write("{}\n".format("\t".join(header)))
     
     for index, row in data.iterrows():
+        row = row.replace(np.nan, "")
         Position_start = str(row["Start_Position"])
         Variant_Type = str(row['Variant_Type'])
         if Position_start in mpileup_dict:
@@ -75,9 +78,9 @@ def main():
             elif Variant_Type == 'INS':
                 RNA_muta_reads = int(mpileup_dict[Position_start].get("I", 0))
         else:
-            print("position start not in mpileup dict. please check!")
-            RNA_wild_reads = 0
-            RNA_muta_reads = 0
+            print("position start not in mpileup dict. please check! bug.") # this is a bug, should be fixed in the future.
+            RNA_wild_reads = "NA"
+            RNA_muta_reads = "NA"
         
         row["MutatedReads(RNA)"] = RNA_muta_reads
         row["Wild-typeReads(RNA)"] = RNA_wild_reads
