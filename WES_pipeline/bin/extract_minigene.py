@@ -27,6 +27,7 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20220728    fixed ID_for_order too long in save_minigene function.
     20220711    Add 5 columns to output file: doNotsyn,MutMG_ID_for_order, Mut_AA29_for_order, wtMG_ID_for_order, wt_AA29_for_order.
     20220217    Fix bugs: DtypeWarning: Columns (56,88,101,103,107,108,111,147) have mixed types.Specify dtype option on import or set low_memory=False. [at pandas read file]
     20210423    Fix bugs: if mutation occurs in Mitochondrial, use coding_dna.translate(table="Vertebrate Mitochondrial")
@@ -55,10 +56,9 @@ def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Chang
     aa_position = int(re.findall(r'\d+', Protein_Change)[0]) # if aa_position occurs before 14aa, it means the mutation is in the first 14aa.
     if aa_position < 14:
         start_position = 0
-        end_position = 29
     else:
         start_position = aa_position - 15
-        end_position = aa_position + 14
+    end_position = aa_position + 14
     
     # store the minigene in a list.
     raw_minigene_list = []
@@ -196,8 +196,14 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
         
         wtMG_ID_for_order = gene_id + "-" + str(re.findall(r'\d+', Protein_Change)[0]) + "WT"
         # for MutMG_ID for order:
+        # 1. MYO18A-LQREKLQREK1479del  : MYO18A
+        # 2. EPB42-42_43insLAA*KSQLFPTTALGIKSCDF EPB42
+        MutMG_ID_for_order = gene_id + "-" + Protein_Change.lstrip("p.")
+        if len(Protein_Change.lstrip("p.")) >=10:
+            MutMG_ID_for_order = MutMG_ID_for_order[:10]
+                                                                                                                                             
         a = re.findall(r'(.\d+)(\D+)', Protein_Change.lstrip("p."))
-        if len(a[-1][-1]) >= 4:
+        if len(a[-1][-1]) >= 4: # if the last AA is longer than 4, the id would be too long, should cut it.
             b = []
             for i in a:
                 if "ins" in i[1]:
@@ -224,6 +230,11 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
             add_GSG_aa = "GSG" * add_GSG_number
             WT_AA29_for_order = raw_minigene_list[index][:stop_position] + add_GSG_aa[:add_GSG_number]
 
+        # chech minigene is shorter than 29 AA. and "*" is not in the end of the amino acid.
+        if len(Mut_AA29_for_order) < 29 and "*" not in Mut_AA29_for_order:
+            a = 29 - len(Mut_AA29_for_order)
+            Mut_AA29_for_order = ("GSG" *a)[:a][::-1] + Mut_AA29_for_order
+            WT_AA29_for_order = ("GSG" * a)[:a][::-1] + WT_AA29_for_order
         
         output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
             row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
@@ -351,7 +362,7 @@ def main():
                     
                     ######## save the second mutation record ##############
                     row = rows[1]
-                    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tMerged\n".format(
                         row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
                         row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"],  # 6-10
                         row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"],   # 11-15
