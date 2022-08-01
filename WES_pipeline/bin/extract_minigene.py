@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+from tokenize import endpats
 import pandas as pd
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -35,111 +36,6 @@ Updates:
     20200702    Updated. fix cDNA_Change bugs: c.11119_11120CC>AT.
     20200628    Created.
     """.format(os.path.basename(sys.argv[0])))
-
-
-def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Change2=None):  
-    if Protein_Change2:
-        start1 = int(re.findall(r'\d+', Protein_Change)[0])
-        start2 = int(re.findall(r'\d+', Protein_Change2)[0])
-        # sort Protein_Change and Protein_Change2 by position.
-        if start1 > start2:
-            Protein_Change, Protein_Change2 = Protein_Change2, Protein_Change
-    # if Chromosome is Mitochondrial. Use Seq(seq).translate(table="Vertebrate Mitochondrial") otherwise it will raise error.
-    if Chromosome == "MT":
-        raw_seq_aa = str(Seq(raw_seq).translate(table="Vertebrate Mitochondrial"))
-        new_seq_aa = str(Seq(new_seq).translate(table="Vertebrate Mitochondrial"))
-    else:
-        raw_seq_aa = str(Seq(raw_seq).translate())
-        new_seq_aa = str(Seq(new_seq).translate())
-    # print("raw_seq_aa", raw_seq_aa)
-    # print("new_seq_aa", new_seq_aa)
-    aa_position = int(re.findall(r'\d+', Protein_Change)[0]) # if aa_position occurs before 14aa, it means the mutation is in the first 14aa.
-    if aa_position < 14:
-        start_position = 0
-    else:
-        start_position = aa_position - 15
-    end_position = aa_position + 14
-    
-    # store the minigene in a list.
-    raw_minigene_list = []
-    new_minigene_list = []
-    # if new_seq_aa contain "*", it means the stop codon occured. and find the position of "*" in new_seq_aa.
-    if "*" in new_seq_aa[:-1] :  # contain * but not the last one.
-        # print("There are stop codon in new_seq_aa: {}".format(new_seq_aa))
-        stop_codon_position = new_seq_aa.find("*")+1 # find first stop codon position in new_seq_aa. 0-based.
-        print("aaposition, start position and first end position protein change, stop_codon pos: ",aa_position, start_position, end_position, Protein_Change, stop_codon_position)
-        if stop_codon_position <= end_position:
-            a = new_seq_aa[start_position: stop_codon_position]
-            b = raw_seq_aa[start_position: end_position]
-            if a not in new_minigene_list:
-                new_minigene_list.append(a)
-            if b not in raw_minigene_list:
-                raw_minigene_list.append(b)
-        else:
-            while stop_codon_position > end_position: # if stop codon position is after end_position, it means the stop codon is in the next minigene.
-                a = new_seq_aa[start_position:end_position]
-                if a not in new_minigene_list:
-                    new_minigene_list.append(a)
-                if start_position + 1 < aa_position:
-                    b = raw_seq_aa[start_position: end_position]
-                    if b not in raw_minigene_list:
-                        raw_minigene_list.append(b)
-                start_position += 14
-                end_position += 14
-            else:
-                a = new_seq_aa[stop_codon_position-30:stop_codon_position]
-                if a not in new_minigene_list:
-                    new_minigene_list.append(a)
-        print("new_minigene_list: ", new_minigene_list)
-        print("raw_minigene_list: ", raw_minigene_list)
-    else:
-        new_minigene_list.append(new_seq_aa[start_position:end_position])
-        raw_minigene_list.append(raw_seq_aa[start_position:end_position])
-    
-    while len(raw_minigene_list) != len(new_minigene_list):
-        raw_minigene_list.append(raw_minigene_list[0])
-
-    return raw_minigene_list, new_minigene_list
-
-
-def get_cDNA_Change_Info(cDNA_Change):
-    # Examples for cDNA_Change:
-    # c.1518_1519insAAACAGACCA 
-    # c.2953_2972delCTAAATCACACTCCTGTATC , c.4113delG 
-    # c.3335A>G , c.11119_11120CC>AT
-    cDNA_Change = cDNA_Change.lstrip("c.")
-    if "ins" in cDNA_Change:
-        position_components, middle_seq = cDNA_Change.split("ins") 
-        start, end = position_components.split("_")
-        return "ins", int(start), int(end), middle_seq
-    elif "del" in cDNA_Change:
-        position_components, middle_seq = cDNA_Change.split("del")
-        # deletion_length = len(middle_seq) # interger.
-        if "_" in position_components:
-            start, end = position_components.split("_")
-            start = int(start)
-            end = int(end)
-        else:
-            start = position_components
-            start = int(start)
-            end = int(start)
-        return "del", start, end, middle_seq
-    elif ">" in cDNA_Change:
-        # c.11119_11120CC>AT
-        position_components, after_mutation = cDNA_Change.split(">")
-        starts = re.findall(r'\d+', position_components)
-        if len(starts) == 2:
-            start = int(starts[0])
-            end = int(starts[1])
-        elif len(starts) == 1:
-            start = int(starts[0])
-            end = int(starts[0])
-        else:
-            print("Ops! Unexpected format in cDNA_Change: {}".format(cDNA_Change))
-        return ">", start, end, after_mutation
-    else:
-        print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
-        return "unknown"
 
 def single_position_fix(raw_seq, cDNA_Change):
     c1_type, c1_start, c1_end, c1_seq = get_cDNA_Change_Info(cDNA_Change)
@@ -182,10 +78,132 @@ def multi_position_fix(raw_seq, cDNA_Change1, cDNA_Change2):
         full_seq = partial_seq[:c2_start-1] + c2_seq + partial_seq[c2_end:]+raw_seq[c2_start:]
     # print("full_seq: {}".format(full_seq))
     return full_seq
-            
+
+
+def get_cDNA_Change_Info(cDNA_Change):
+    # Examples for cDNA_Change:
+    # c.1518_1519insAAACAGACCA 
+    # c.2953_2972delCTAAATCACACTCCTGTATC , c.4113delG 
+    # c.3335A>G , c.11119_11120CC>AT
+    cDNA_Change = cDNA_Change.lstrip("c.")
+    if "ins" in cDNA_Change:
+        position_components, middle_seq = cDNA_Change.split("ins") 
+        start, end = position_components.split("_")
+        return "ins", int(start), int(end), middle_seq
+    elif "del" in cDNA_Change:
+        position_components, middle_seq = cDNA_Change.split("del")
+        # deletion_length = len(middle_seq) # interger.
+        if "_" in position_components:
+            start, end = position_components.split("_")
+            start = int(start)
+            end = int(end)
+        else:
+            start = position_components
+            start = int(start)
+            end = int(start)
+        return "del", start, end, middle_seq
+    elif ">" in cDNA_Change:
+        # c.11119_11120CC>AT
+        position_components, after_mutation = cDNA_Change.split(">")
+        starts = re.findall(r'\d+', position_components)
+        if len(starts) == 2:
+            start = int(starts[0])
+            end = int(starts[1])
+        elif len(starts) == 1:
+            start = int(starts[0])
+            end = int(starts[0])
+        else:
+            print("Ops! Unexpected format in cDNA_Change: {}".format(cDNA_Change))
+        return ">", start, end, after_mutation
+    else:
+        print("Ops! Unexpected Condition in cDNA_Change: {}".format(cDNA_Change))
+        return "unknown"
+
+def loop_minigene(aa_position, start_position,end_position,stop_codon_position,raw_seq_aa,new_seq_aa):
+    new_minigene_list = []
+    raw_minigene_list = []
+    if stop_codon_position <= end_position:
+        a = new_seq_aa[start_position: stop_codon_position]
+        b = raw_seq_aa[start_position: end_position]
+        new_minigene_list.append(a)
+        raw_minigene_list.append(b)
+    else:
+        while stop_codon_position > end_position: # if stop codon position is after end_position, it means the stop codon is in the next minigene.
+            a = new_seq_aa[start_position:end_position]
+            if a not in new_minigene_list:
+                new_minigene_list.append(a)
+            if start_position + 1 < aa_position:
+                b = raw_seq_aa[start_position: end_position]
+                if b not in raw_minigene_list:
+                    raw_minigene_list.append(b)
+            start_position += 14
+            end_position += 15
+        else:
+            a = new_seq_aa[stop_codon_position-30:stop_codon_position]
+            if a not in new_minigene_list:
+                new_minigene_list.append(a)
+    return new_minigene_list, raw_minigene_list
+
+
+def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Change2=None):  
+    if Protein_Change2:
+        start1 = int(re.findall(r'\d+', Protein_Change)[0])
+        start2 = int(re.findall(r'\d+', Protein_Change2)[0])
+        # sort Protein_Change and Protein_Change2 by position.
+        if start1 > start2:
+            Protein_Change, Protein_Change2 = Protein_Change2, Protein_Change
+    # if Chromosome is Mitochondrial. Use Seq(seq).translate(table="Vertebrate Mitochondrial") otherwise it will raise error.
+    if Chromosome == "MT":
+        raw_seq_aa = str(Seq(raw_seq).translate(table="Vertebrate Mitochondrial")) +"*"
+        new_seq_aa = str(Seq(new_seq).translate(table="Vertebrate Mitochondrial"))
+        print("MT: raw_seq_aa",raw_seq_aa)
+        print("MT: new_seq_aa",new_seq_aa)
+    else:
+        raw_seq_aa = str(Seq(raw_seq).translate())
+        new_seq_aa = str(Seq(new_seq).translate())
+
+    aa_position = int(re.findall(r'\d+', Protein_Change)[0]) # if aa_position occurs before 14aa, it means the mutation is in the first 14aa.
+    if aa_position < 14:
+        start_position = 0
+    else:
+        start_position = aa_position - 14
+    end_position = aa_position + 15
+    
+    # if new_seq_aa contain "*", it means the stop codon occured. and find the position of "*" in new_seq_aa.
+    if "*" in new_seq_aa[:-1] :  # contain * but not the last one.
+        stop_codon_position = new_seq_aa.find("*")+1 # find first stop codon position in new_seq_aa. 0-based.
+        new_minigene_list, raw_minigene_list = loop_minigene(aa_position,start_position,end_position,stop_codon_position,raw_seq_aa,new_seq_aa)
+    elif "*" in new_seq_aa[-1]: # contain * and the last one.
+        if "ins" in Protein_Change:            
+            start_position = aa_position - 14 
+            insertion = Protein_Change.lstrip("p.").split("ins")[-1]
+            end_position = aa_position + 15
+            stop_codon_position = aa_position + len(insertion) +15
+            new_minigene_list, raw_minigene_list = loop_minigene(aa_position,start_position,end_position,stop_codon_position,raw_seq_aa,new_seq_aa)
+        else:
+            new_minigene_list = [new_seq_aa[aa_position-14:aa_position+15]]
+            raw_minigene_list = [raw_seq_aa[aa_position-14:aa_position+15]]
+        if Protein_Change2:
+            aa_position = int(re.findall(r'\d+', Protein_Change2)[0])
+            if aa_position < 14:
+                start_position = 0
+            else:
+                start_position = aa_position - 15
+            end_position = aa_position + 14
+            new_minigene_list.append(new_seq_aa[start_position:end_position])
+            raw_minigene_list.append(raw_seq_aa[start_position:end_position])
+    else: # not contain *
+        new_minigene_list = [new_seq_aa[start_position:end_position]+"*?"]
+        raw_minigene_list = [raw_seq_aa[start_position:end_position]]
+    
+    while len(raw_minigene_list) != len(new_minigene_list):
+        raw_minigene_list.append(raw_minigene_list[0])
+    return raw_minigene_list, new_minigene_list
+
+
 def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_id, cDNA_Change, Protein_Change):
     for index, new_minigene in enumerate(new_minigene_list):
-        # if same AA doNotSyn
+        # if nonsense_mutation:
         if new_minigene.rstrip("*") in raw_minigene_list[index]:
             doNotSyn = "doNotSyn"
         else:
@@ -199,6 +217,9 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
         # 1. MYO18A-LQREKLQREK1479del  : MYO18A
         # 2. EPB42-42_43insLAA*KSQLFPTTALGIKSCDF EPB42
         MutMG_ID_for_order = gene_id + "-" + Protein_Change.lstrip("p.")
+        # if the length of the string before number or after number is great than 4, neet to replace the string as "X1".
+        # find the number and the string before the number and the string after the number.
+
         if len(Protein_Change.lstrip("p.")) >=10:
             MutMG_ID_for_order = MutMG_ID_for_order[:10]
                                                                                                                                              
@@ -218,11 +239,16 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
             MutMG_ID_for_order += str(index+1)
             wtMG_ID_for_order += str(index+1)
         
+        if "?" in new_minigene:
+            # manually check the mutation.
+            doNotSyn = "ManualCheck"
+
         if "*" in new_minigene:
             stop_position = new_minigene.index("*")
             add_GSG_number = 29 - stop_position   # 29 is the length of the amino acid.
             add_GSG_aa = "GSG" * add_GSG_number
             Mut_AA29_for_order = new_minigene[:stop_position] + add_GSG_aa[:add_GSG_number]  # add GSG to the end of the amino acid.
+
 
         if "*" in raw_minigene_list[index]:
             stop_position = raw_minigene_list[index].index("*")
@@ -247,7 +273,7 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
             wtMG_ID_for_order, WT_AA29_for_order # 36-37
             ) 
         )
-
+            
 
 def main():
     cds_file = open(sys.argv[1], "r")
@@ -318,15 +344,14 @@ def main():
     for gene_id, rows in gene_dict.items():
         cDNA_Change = rows[0]["cDNA_Change"]
         Protein_Change = rows[0]["Protein_Change"]
-        raw_seq = adict[rows[0]["Annotation_Transcript"].split(".")[0]]
+        raw_seq = adict[rows[0]["Annotation_Transcript"].split(".")[0]] # warning: may be bug here. need to check.
         Chromosome = rows[0]["Chromosome"]
 
         # print(rows[0]['Hugo_Symbol'], cDNA_Change, rows[0]['Annotation_Transcript'], Protein_Change, Chromosome, rows[0]['Variant_Classification'])
         if len(rows) == 1: # only one mutation in this gene
             new_seq = single_position_fix(raw_seq, cDNA_Change)
+            print("gene_id: {}, cDNA_Change: {}, Protein_Change: {}".format(gene_id, cDNA_Change, Protein_Change))
             raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome)
-            # print("raw_minigene_list: {}".format(raw_minigene_list))
-            # print("new_minigene_list: {}".format(new_minigene_list))
             save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
         else: # multiple mutations in this gene
             positions = [row["Start_Position"] for row in rows] # get all the positions of this gene
@@ -372,7 +397,7 @@ def main():
                         ) 
                 )
             else:
-                print("more than 3 positions in this gene: {}. please manually check.".format(gene_id))
+                print("more than 3 positions in this gene: {}. please check manually.".format(gene_id))
     output_file.close()
     print("Finished extract minigene!")
 
