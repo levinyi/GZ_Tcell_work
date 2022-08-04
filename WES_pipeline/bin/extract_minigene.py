@@ -195,7 +195,7 @@ def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Chang
             end_position = aa_position + 15
             insertion = Protein_Change.lstrip("p.").split("ins")[-1]
             stop_codon_position = aa_position + len(insertion) + 14
-            print("aa_position: {}, start_position: {}, end_position: {}, stop_codon_position: {}".format(aa_position, start_position, end_position, stop_codon_position))
+            # print("aa_position: {}, start_position: {}, end_position: {}, stop_codon_position: {}".format(aa_position, start_position, end_position, stop_codon_position))
             new_minigene_list, raw_minigene_list = loop_minigene(aa_position,start_position,end_position,stop_codon_position,raw_seq_aa,new_seq_aa)
         else:
             new_minigene_list = [new_seq_aa[start_position:end_position]]
@@ -210,14 +210,10 @@ def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Chang
             new_minigene_list.append(new_seq_aa[start_position:aa_position + 15])
             raw_minigene_list.append(raw_seq_aa[start_position:aa_position + 15])
     else: # not contain *
-        # print("start_position: {}, end_position: {}".format(start_position, end_position))
         stop_codon_position = raw_seq_aa.find("*")
+        # 这里不再需要判断是否有Protein_Change2，因为如果有的话，也是循环输出，跟protein_change2没关系。
         new_minigene_list, raw_minigene_list = loop_minigene(aa_position, start_position, end_position, stop_codon_position, raw_seq_aa, new_seq_aa)
         new_minigene_list[-1] = new_minigene_list[-1] + "*?"
-        # new_minigene_list = [new_seq_aa[start_position:end_position]+"*?"]
-        # raw_minigene_list = [raw_seq_aa[start_position:end_position]]
-    # print("start_position: {}, end_position: {}".format(start_position, end_position))
-    # print(len(raw_minigene_list), len(new_minigene_list))
     while len(raw_minigene_list) != len(new_minigene_list):
         raw_minigene_list.append(raw_minigene_list[0])
     return raw_minigene_list, new_minigene_list
@@ -258,7 +254,7 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
         else:
             MutMG_ID_for_order = gene_id + "-" + Protein_Change.lstrip("p.")
         # print("MutMG_ID_for_order: {}".format(MutMG_ID_for_order))
-        
+
         if "?" in new_minigene:
             # manually check the mutation.
             doNotSyn = "ManualCheck"
@@ -352,14 +348,13 @@ def main():
     for index, row in maf_data.iterrows():
         gene_id = row["Hugo_Symbol"]
         var_type = row["Variant_Classification"]
-        if gene_id != "Unknown":
-            if var_type in saved_Variant_Classification and row['Protein_Change'] != "NA":
-                useful_mutation += 1
-                gene_dict.setdefault(gene_id,[]).append(row)
-            else:
-                unknown_type_count += 1
-        else:
+        if gene_id == "Unknown":
             Unknown_Gene += 1
+        elif var_type in saved_Variant_Classification and row['Protein_Change'] != "NA":
+            useful_mutation += 1
+            gene_dict.setdefault(gene_id,[]).append(row)
+        else:
+            unknown_type_count += 1
     print("Total number of useful mutations: {}".format(useful_mutation))
     print("Total number of Unknown_type_count: {}".format(unknown_type_count))
     print("Total number of Unknown_Gene: {}".format(Unknown_Gene))
@@ -377,53 +372,51 @@ def main():
             raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome)
             print("Protein_Change: {}, raw_minigene_list: {}, new_minigene_list: {}".format(Protein_Change, raw_minigene_list, new_minigene_list))
             save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
-        else: # multiple mutations in this gene
+        elif len(rows) == 2: # two mutations in this gene
             positions = [row["Start_Position"] for row in rows] # get all the positions of this gene
             # print("Detect Multiple({}) mutations in this gene: {}, they are in {}".format(len(positions),gene_id, positions))
-            if len(positions) == 2: # only two mutations in this gene
-                if abs(int(positions[0]) - int(positions[1])) > 45: # if the distance between two mutations is larger than 45, they are independent event.
-                    # deal with the first mutation
-                    new_seq = single_position_fix(raw_seq, cDNA_Change)
-                    raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome)
-                    save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
-                    # deal with the second mutation
-                    cDNA_Change2 = rows[1]["cDNA_Change"]
-                    Protein_Change2 = rows[1]["Protein_Change"]
-                    new_seq = single_position_fix(raw_seq, cDNA_Change2)
-                    raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change2, Chromosome)
-                    save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change2, Protein_Change2)
-                else: # if the distance between two mutations is less than 45bp, they are disturbed by position. they are simultaneous event.
-                    cDNA_Change2 = rows[1]["cDNA_Change"] # c.2666_2667insT
-                    # print("they are disturbed by position {} {} {} {}".format(positions[0], positions[1], cDNA_Change, cDNA_Change2))
-                    Protein_Change2 = rows[1]["Protein_Change"]
-                    new_seq = multi_position_fix(raw_seq, cDNA_Change, cDNA_Change2)
-                    raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Change2)
-                    save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
-                    
-                    ######## save the second mutation record ##############
-                    row = rows[1]
-                    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tMerged\n".format(
-                        row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
-                        row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"],  # 6-10
-                        row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"],   # 11-15
-                        row["dbSNP_RS"], row["Genome_Change"], row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"],  # 16-20
-                        cDNA_Change2, row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"],     # 21-25
-                        row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"],  # 26-30
-                        ) 
+            if abs(int(positions[0]) - int(positions[1])) > 45: # if the distance between two mutations is larger than 45, they are independent event.
+                # deal with the first mutation
+                new_seq = single_position_fix(raw_seq, cDNA_Change)
+                raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome)
+                save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
+                # deal with the second mutation
+                cDNA_Change2 = rows[1]["cDNA_Change"]
+                Protein_Change2 = rows[1]["Protein_Change"]
+                new_seq = single_position_fix(raw_seq, cDNA_Change2)
+                raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change2, Chromosome)
+                save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change2, Protein_Change2)
+            else: # if the distance between two mutations is less than 45bp, they are disturbed by position. they are simultaneous event.
+                cDNA_Change2 = rows[1]["cDNA_Change"] # c.2666_2667insT
+                # print("they are disturbed by position {} {} {} {}".format(positions[0], positions[1], cDNA_Change, cDNA_Change2))
+                Protein_Change2 = rows[1]["Protein_Change"]
+                new_seq = multi_position_fix(raw_seq, cDNA_Change, cDNA_Change2)
+                raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Change2)
+                save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
+                ######## save the second mutation record ##############
+                row = rows[1]
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tMerged\n".format(
+                    row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
+                    row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"],  # 6-10
+                    row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"],   # 11-15
+                    row["dbSNP_RS"], row["Genome_Change"], row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"],  # 16-20
+                    cDNA_Change2, row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"],     # 21-25
+                    row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"],  # 26-30
+                    ) 
+                )
+        else:
+            print("more than 3 positions in this gene: {}. please check manually.".format(gene_id))
+            # print rows information
+            for row in rows:
+                output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tMulti-mutations\t\tManualCheck\n".format(
+                    row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
+                    row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"],  # 6-10
+                    row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"],   # 11-15
+                    row["dbSNP_RS"], row["Genome_Change"], row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"],  # 16-20
+                    row['cDNA_Change'], row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"],     # 21-25
+                    row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"],  # 26-30
                     )
-            else:
-                print("more than 3 positions in this gene: {}. please check manually.".format(gene_id))
-                # print rows information
-                for row in rows:
-                    output_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tMerged\n".format(
-                        row["Hugo_Symbol"], row["Entrez_Gene_Id"], row["Center"], row["NCBI_Build"], row["Chromosome"],  # 1-5
-                        row["Start_Position"], row["End_Position"], row["Strand"], row["Variant_Classification"], row["Variant_Type"],  # 6-10
-                        row["Reference_Allele"], row["Tumor_Seq_Allele1"], row["Tumor_Seq_Allele2"], row["Tumor_Sample_Barcode"], row["Matched_Norm_Sample_Barcode"],   # 11-15
-                        row["dbSNP_RS"], row["Genome_Change"], row["Annotation_Transcript"], row["Transcript_Strand"], row["Transcript_Exon"],  # 16-20
-                        cDNA_Change2, row["Codon_Change"], row["Protein_Change"], row["Refseq_mRNA_Id"], row["tumor_f"],     # 21-25
-                        row["t_alt_count"], row["t_ref_count"], row["n_alt_count"], row["n_ref_count"], row["DP"],  # 26-30
-                        )
-                    )
+                )
     output_file.close()
     print("Finished extract minigene!")
 
