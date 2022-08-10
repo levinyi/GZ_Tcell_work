@@ -21,14 +21,14 @@ def usage():
 
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
-    parser.add_argument('-c', '--config',  action='store', dest='config', default='config.txt', help="this is config file")
-    parser.add_argument('-p', '--project', action='store', dest='project', default='my_project', help='this is project')
+    parser.add_argument('-c', '--config',  action='store', dest='config', default='config.txt', help="input config file")
+    parser.add_argument('-p', '--project', action='store', dest='project', default='my_project', help='project name for output.')
     parser.add_argument('-s', '--average', action='store', dest='average', help='default [null].set [Pre,Mock,Real]')
     parser.add_argument('-m', '--min_freq', action='store', dest='min_freq',default='0.0000001', help='min_freq default: 0.0000001')
     return parser.parse_args()
 
 
-def generate_big_dict(all_sample_list, min_freq,real_sample_list,sample_dict):
+def generate_big_dict(all_sample_list, min_freq, real_sample_list, sample_dict):
     # input file sample_dict{sample:pre,sample1:mock,sample3:real}
     # print(sample_dict)
     files = os.listdir(path='.')
@@ -127,7 +127,7 @@ def main():
     big_df, new_sample_list, new_sample_dict ,pre_sample_list, mock_sample_list, real_sample_list = generate_big_dict(all_sample_list, min_freq, real_sample_list,sample_dict)
     # print(big_df)
 
-    # print("new_sample_dict: {}".format(new_sample_dict))
+    print("new_sample_dict: {}".format(new_sample_dict))
     ##############################################
     if parser.average:
         ave_set = parser.average.rstrip(",").split(",")  # [Pre,Mock,Real]
