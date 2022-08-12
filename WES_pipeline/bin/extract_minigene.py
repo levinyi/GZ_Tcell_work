@@ -2,7 +2,6 @@
 import sys
 import os
 import re
-from tokenize import endpats
 import pandas as pd
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -29,6 +28,7 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20220811    fixed a bug in two continuous mutations in one codon. LC24:ARID3A:c.(1159-1161)aAT>aGC:p.N387S
     20220801    fixed nonstop mutation bug.
     20220728    fixed ID_for_order too long in save_minigene function.
     20220711    Add 5 columns to output file: doNotsyn,MutMG_ID_for_order, Mut_AA29_for_order, wtMG_ID_for_order, wt_AA29_for_order.
@@ -41,12 +41,13 @@ Updates:
 
 def single_position_fix(raw_seq, cDNA_Change):
     c1_type, c1_start, c1_end, c1_seq = get_cDNA_Change_Info(cDNA_Change)
+    print("c1_type: {}, c1_start: {}, c1_end: {}, c1_seq: {}".format(c1_type, c1_start, c1_end, c1_seq))
     if c1_type == "ins":
         full_seq = raw_seq[:c1_start] + c1_seq + raw_seq[c1_start:]
     elif c1_type == "del":
         full_seq = raw_seq[:c1_start-1] + raw_seq[c1_end:]
     elif c1_type == ">":
-        full_seq = raw_seq[:c1_start-1] + c1_seq + raw_seq[c1_start:]
+        full_seq = raw_seq[:c1_start-1] + c1_seq + raw_seq[c1_end:]
     return full_seq
 
 
@@ -369,6 +370,7 @@ def main():
         # print(rows[0]['Hugo_Symbol'], cDNA_Change, rows[0]['Annotation_Transcript'], Protein_Change, Chromosome, rows[0]['Variant_Classification'])
         if len(rows) == 1: # only one mutation in this gene
             new_seq = single_position_fix(raw_seq, cDNA_Change)
+            print("gene_id:{}, raw_seq:{}, new_seq:{}".format(gene_id, raw_seq, new_seq))
             raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome)
             print("Protein_Change: {}, raw_minigene_list: {}, new_minigene_list: {}".format(Protein_Change, raw_minigene_list, new_minigene_list))
             save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
@@ -391,6 +393,7 @@ def main():
                 # print("they are disturbed by position {} {} {} {}".format(positions[0], positions[1], cDNA_Change, cDNA_Change2))
                 Protein_Change2 = rows[1]["Protein_Change"]
                 new_seq = multi_position_fix(raw_seq, cDNA_Change, cDNA_Change2)
+                print("gene_id:{}, raw_seq:{}, new_seq:{}".format(gene_id, raw_seq, new_seq))
                 raw_minigene_list, new_minigene_list = extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Change2)
                 save_minigene(output_file, raw_minigene_list, new_minigene_list, rows[0], gene_id, cDNA_Change, Protein_Change)
                 ######## save the second mutation record ##############
