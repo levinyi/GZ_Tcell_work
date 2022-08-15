@@ -5,19 +5,21 @@ freq_file = sys.argv[2]
 
 adict = {}
 with open(freq_file, "r") as f:
+    """pair    CDR3_acc  CDR3_freq  match_AB6_count  match_AB6_freq"""
     for line in f:
         line = line.rstrip("\n")
-        if line.startswith("pair"):
+        if line.startswith("pair"): # skip header
             continue
         # pair,CDR3_acc, CDR3_freq, perfect_count, perfect_freq = line.split()
         # adict[pair] = perfect_freq
         a = line.split()
-        adict[a[0]] = a[4]
+        adict[a[0]] = a[4] # match_AB6_freq
 
 
 # pattern = re.compile(r'.*\.(clonotype.*)\.[ATCG]{8}.*')
 # pattern = re.compile(r'.*\.(.*)\.[ATCG]{12}.*')
 with open(sum_file, "r") as f:
+    print("Molecule\tCDR3aJ.Identity\tCDR3aJ.Coverage%\tCDR3aJ.Mutation\tCDR3aJ.InDel\tconA.Identity\tconA.Coverage%\tconA.Mutation\tconA.InDel\tTRAV.Identity\tTRAV.Coverage%\tTRAV.Mutation\tTRAV.InDel\tCDR3bJ.Identity\tCDR3bJ.Coverage%\tCDR3bJ.Mutation\tCDR3bJ.InDel\tconB.Identity\tconB.Coverage%\tconB.Mutation\tconB.InDel\tTRBV.Identity\tTRBV.Coverage%\tTRBV.Mutation\tTRBV.InDel"
     print("Molecule\tCDR3aJ.Identity\tCDR3aJ.Coverage%\tCDR3aJ.Mutation\tCDR3aJ.InDel\tconA.Identity\tconA.Coverage%\tconA.Mutation\tconA.InDel\tTRAV.Identity\tTRAV.Coverage%\tTRAV.Mutation\tTRAV.InDel\tCDR3bJ.Identity\tCDR3bJ.Coverage%\tCDR3bJ.Mutation\tCDR3bJ.InDel\tconB.Identity\tconB.Coverage%\tconB.Mutation\tconB.InDel\tTRBV.Identity\tTRBV.Coverage%\tTRBV.Mutation\tTRBV.InDel\tSum.of.5.TRA\tSum.of.5.TRB\tTCR_freq")
     for line in f:
         if line.startswith(("Molecule","molecule")):
