@@ -1,5 +1,6 @@
 import sys
 import os
+import pandas as pd
 import argparse
 
 
@@ -55,6 +56,58 @@ def deal_frequency_file(frequ_file, frequency, total_number, counts_sum):
     print("")
     return match_perfect_number
 
+def deal_sum_file2(summa_file, frequency, match_perfect_number):
+    data = pd.read_csv(summa_file, sep="\t")
+    # header = data.columns.tolist()
+
+    mut_in_CDR3aJ   = int((data['CDR3aJ.Mutation']==0).sum())
+    Indel_in_CDR3aJ = int((data['CDR3aJ.InDel']==0).sum())
+    mut_in_conA     = int((data['conA.Mutation']==0).sum())
+    Indel_in_conA   = int((data['conA.InDel']==0).sum())
+    # mut_in_TRAV     = int((data['TRAV.Mutation']==0).sum())
+    # Indel_in_TRAV   = int((data['TRAV.InDel']==0).sum())
+    mut_in_CDR3bJ   = int((data['CDR3bJ.Mutation']==0).sum())
+    Indel_in_CDR3bJ = int((data['CDR3bJ.InDel']==0).sum())
+    mut_in_conB     = int((data['conB.Mutation']==0).sum())
+    Indel_in_conB   = int((data['conB.InDel']==0).sum())
+    mut_in_TRBV     = int((data['TRBV.Mutation']==0).sum())
+    Indel_in_TRBV   = int((data['TRBV.InDel']==0).sum())
+    overall_wo_TRAV = int((data['Sum.of.5.TRB']==0).sum())  # attention: this is not Sum.of.5.TRAV
+    # overall_wo_TRBV = int((data['Sum.of.5.TRA']==0).sum()) # attention: this is not Sum.of.5.TRBV
+    # count total number
+    total_molecules_in_file = data.shape[0]
+
+    print("Match_perfect molecules in the file \".sum\": ,,,{}".format(total_molecules_in_file))
+    print("mut in CDR3aJ,Indel in CDR3aJ,mut in conA,Indel in conA,mut in CDR3bJ,Indel in CDR3bJ,mut in conB,Indel in conB,mut in TRBV,Indel in TRBV,Overall w/o TRAV,Error-free% in TRBV,Overall w/o TRAV,Overall Err-free w/ TRAV,Error free % at Freq>{}".format(frequency))
+    print("{},{},{},{},{},{},{},{},{},{},{},,Theoretical(TRBV was multiplied twice)".format(
+        mut_in_CDR3aJ, Indel_in_CDR3aJ, mut_in_conA, Indel_in_conA, 
+        mut_in_CDR3bJ, Indel_in_CDR3bJ, mut_in_conB, Indel_in_conB, 
+        mut_in_TRBV,Indel_in_TRBV, overall_wo_TRAV))
+    Error_free_in_TRBV = (mut_in_TRBV**2)*(Indel_in_TRBV**2)/(float(total_molecules_in_file))**4
+    Theoretical_pct = ((mut_in_CDR3aJ*Indel_in_CDR3aJ*mut_in_conA*Indel_in_conA*mut_in_CDR3bJ*Indel_in_CDR3bJ*mut_in_conB*Indel_in_conB)/float(pow(total_molecules_in_file,8)))*Error_free_in_TRBV
+    print("{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%},{:%}".format(
+        mut_in_CDR3aJ/float(total_molecules_in_file), 
+        Indel_in_CDR3aJ/float(total_molecules_in_file), 
+        mut_in_conA/float(total_molecules_in_file), 
+        Indel_in_conA/float(total_molecules_in_file), 
+        # mut_in_TRAV/float(total_molecules_in_file), 
+        # Indel_in_TRAV/float(total_molecules_in_file), 
+        mut_in_CDR3bJ/float(total_molecules_in_file), 
+        Indel_in_CDR3bJ/float(total_molecules_in_file), 
+        mut_in_conB/float(total_molecules_in_file), 
+        Indel_in_conB/float(total_molecules_in_file),
+        mut_in_TRBV/float(total_molecules_in_file), 
+        Indel_in_TRBV/float(total_molecules_in_file), 
+        overall_wo_TRAV/float(total_molecules_in_file),
+        # overall_wo_TRBV/float(total_molecules_in_file),
+        Error_free_in_TRBV,
+        Theoretical_pct,
+        Theoretical_pct*Error_free_in_TRBV,
+        match_perfect_number*Theoretical_pct*Error_free_in_TRBV,
+        ))
+    print("")
+
+
 
 def deal_sum_file(summa_file, frequency, match_perfect_number):
     if summa_file:
@@ -104,9 +157,9 @@ def deal_sum_file(summa_file, frequency, match_perfect_number):
                     mut_in_TRBV += 1
                 if int(c[24]) == 0:
                     Indel_in_TRBV += 1
-                if int(c[25]) == 0:
+                if float(c[25]) == 0:
                     overall_wo_TRBV += 1
-                if int(c[26]) == 0:
+                if float(c[26]) == 0:
                     overall_wo_TRAV += 1
                 total_molecules_in_file += 1
         ############################ output result
@@ -162,7 +215,7 @@ def main():
     ###################### Section 2.
     match_perfect_number = deal_frequency_file(frequ_file, frequency, total_number, counts_sum)
     ###################### Section 3 
-    deal_sum_file(summa_file, frequency, match_perfect_number)
+    deal_sum_file2(summa_file, frequency, match_perfect_number)
 
 if __name__ =='__main__':
     main()
