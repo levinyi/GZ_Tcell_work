@@ -1,15 +1,12 @@
 #!/usr/bin/python3.8
 import os
-import sys
 import argparse
 import configparser
-from telnetlib import TTYPE
 
 
 def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
     parser.add_argument('-c', '--config', action='store', dest='config', default='config.txt', help="this is config file")
-    # parser.add_argument('-l', '--list', action='store', dest='data', default='data.xls', help="this is data list file")
     return parser.parse_args()
 
 
@@ -87,10 +84,10 @@ def main():
     # only open a file so use try:finally to close.
 
     with open(shell_name,"w") as f:
-        # bwa.
+        ### bwa.
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Normal\\tSM:Normal\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {normal_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Normal.sortedByCoord.bam - \n".format(**config_dict))
         f.write("{bwa} mem -t {bwa_threads} -Y -H \"@HD\\tVN:1.5\\tGO:none\\tSO:coordinate\" -R \"@RG\\tID:{sample_name}_Tumor\\tSM:Tumor\\tLB:WES\\tPL:ILLumina\\tPU:HVW2MCCXX:6:none\" {ref_fasta} {tumor_fastq} | {samtools} view -@ {samtools_threads} -buhS -t {ref_fasta}.fai - | {samtools} sort -@ {samtools_threads} -o {sample_name}.Tumor.sortedByCoord.bam - \n".format(**config_dict))
-        # MarkDuplicates
+        ### MarkDuplicates
         f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            MarkDuplicates \\
             --INPUT {sample_name}.Normal.sortedByCoord.bam \\
             --OUTPUT {sample_name}.Normal.duplicates_marked.bam \\
@@ -131,7 +128,7 @@ def main():
             --CREATE_INDEX true \\
             --CREATE_MD5_FILE false \\
             --REFERENCE_SEQUENCE {ref_fasta} \n""".format(**config_dict))
-        # # BaseRecalibrator
+        ### BaseRecalibrator
         f.write("""{gatk} --java-options \"-Xms{java_mem}G\"            BaseRecalibrator \\
             -R {ref_fasta} \\
             -I {sample_name}.Normal.duplicates_marked_sorted_fixed.bam \\
@@ -255,13 +252,11 @@ def main():
             --annotation-default Sequencer:NovaSeq6000 \n""".format(**config_dict))
         f.write("""grep -v \"^#\" {sample_name}.variants.funcotated.MAF.xls > {sample_name}.variants.funcotated.without.header.MAF.xls\n""".format(**config_dict))
         f.write("""python3 {scripts_dir}/extract_minigene.py {cds_fasta} {sample_name}.variants.funcotated.without.header.MAF.xls {sample_name}.variants.funcotated.with.minigene.MAF.xls\n""".format(**config_dict))
-        #f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{print$5"\\t"$6-1"\\t"$7}}' > {sample_name}.snp.checked.bed\n""".format(**config_dict))
-        f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{if ($5 == "MT") {{print"chrM\\t"$6-1"\\t"$7}}else{{print$5"\\t"$6-1"\\t"$7}}}}' >{sample_name}.snp.checked.bed\n""".format(**config_dict))
-
-
-        ##############################
+        # f.write("""less {sample_name}.variants.funcotated.with.minigene.MAF.xls | grep -v "Hugo_Symbol" |awk '{{if ($5 == "MT") {{print"chrM\\t"$6-1"\\t"$7}}else{{print$5"\\t"$6-1"\\t"$7}}}}' >{sample_name}.snp.checked.bed\n""".format(**config_dict))
+        f.write("""python3 {scripts_dir}/maf2bed.py {sample_name}.variants.funcotated.with.minigene.MAF.xls > {sample_name}.snp.checked.bed\n""".format(**config_dict))
+        ###############################################
         ##### purity and ploidy by sequenza
-        ##############################
+        ###############################################
         f.write('''sequenza-utils bam2seqz \\
             -n {sample_name}.Normal.duplicates_marked_sorted_fixed.BQSR.bam \\
             -t {sample_name}.Tumor.duplicates_marked_sorted_fixed.BQSR.bam \\
@@ -270,9 +265,9 @@ def main():
             -o Sequenza-analysis/{sample_name}.seqz.gz\n'''.format(**config_dict))
         f.write('''sequenza-utils seqz_binning --seqz Sequenza-analysis/{sample_name}.seqz.gz --window 50 -o Sequenza-analysis/{sample_name}.small.seqz.gz\n'''.format(**config_dict))
         f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scripts/sequenca_analysis_wes.R Sequenza-analysis/{sample_name}.small.seqz.gz Sequenza-analysis/{sample_name}\n'''.format(**config_dict))
-        ##############################
+        ##############################################
         #### HLA : OptiType
-        ##############################
+        ##############################################
         f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Normal.fished_1.bam {OptiType_reference} {normal_fastq_rd1}\n'''.format(**{'normal_fastq_rd1':config_dict['normal_fastq'].split()[0]},**config_dict,))
         f.write('''razers3 -i 95 -m 1 -dr 0 -o {sample_name}.Normal.fished_2.bam {OptiType_reference} {normal_fastq_rd2}\n'''.format(**{'normal_fastq_rd2':config_dict['normal_fastq'].split()[1]},**config_dict,))
         f.write('''samtools bam2fq {sample_name}.Normal.fished_1.bam > {sample_name}.Normal.fished_1.fastq\n'''.format(**config_dict))
@@ -286,22 +281,19 @@ def main():
         f.write('''python3 {OptiType} -i {sample_name}.Tumor.fished_1.fastq {sample_name}.Tumor.fished_2.fastq --dna -v -o  OptiType-analysis -p {sample_name}.Tumor\n'''.format(**config_dict))
 
         f.write('''rm {sample_name}.*.fished_*.bam {sample_name}.*.fished_*.fastq\n'''.format(**config_dict))
-        ##############################
+        ###############################################
         #### HLA : HLA-scan 
-        ##############################
+        ###############################################
         for hla_type in ["HLA-A","HLA-B","HLA-C","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQB1","HLA-DRA","HLA-DRB1","HLA-DRB5","HLA-E","HLA-F","HLA-G","MICA","MICB","TAP1","TAP2"]:
             for t_type in ["Normal","Tumor"]:
                 f.write('''hla_scan -t 10 -b {sample_name}.{t_type}.duplicates_marked_sorted_fixed.BQSR.bam -d {hla_scan_db} -g {hla_type} -v 38 >hla_scan-analysis/{sample_name}.{t_type}.{hla_type}.out.txt\n'''.format(**config_dict,**{'t_type':t_type,'hla_type':hla_type}))
         f.write('''python3 /cygene/work/00.test/pipeline/HLA-pipeline/HLAscan/merge_HLA_result.py hla_scan-analysis/*.txt > hla_scan-analysis/HLA.results.txt\n'''.format(**config_dict))
 
-        ############################
+        ##############################################
         #### delete temp files
-        ############################
+        ##############################################
         f.write('''rm *.duplicates_marked_sorted_fixed.ba* *.duplicates_marked.ba* \n'''.format(**config_dict))
     print("all finished!")
 
 if __name__ == '__main__':
     main()
-
-
-
