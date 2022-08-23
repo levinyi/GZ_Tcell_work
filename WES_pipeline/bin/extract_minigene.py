@@ -28,10 +28,11 @@ Notes:
         3. standardization output format to a xls format.
 
 Updates:
+    20220818    label "ManualCheck" for "In-Frame-Ins" and "Mitochondrial" type.
     20220811    fixed a bug in two continuous mutations in one codon. LC24:ARID3A:c.(1159-1161)aAT>aGC:p.N387S
     20220801    fixed nonstop mutation bug.
     20220728    fixed ID_for_order too long in save_minigene function.
-    20220711    Add 5 columns to output file: doNotsyn,MutMG_ID_for_order, Mut_AA29_for_order, wtMG_ID_for_order, wt_AA29_for_order.
+    20220711    Add 5 columns to output file: doNotsyn, MutMG_ID_for_order, Mut_AA29_for_order, wtMG_ID_for_order, wt_AA29_for_order.
     20220217    Fix bugs: DtypeWarning: Columns (56,88,101,103,107,108,111,147) have mixed types.Specify dtype option on import or set low_memory=False. [at pandas read file]
     20210423    Fix bugs: if mutation occurs in Mitochondrial, use coding_dna.translate(table="Vertebrate Mitochondrial")
     20200709    Add "End_Position" field to result.
@@ -162,8 +163,8 @@ def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Chang
             Protein_Change, Protein_Change2 = Protein_Change2, Protein_Change
     # if Chromosome is Mitochondrial. Use Seq(seq).translate(table="Vertebrate Mitochondrial") otherwise it will raise error.
     if Chromosome == "MT":
-        raw_seq_aa = str(Seq(raw_seq).translate(table="Vertebrate Mitochondrial")) +"*" # add * to the end of the raw_seq_aa. fake the stop codon.
-        new_seq_aa = str(Seq(new_seq).translate(table="Vertebrate Mitochondrial")) # if no * in the end of the new_seq_aa. turn to manualy check. otherwise turn to ...
+        raw_seq_aa = str(Seq(raw_seq).translate(table="Vertebrate Mitochondrial")) +"*"  # add * to the end of the raw_seq_aa. fake the stop codon.
+        new_seq_aa = str(Seq(new_seq).translate(table="Vertebrate Mitochondrial")) +"*"  # add * to the end of the new_seq_aa. fake the stop codon. manualy check
     else:
         raw_seq_aa = str(Seq(raw_seq).translate())
         new_seq_aa = str(Seq(new_seq).translate())
@@ -186,7 +187,7 @@ def extract_minigene(raw_seq, new_seq, Protein_Change, Chromosome, Protein_Chang
     elif "*" == new_seq_aa[-1]: # last one is *.
         # print("new_seq_aa: {}, raw_seq_aa: {}".format(new_seq_aa, raw_seq_aa))
         # protein_change 中只有ins是有两个数字的，p.234_235insGESTSFFFFF. 如果插入的很长，就需要loop输出minigene.
-        # 并且要注意，aaposition的位置是从后面的数字开始的,也就是要加1位。
+        # 并且要注意，aa_position的位置是从后面的数字开始的,也就是要加1位。
         if "ins" in Protein_Change: 
             aa_position = aa_position +1
             if aa_position <= 14:
@@ -256,7 +257,7 @@ def save_minigene(output_file, raw_minigene_list, new_minigene_list, row, gene_i
             MutMG_ID_for_order = gene_id + "-" + Protein_Change.lstrip("p.")
         # print("MutMG_ID_for_order: {}".format(MutMG_ID_for_order))
 
-        if "?" in new_minigene:
+        if "?" in new_minigene or row["Variant_Classification"] == "Frame_Shift_Ins" or row["Chromosome"] == "MT":
             # manually check the mutation.
             doNotSyn = "ManualCheck"
 
