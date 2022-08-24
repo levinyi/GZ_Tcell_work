@@ -4,10 +4,9 @@ import argparse
 
 
 def _argparse():
-    parser = argparse.ArgumentParser(description = "A feature tpm.")
+    parser = argparse.ArgumentParser(description = "featureCounts to TPM.")
     parser.add_argument('-a', '--countsFile', action='store', dest='countsfile')
     parser.add_argument('-o', '--outfile', action='store',dest='outfile')
-    # parser.add_argument('-g', '--gtfFile', action='store', dest='gtffile')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1')
     return parser.parse_args()    
 
@@ -15,7 +14,7 @@ def print_TPM(gene_ratio_dict, total_ratio, outfile):
     with open(outfile, "w") as f:
         for gene in gene_ratio_dict:
             TPM = (gene_ratio_dict[gene]*1000000) / float(total_ratio)
-            f.write("{}\t{}\n".format(gene,TPM))
+            f.write("{}\t{}\n".format(gene, TPM))
 
 def main():
     ''' docstring for main'''
