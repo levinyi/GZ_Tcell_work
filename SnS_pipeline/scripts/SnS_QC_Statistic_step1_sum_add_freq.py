@@ -15,8 +15,11 @@ with open(freq_file, "r") as f:
         # pair,CDR3_acc, CDR3_freq, perfect_count, perfect_freq = line.split()
         # adict[pair] = perfect_freq
         a = line.split()
-        adict[a[0]] = a[4] # match_AB6_freq
-
+        # adict[a[0]] = a[4] # match_AB6_freq
+        if len(a) == 5:
+            adict[a[0]] = a[4] # match_AB6_freq
+        else:
+            adict[a[0]] = "NA"
 
 # pattern = re.compile(r'.*\.(clonotype.*)\.[ATCG]{8}.*')
 # pattern = re.compile(r'.*\.(.*)\.[ATCG]{12}.*')
@@ -59,6 +62,8 @@ for index, row in data.iterrows():
     data.loc[index, 'TCR_freq'] = tcr_freq
 # data = data.round(decimals=0).astype(object)
 # data = data.astype(str)
+data['Sum.of.5.TRA'] = data['Sum.of.5.TRA'].astype(int)
+data['Sum.of.5.TRB'] = data['Sum.of.5.TRB'].astype(int)
 data.to_csv(out_file, sep="\t", index=False, header=header)
     
 '''
