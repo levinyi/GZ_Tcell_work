@@ -42,6 +42,8 @@ def deal_frequency_file(frequ_file, frequency, total_number, counts_sum):
             if line.startswith("pair"):
                 continue
             c = line.split()
+            if len(c) != 5:
+                continue
             if c[1] != '0':
                 molecule_number += 1
             if float(c[4]) >= frequency:
@@ -81,7 +83,7 @@ def main():
     counts_sum = deal_count_file(count_file)
 
     # 
-    match_perfect_number = deal_frequency_file(frequ_file,frequency,total_number, counts_sum)
+    match_perfect_number = deal_frequency_file(frequ_file, frequency, total_number, counts_sum)
 
     if summa_file:
         mut_in_CDR3aJ = 0
