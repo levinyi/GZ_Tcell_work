@@ -11,8 +11,8 @@
 suppressMessages(library(here))
 suppressMessages(library(optparse))
 suppressMessages(library(rBCS))
-suppressMessages(source(here("src", "AutomationFunctions.R")))
-suppressMessages(source(here('src', 'SeuratWrappers.R')))
+# suppressMessages(source(here("src", "AutomationFunctions.R")))
+# suppressMessages(source(here('src', 'SeuratWrappers.R')))
 
 # define CLI interface and parser
 nl <- "\n\t\t"
@@ -60,10 +60,21 @@ parser <- add_option(parser, c("-o", "--output"),
                                 sep = nl))
 
 parsed_args <- parse_args2(parser)
+
+args = c("has_vdj", "has_csp", "sep_csp","mouse", "verbose", "input", "output")
+in_list <- list()
+for (arg in args) {
+	print(paste(arg, parsed_args$options[[arg]]))
+	in_list[[arg]] <- parsed_args$options[[arg]]
+}
+print(in_list)
+print(parsed_args$options$input)
 in_list <- handle_options(parsed_args$options,
                           args = c("has_vdj", "has_csp", "sep_csp",
                                    "mouse", "verbose", "input", "output"))
+print(in_list)
 in_list <- handle_pos_args(parsed_args$args, in_list)
+print(in_list)
 # error checks
 if (is.null(in_list)) {
   # error message should have already been printed from handle_cli
