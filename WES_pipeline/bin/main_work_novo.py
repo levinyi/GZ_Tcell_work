@@ -13,7 +13,7 @@ def _argparse():
 def make_dir(*dir):
     for each in dir:
         if not os.path.exists(each):
-            os.mkdir( each )
+            os.makedirs(each)
 
 
 def main():
@@ -70,16 +70,17 @@ def main():
         'normal_fastq' : cf.get('Config', "normal_fastq"),
     }
     #make directories:
-    project_dir = os.path.abspath(".") + '/' + config_dict['project_name']
-    hla_scan_dir = os.path.abspath(project_dir + '/' + "hla_scan-analysis")
-    Optitype_dir = os.path.abspath(project_dir + '/' + "OptiType-analysis")
-    sequenza_dir = os.path.abspath(project_dir + '/' + "Sequenza-analysis")
-    depth_dir = os.path.abspath(project_dir + '/' + "DepthOfCoverage")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.join(base_dir, config_dict['project_name'])
+    hla_scan_dir = os.path.join(base_dir, config_dict['project_name'], "hla_scan-analysis")
+    Optitype_dir = os.path.join(base_dir, config_dict['project_name'], "OptiType-analysis")
+    sequenza_dir = os.path.join(base_dir, config_dict['project_name'], "Sequenza-analysis")
+    depth_dir = os.path.join(base_dir, config_dict['project_name'], "DepthOfCoverage")
     make_dir(project_dir, hla_scan_dir, Optitype_dir, sequenza_dir, depth_dir)
     print("# Create work directory")
 
     # generate shell
-    shell_name = project_dir + '/work.' + config_dict['project_name'] + '.WES.sh'
+    shell_name = os.path.join(base_dir, config_dict['project_name'], 'work.' + config_dict['project_name'] + '.WES.sh')
     # shell_name = shell_dir + '/work.' + config_dict['project_name'] + '.sh'
     # only open a file so use try:finally to close.
 
