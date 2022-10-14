@@ -6,7 +6,7 @@ def _argparse():
     parser = argparse.ArgumentParser(description="This is description")
     parser.add_argument('-l', '--log', action='store', dest='log_file', required=True, help="input read1 file")
     parser.add_argument('-d', '--dir', action='store', dest='result_dir', default='./', help="input read2 file")
-    parser.add_argument('-f',  '--flag', action='store_true', dest='flag', default=False, help="means to contains -l flag in output.")
+    parser.add_argument('-f', '--flag', action='store_true', dest='flag', default=False, help="means to contains -l flag in output.")
 
     parser.add_argument('-v',  '--version', action='version', version='%(prog)s 0.1')
     return parser.parse_args()
@@ -19,15 +19,15 @@ def main():
     result_dir = parser.result_dir
     # print parser.flag
     if parser.flag:
-        print "flag is : True"
+        print("flag is : True")
     else:
-        print "flag is : False"
+        print("flag is : False")
     file_name = os.path.basename(logfile).split(".")[0]
 
     length_list = []
     with open(logfile, "r") as f, open(result_dir + '/' + file_name + ".p1.fq", "w") as OUT1, open(result_dir + '/' + file_name + '.p2.fq', "w") as OUT2:
         for line in f:
-            line = line.rstrip("\n")
+            line = line.rstrip("\t\n")
             c = line.split("\t")
             length_list.append(len(c))
             if len(c) == 4:  # no adapter in line
@@ -43,6 +43,7 @@ def main():
                     OUT2.write("@%s\n%s\n+\n%s\n" % (c[0], c[6], c[10]))
             else:
                 print("Attention: your log file contains : %s columns." % len(c))
+    print(set(length_list))
     print("finished")
 
 if __name__ == '__main__':
