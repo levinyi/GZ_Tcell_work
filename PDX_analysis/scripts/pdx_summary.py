@@ -72,7 +72,7 @@ def main():
     ribosomal_dict = deal_ribosomal()
     # write to file
     # header 
-    print("Sample\tTotal_Reads\tmapped_mm10_reads\trate\tmm10.unmapped.to.hg38.total.reads\tmapped_reads\trate\ttotal.reads.for.hg38\tmapped_reads\trate\ttotal.reads.for.EBV\tmapped_reads\trate\ttotal_reads.for.ribosomal\tcontamin_reads\tcontamin_rate")
+    print("Sample\tTotal_Read_Pair\tmapped_mm10_read_pair\trate\tmm10.unmapped.to.hg38.total.read.pair\tmapped_read_pair\trate\ttotal.read.pair.for.hg38\tmapped_read_pair\trate\ttotal.reads.for.EBV\tmapped_reads\trate\ttotal_reads.for.ribosomal\tcontamin_reads\tcontamin_rate")
     header = ["mm10","mm10.unmapped.to.hg38","hg38", "EBV"]
     for name, v in mapped_dict.items():
         output_content = [name,]
