@@ -41,3 +41,7 @@ echo "finish EBV"
 /cygene/software/biosoftware/bbmap/bbduk.sh in1=G406E3L2.mm10.Unmapped.out.mate1 in2=G406E3L2.mm10.Unmapped.out.mate2 outu=G406E3L2.nonribo.fa outm=G406E3L2.ribo.fa ref=/cygene/database/human_ribosomal_DNA/human_ribosomal.fa 2>G406E3L2.bbduk.out
 /cygene/software/biosoftware/bbmap/bbduk.sh in1=G406E4L2.mm10.Unmapped.out.mate1 in2=G406E4L2.mm10.Unmapped.out.mate2 outu=G406E4L2.nonribo.fa outm=G406E4L2.ribo.fa ref=/cygene/database/human_ribosomal_DNA/human_ribosomal.fa 2>G406E4L2.bbduk.out
 echo "finish Ribosomal"
+
+
+# pdx mapping summary
+python3 ./PDX_analysis/scripts/pdx_summary.py  >pdx_summary.xls

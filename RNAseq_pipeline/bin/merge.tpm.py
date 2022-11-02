@@ -22,6 +22,7 @@ def main():
     for each in sys.argv[1:]:
         sample_name = os.path.basename(each).split(".")[0]
         df1 = pd.read_table(each, sep="\t", header=None, names=["Gene",sample_name])
+        # df1[[sample_name]] = df1[[sample_name]].astype(int)
         if big_DataFrame.empty :
             big_DataFrame = df1
         else:
