@@ -19,11 +19,12 @@ def usage():
 
 
 def main():
+    # pd.options.display.float_format = '{:,.0f}'.format
     big_DataFrame = pd.DataFrame()
     for each in sys.argv[1:]:
         sample_name = os.path.basename(each).split(".")[0] # this may be a bug if name format does not fit the nameformat.
         df1 = pd.read_table(each, sep="\t", header=None, names=["Gene", sample_name])
-        # df1[[sample_name]] = df1[[sample_name]].astype(int)
+        # df1[sample_name] = df1[sample_name].astype(str)
         if big_DataFrame.empty :
             big_DataFrame = df1
         else:
