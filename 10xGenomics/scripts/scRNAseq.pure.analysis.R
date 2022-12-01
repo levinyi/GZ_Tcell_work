@@ -42,7 +42,7 @@ output_dir = "."
 # read scRNAseq folder:
 data = Seurat::Read10X(data.dir = paste(scRNAseq_path, 'outs/filtered_feature_bc_matrix', sep = "/"))
 
-output_RNA_data = data %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% select(c("barcode","CD4","CD8A","CD8B"))
+output_RNA_data = data %>% as.matrix() %>% t() %>%  as.data.frame() %>%   rownames_to_column("barcode") %>% select(c("barcode","CD4","CD8A","CD8B","FOXP3"))
 write.table(output_RNA_data, file=paste(output_dir,'1QC/RNA.t.csv',sep="/"), sep = ",", row.names = FALSE)
 
 
@@ -55,7 +55,7 @@ sc_seurat_obj <- CreateSeuratObject(data) %>%
 	FindClusters()
 
 p1 = VlnPlot(sc_seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, log=TRUE, flip=FALSE)
-ggsave(filename=paste(output_dir,"1QC/P1.VlnPlot.feature.png",sep="/"), plot=p1, width=12,height=6,path=".")
+ggsave(filename=paste(output_dir,"1QC/P1.VlnPlot.feature.png",sep="/"), plot=p1, width=12, height=6,path=".")
 
 plot1 <- FeatureScatter(sc_seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
 plot2 <- FeatureScatter(sc_seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
