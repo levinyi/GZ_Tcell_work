@@ -92,6 +92,7 @@ RP_DS_JET <- c(ROOTPATH_COLOURS["navy"], ROOTPATH_COLOURS["blue"],
                ROOTPATH_COLOURS["orange"], ROOTPATH_COLOURS["red"])
 
 yost_markers = c("CD3D","CD4","CD8A","CD8B","FOXP3","CCR7", "IL26", "CD200","EOMES","KLRD1","IFNG","HAVCR2","CXCL13","ENTPD1","PDCD1","ITGAE")
+lung_markers = c("ABCA3", "LPCAT1", "NAPSA", "SFTPB", "SFTPC", "SLC34A2") # form CellMarker Website.
 yost_markers <- yost_markers[yost_markers %in% rownames(srt_obj)]
 yost_fp <- multi_feature_plot(srt_obj=srt_obj, feature_list = yost_markers, 
                               ggplot_mods=c(rootpath_jet_scaling())
