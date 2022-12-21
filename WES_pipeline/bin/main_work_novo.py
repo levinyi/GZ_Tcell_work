@@ -70,7 +70,7 @@ def main():
         'normal_fastq' : cf.get('Config', "normal_fastq"),
     }
     #make directories:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.getcwd()
     project_dir = os.path.join(base_dir, config_dict['project_name'])
     hla_scan_dir = os.path.join(base_dir, config_dict['project_name'], "hla_scan-analysis")
     Optitype_dir = os.path.join(base_dir, config_dict['project_name'], "OptiType-analysis")
@@ -288,7 +288,7 @@ def main():
         for hla_type in ["HLA-A","HLA-B","HLA-C","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQB1","HLA-DRA","HLA-DRB1","HLA-DRB5","HLA-E","HLA-F","HLA-G","MICA","MICB","TAP1","TAP2"]:
             for t_type in ["Normal","Tumor"]:
                 f.write('''hla_scan -t 10 -b {sample_name}.{t_type}.duplicates_marked_sorted_fixed.BQSR.bam -d {hla_scan_db} -g {hla_type} -v 38 >hla_scan-analysis/{sample_name}.{t_type}.{hla_type}.out.txt\n'''.format(**config_dict,**{'t_type':t_type,'hla_type':hla_type}))
-        f.write('''python3 /cygene/work/00.test/pipeline/HLA-pipeline/HLAscan/merge_HLA_result.py hla_scan-analysis/*.txt > hla_scan-analysis/HLA.results.txt\n'''.format(**config_dict))
+        f.write('''python3 /cygene/work/00.test/pipeline/HLA-pipeline/HLAscan/merge_HLA_result.py hla_scan-analysis/*.out.txt > hla_scan-analysis/HLA.results.txt\n'''.format(**config_dict))
 
         ##############################################
         #### delete temp files
