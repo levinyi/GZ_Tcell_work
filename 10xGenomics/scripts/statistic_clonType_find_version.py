@@ -1,7 +1,6 @@
-import sys
-import os
 import json
-
+import os
+import sys
 
 project_path = sys.argv[1]
 VDJ_path_list = [each for each in os.listdir(project_path) if each.endswith('VDJ')]
