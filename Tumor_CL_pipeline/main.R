@@ -1,69 +1,139 @@
-library(tidyverse)
-library(magrittr)
 library(here)
-here::i_am("main.R")
-args = commandArgs(T)
+library(magrittr)
+library(tidyverse)
 source(here::here('src', 'Celligner_helpers.R'))
 source(here::here('src', 'analysis_helpers.R'))
 source(here::here('src', 'global_params.R'))
 
+# setwd("/cygene/work/00.test/pipeline/Tumor_CL_pipeline")
+
 
 load_data <- function(data_dir, tumor_file = 'database/TCGA_mat.tsv', cell_line_file = 'database/CCLE_mat.csv', 
-    annotation_file = 'database/Celligner_info.csv', hgnc_file = "database/hgnc_complete_set_7.24.2018.txt",
+                      annotation_file = 'database/Celligner_info.csv', hgnc_file = "database/hgnc_complete_set_7.24.2018.txt") {
+  hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
+  
+  
+  TCGA_mat <-  readr::read_tsv(file.path(data_dir, tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Gene') %>% as.matrix() %>% t()
+  
+  common_genes <- intersect(colnames(TCGA_mat), hgnc.complete.set$symbol)
+  TCGA_mat <- TCGA_mat[,common_genes]
+  hgnc.complete.set <- filter(hgnc.complete.set, symbol %in% common_genes)
+  hgnc.complete.set <- hgnc.complete.set[!duplicated(hgnc.complete.set$symbol),]
+  rownames(hgnc.complete.set) <- hgnc.complete.set$symbol
+  hgnc.complete.set <- hgnc.complete.set[common_genes,]
+  colnames(TCGA_mat) <- hgnc.complete.set$ensembl_gene_id
+  
+  CCLE_mat <-  readr::read_csv(file.path(data_dir, cell_line_file)) %>% as.data.frame() %>% tibble::column_to_rownames('X1') %>% as.matrix()
+  
+  colnames(CCLE_mat) <- stringr::str_match(colnames(CCLE_mat), '\\((.+)\\)')[,2]
+  
+  if(is.null(annotation_file) | !file.exists(file.path(data_dir, annotation_file))) {
+    ann <- data.frame(sampleID = c(rownames(TCGA_mat), rownames(CCLE_mat)),
+                      lineage = NA,
+                      subtype = NA,
+                      type = c(rep('tumor', nrow(TCGA_mat)), rep('CL', nrow(CCLE_mat))))
+    ann$`Primary/Metastasis` <- NA
+  } else {
+    ann <- data.table::fread(file.path(data_dir, annotation_file)) %>% as.data.frame()
+    if('UMAP_1' %in% colnames(ann)) {
+      ann <- ann %>% 
+        dplyr::select(-UMAP_1)
+    }
+    if('UMAP_2' %in% colnames(ann)) {
+      ann <- ann %>% 
+        dplyr::select(-UMAP_2)
+    }
+    if('cluster' %in% colnames(ann)) {
+      ann <- ann %>% 
+        dplyr::select(-cluster)
+    }
+  }
+  
+  TCGA_ann <- dplyr::filter(ann, type=='tumor')
+  CCLE_ann <- dplyr::filter(ann, type=='CL')
+  
+  func_genes <- dplyr::filter(hgnc.complete.set, !locus_group %in% c('non-coding RNA', 'pseudogene'))$ensembl_gene_id
+  genes_used <- intersect(colnames(TCGA_mat), colnames(CCLE_mat))
+  genes_used <- intersect(genes_used, func_genes)
+  
+  TCGA_mat <- TCGA_mat[,genes_used]
+  CCLE_mat <- CCLE_mat[,genes_used]
+  
+  return(list(TCGA_mat = TCGA_mat, TCGA_ann = TCGA_ann, CCLE_mat = CCLE_mat, CCLE_ann = CCLE_ann))
+}
+
+load_my_data <- function(data_dir, hgnc_file = "database/hgnc_complete_set_7.24.2018.txt",
     RootPath_Tumor_file = "database/RootPath.Tumor.tpm.20210801.23.txt", RootPath_Tumor_info_file = "database/RootPath.Tumor.Info.20210801.23.csv",
     RootPath_CL_file = "database/RootPath.CellLine.tpm.20210308.2.txt", RootPath_CL_info_file = "database/RootPath.CellLine.Info.20210308.2.csv"){
     
     hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
-    
-    TCGA_mat <- readr::read_tsv(file.path(data_dir, tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Gene') %>% as.matrix() %>% t()
-    CCLE_mat <- readr::read_csv(file.path(data_dir, cell_line_file)) %>% as.data.frame() %>% tibble::column_to_rownames('X1') %>% as.matrix()
-    colnames(CCLE_mat) <- stringr::str_match(colnames(CCLE_mat), '\\((.+)\\)')[,2]
-
     RTPT_tumor_mat = data.table::fread(file.path(data_dir, RootPath_Tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Geneid') %>% as.matrix() %>% t()
     RTPT_CL_mat = data.table::fread(file.path(data_dir, RootPath_CL_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Geneid') %>% as.matrix() %>% t()
+    
     RTPT_tumor_mat = log2(RTPT_tumor_mat+1) # log2(TPM+1)
     RTPT_CL_mat = log2(RTPT_CL_mat+1)
-
-    common_genes <- intersect(colnames(TCGA_mat), hgnc.complete.set$symbol)
-    common_genes <- intersect(common_genes, colnames(RTPT_tumor_mat))
-    common_genes <- intersect(common_genes, colnames(RTPT_CL_mat))
-    TCGA_mat <- TCGA_mat[,common_genes]
+    
+    # 将RTPT_tumor_mat的列名的gene名称转化为ensembl_gene_id
+    hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
+    common_genes <- intersect(colnames(RTPT_tumor_mat), colnames(RTPT_CL_mat))
+    common_genes <- intersect(common_genes, hgnc.complete.set$symbol)
+    
     RTPT_tumor_mat <- RTPT_tumor_mat[,common_genes]
     RTPT_CL_mat <- RTPT_CL_mat[,common_genes]
-
+    
+    
+    # 先处理hgnc.complete.set, 为什么要处理hgnc.complete.set呢？
     hgnc.complete.set <- filter(hgnc.complete.set, symbol %in% common_genes)
     hgnc.complete.set <- hgnc.complete.set[!duplicated(hgnc.complete.set$symbol),]
     rownames(hgnc.complete.set) <- hgnc.complete.set$symbol
+    
+    # 排序
     hgnc.complete.set <- hgnc.complete.set[common_genes,]
-    colnames(TCGA_mat) <- hgnc.complete.set$ensembl_gene_id
+    
+    # 转换成为ensembl id
+    # 直接转换时有空值，所以必须先求交集，另外像AL627309.6 这样的基因其实是pseudogene。
+    # colnames(RTPT_tumor_mat) <- hgnc.complete.set$ensembl_gene_id[match(colnames(RTPT_tumor_mat), hgnc.complete.set$symbol)]
+    # colnames(RTPT_CL_mat) <- hgnc.complete.set$ensembl_gene_id[match(colnames(RTPT_CL_mat), hgnc.complete.set$symbol)]
+    
+    # 转换之前，gene id没有重复，交集为37035，转换之后 ensembl gene id 有重复。
+    length(intersect(colnames(RTPT_tumor_mat),colnames(RTPT_CL_mat))) # 36979
     colnames(RTPT_tumor_mat) <- hgnc.complete.set$ensembl_gene_id
     colnames(RTPT_CL_mat) <- hgnc.complete.set$ensembl_gene_id
-
-
-    ann <- data.table::fread(file.path(data_dir, annotation_file)) %>% as.data.frame()
+    
+    # 测试重复
+    summary(!duplicated(colnames(RTPT_tumor_mat)))
+    length(!duplicated(colnames(RTPT_CL_mat)))
+    RTPT_tumor_mat[1:2,37000:37035]
+    RTPT_CL_mat[,37000:37035]
+    # hgnc.complete.set[37000:37035,c("symbol","ensembl_gene_id")]
+    # 再根据功能去掉一些gene: length(func_genes)=19651
+    hgnc.complete.set[1:5,1:9]
+    func_genes <- dplyr::filter(hgnc.complete.set, !locus_group %in% c('non-coding RNA', 'pseudogene'))$ensembl_gene_id
+    head(func_genes)
+    length(func_genes) # 19651
+    
+    length(intersect(colnames(RTPT_tumor_mat),colnames(RTPT_CL_mat))) # 36979
+    genes_used <- intersect(colnames(RTPT_tumor_mat),colnames(RTPT_CL_mat))
+    length(genes_used) # 36979
+    genes_used <- intersect(genes_used, func_genes)
+    length(genes_used) # 19641
+    head(genes_used)
+    RTPT_tumor_mat[1:5,1:15]
+    dim(RTPT_tumor_mat)
+    RTPT_tumor_mat = RTPT_tumor_mat[,genes_used]
+    RTPT_CL_mat = RTPT_CL_mat[,genes_used]
+    
+    
+    ################# for annotation file:
     RTPT_tumor_ann <- data.table::fread(file.path(data_dir, RootPath_Tumor_info_file)) %>% as.data.frame()
     RTPT_CL_ann <- data.table::fread(file.path(data_dir, RootPath_CL_info_file)) %>% as.data.frame()
     all_ann = rbind(ann,RTPT_tumor_ann,RTPT_CL_ann)
-
-    TCGA_ann = dplyr::filter(all_ann, type=="tumor")
-    CCLE_ann = dplyr::filter(all_ann, type=="CL")
     RTPT_tumor_ann = dplyr::filter(all_ann, type=="rootpath")
-    RTPT_CL_ann = dplyr::filter(all_ann, type=="rootpath")
-
-    func_genes <- dplyr::filter(hgnc.complete.set, !locus_group %in% c('non-coding RNA', 'pseudogene'))$ensembl_gene_id
-    genes_used <- intersect(colnames(TCGA_mat), colnames(CCLE_mat))
-    genes_used <- intersect(genes_used, colnames(RTPT_tumor_mat))
-    genes_used <- intersect(genes_used, colnames(RTPT_CL_mat))
-    genes_used <- intersect(genes_used, func_genes)
-
-    TCGA_mat = TCGA_mat[,genes_used]
-    CCLE_mat = CCLE_mat[,genes_used]
-    RTPT_tumor_mat = RTPT_tumor_mat[,genes_used]
-    RTPT_CL_mat = RTPT_CL_mat[,genes_used]
-
-
-    return(list(TCGA_mat = TCGA_mat, TCGA_ann = TCGA_ann, CCLE_mat = CCLE_mat, CCLE_ann = CCLE_ann, 
-      RTPT_tumor_mat = RTPT_tumor_mat, RTPT_tumor_ann = RTPT_tumor_ann, RTPT_CL_mat = RTPT_CL_mat, RTPT_CL_ann = RTPT_CL_ann))
+    RTPT_CL_ann = dplyr::filter(all_ann, type=="rootpath")  # bug？
+    
+    
+    
+    return(list(RTPT_tumor_mat = RTPT_tumor_mat, RTPT_tumor_ann = RTPT_tumor_ann, RTPT_CL_mat = RTPT_CL_mat, RTPT_CL_ann = RTPT_CL_ann))
 }
 
 create_Seurat_object <- function(exp_mat, ann, type = NULL) {
@@ -77,12 +147,14 @@ create_Seurat_object <- function(exp_mat, ann, type = NULL) {
   seu_obj %<>% Seurat::RunUMAP(assay = 'RNA', dims = 1:global$n_PC_dims, reduction = 'pca', n.neighbors = global$umap_n_neighbors, min.dist =  global$umap_min_dist, metric = global$distance_metric, verbose=F)
   return(seu_obj)
 }
+
 cluster_data <- function(seu_obj) {
   seu_obj <- Seurat::FindNeighbors(seu_obj, reduction = 'pca', dims = 1:global$n_PC_dims, k.param = 20, force.recalc = TRUE, verbose = FALSE)
-  seu_obj %<>% Seurat::FindClusters(reduction = 'pca', resolution = global$mod_clust_res)
+  seu_obj %<>% Seurat::FindClusters(resolution = global$mod_clust_res) # fix reductions bug
   seu_obj@meta.data$cluster <- seu_obj@meta.data$seurat_clusters
   return(seu_obj)
 }
+
 #####################################
 find_differentially_expressed_genes <- function(seu_obj) {
   n_clusts <- nlevels(seu_obj@meta.data$seurat_clusters)
@@ -95,6 +167,7 @@ find_differentially_expressed_genes <- function(seu_obj) {
   }
   return(cur_DE_genes)  
 }
+
 run_cPCA <- function(TCGA_obj, CCLE_obj, pc_dims = NULL) {
     cov_diff_eig <- run_cPCA_analysis(t(Seurat::GetAssayData(TCGA_obj, assay='RNA', slot='scale.data')), 
                                     t(Seurat::GetAssayData(CCLE_obj, assay='RNA', slot='scale.data')), 
@@ -115,6 +188,7 @@ calc_tumor_CL_cor <- function(Celligner_aligned_data, Celligner_info) {
   tumor_CL_cor <- cor(t(Celligner_aligned_data[tumors_samples,]), t(Celligner_aligned_data[cl_samples,]), use='pairwise')
   return(tumor_CL_cor)
 }
+
 calc_tumor_CL_cor_new <- function(Celligner_aligned_data, all_ann) {
     tumors_samples <- rbind(dplyr::filter(comb_ann, type=='tumor'), dplyr::filter(comb_ann, type=="rootpath"))$sampleID
     cl_samples <- dplyr::filter(comb_ann, type=='CL')$sampleID
@@ -151,21 +225,27 @@ calc_gene_stats <- function(TCGA_mat, CCLE_mat, hgnc_file="database/hgnc_complet
 ##########################################
 
 data_dir = "./"
-#my_Tumor_file = args[1]
-#my_info_file = args[2]
-#dat = load_data(data_dir, RootPath_Tumor_file=my_Tumor_file, RootPath_Tumor_info_file=my_info_file)
+# my_Tumor_file = args[1]
+# my_info_file = args[2]
+# dat = load_data(data_dir, RootPath_Tumor_file=my_Tumor_file, RootPath_Tumor_info_file=my_info_file)
 dat = load_data(data_dir)
+############################## start load my data
+my_dat = load_my_data(data_dir)
 
-
+# 有了dat之后就可以画图了：
+####### for fig1 
+######################################
+# dplyr::mutate 是创建新变量； rbind是按照row粘贴到一起。
 comb_ann <- rbind(
-  dat$TCGA_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'tumor'),
-  dat$CCLE_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'CL')
+  dat$TCGA_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>%
+    dplyr::mutate(type = 'tumor'),
+  dat$CCLE_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>%
+    dplyr::mutate(type = 'CL')
 )
-# repeating paper:
-# repeating Fig1:
-source(here::here('src', 'Figure1.R'))
+
 uncorrected_combined_type_plot = plot_uncorrected_data(dat$CCLE_mat, dat$TCGA_mat,comb_ann)
-ggsave("Fig1.uncorrected_repeating.png")
+ggsave("Fig1.uncorrected_repeating.png", plot= uncorrected_combined_type_plot)
+
 # add rootpath data Fig1:
 comb_ann <- rbind(
   dat$TCGA_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'tumor'),
@@ -173,27 +253,30 @@ comb_ann <- rbind(
   dat$RTPT_tumor_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath'),
   dat$RTPT_CL_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath')
 )
-uncorrected_combined_type_plot = plot_uncorrected_customized_data(dat$CCLE_mat, dat$TCGA_mat, comb_ann,dat$RTPT_tumor_mat, dat$RTPT_CL_mat)
-ggsave("Fig1.uncorrected_combined_type_plot.with.my.tumor.png")
+
+uncorrected_combined_type_plot_my_data = plot_uncorrected_customized_data(dat$CCLE_mat, dat$TCGA_mat, comb_ann, dat$RTPT_tumor_mat, dat$RTPT_CL_mat)
+ggsave("Fig1.uncorrected_combined_type_plot.with.my.tumor.png", plot=uncorrected_combined_type_plot_my_data)
 ##################################################################################
 # Fig2:
+# type 是写到meta.data中
 TCGA_obj <- create_Seurat_object(dat$TCGA_mat, dat$TCGA_ann, type='tumor')
 CCLE_obj <- create_Seurat_object(dat$CCLE_mat, dat$CCLE_ann, type='CL')
 TCGA_obj <- cluster_data(TCGA_obj)
 CCLE_obj <- cluster_data(CCLE_obj)
 
-TCGA_my_obj <- create_Seurat_object(rbind(dat$TCGA_mat, dat$RTPT_tumor_mat), rbind(dat$TCGA_ann, dat$RTPT_tumor_ann), type='tumor')
-TCGA_my_obj <- cluster_data(TCGA_my_obj)
-CCLE_my_obj <- create_Seurat_object(rbind(dat$CCLE_mat, dat$RTPT_CL_mat), rbind(dat$CCLE_ann, dat$RTPT_CL_ann), type='tumor') #### bug
-CCLE_my_obj <- cluster_data(CCLE_my_obj)
+# TCGA_my_obj <- create_Seurat_object(rbind(dat$TCGA_mat, dat$RTPT_tumor_mat), rbind(dat$TCGA_ann, dat$RTPT_tumor_ann), type='tumor')
+# TCGA_my_obj <- cluster_data(TCGA_my_obj)
+# CCLE_my_obj <- create_Seurat_object(rbind(dat$CCLE_mat, dat$RTPT_CL_mat), rbind(dat$CCLE_ann, dat$RTPT_CL_ann), type='tumor') #### bug
+# CCLE_my_obj <- cluster_data(CCLE_my_obj)
 
 tumor_DE_genes <- find_differentially_expressed_genes(TCGA_obj)
-tumor_DE_genes_1 <- find_differentially_expressed_genes(TCGA_my_obj)
+# tumor_DE_genes_1 <- find_differentially_expressed_genes(TCGA_my_obj)
 CL_DE_genes   <- find_differentially_expressed_genes(CCLE_obj)
-CL_DE_genes_1 <- find_differentially_expressed_genes(CCLE_my_obj)
+# CL_DE_genes_1 <- find_differentially_expressed_genes(CCLE_my_obj)
 
 gene_stats   <- calc_gene_stats(dat$TCGA_mat, dat$CCLE_mat)
-gene_stats_1 <- calc_gene_stats(rbind(dat$TCGA_mat,dat$RTPT_tumor_mat), rbind(dat$CCLE_mat,dat$RTPT_CL_mat))
+
+# gene_stats_1 <- calc_gene_stats(rbind(dat$TCGA_mat,dat$RTPT_tumor_mat), rbind(dat$CCLE_mat,dat$RTPT_CL_mat))
 ##########
 DE_genes <- full_join(tumor_DE_genes, CL_DE_genes, by = 'Gene', suffix = c('_tumor', '_CL')) %>%
     mutate(tumor_rank = dplyr::dense_rank(-gene_stat_tumor),
@@ -203,66 +286,67 @@ DE_genes <- full_join(tumor_DE_genes, CL_DE_genes, by = 'Gene', suffix = c('_tum
 # take genes that are ranked in the top 1000 from either dataset, used for finding mutual nearest neighbors
 DE_gene_set <- DE_genes %>% dplyr::filter(best_rank < global$top_DE_genes_per) %>% .[['Gene']]
 cov_diff_eig <- run_cPCA(TCGA_obj, CCLE_obj, global$fast_cPCA)
+
 ##########
-DE_genes_1 <- full_join(tumor_DE_genes_1, CL_DE_genes_1, by = 'Gene', suffix = c('_tumor', '_CL')) %>%
-    mutate(tumor_rank = dplyr::dense_rank(-gene_stat_tumor),
-      CL_rank = dplyr::dense_rank(-gene_stat_CL),
-      best_rank = pmin(tumor_rank, CL_rank, na.rm=T)) %>%
-    dplyr::left_join(gene_stats_1, by = 'Gene')
-DE_gene_set_1 <- DE_genes_1 %>% dplyr::filter(best_rank < global$top_DE_genes_per) %>% .[['Gene']]
-cov_diff_eig_1 <- run_cPCA(TCGA_my_obj, CCLE_my_obj, global$fast_cPCA)
+# DE_genes_1 <- full_join(tumor_DE_genes_1, CL_DE_genes_1, by = 'Gene', suffix = c('_tumor', '_CL')) %>%
+#     mutate(tumor_rank = dplyr::dense_rank(-gene_stat_tumor),
+#       CL_rank = dplyr::dense_rank(-gene_stat_CL),
+#       best_rank = pmin(tumor_rank, CL_rank, na.rm=T)) %>%
+#     dplyr::left_join(gene_stats_1, by = 'Gene')
+# DE_gene_set_1 <- DE_genes_1 %>% dplyr::filter(best_rank < global$top_DE_genes_per) %>% .[['Gene']]
+# cov_diff_eig_1 <- run_cPCA(TCGA_my_obj, CCLE_my_obj, global$fast_cPCA)
 # how to compare differences between DE_genes and DE_genes_1 ??????
 
 
 if(is.null(global$fast_cPCA)) {
     cur_vecs <- cov_diff_eig$vectors[, global$remove_cPCA_dims, drop = FALSE]
-    cur_vecs_1 <- cov_diff_eig_1$vectors[, global$remove_cPCA_dims, drop = FALSE]
+    # cur_vecs_1 <- cov_diff_eig_1$vectors[, global$remove_cPCA_dims, drop = FALSE]
 } else {
     cur_vecs <- cov_diff_eig$rotation[, global$remove_cPCA_dims, drop = FALSE]
-    cur_vecs_1 <- cov_diff_eig_1$rotation[, global$remove_cPCA_dims, drop = FALSE]
+    # cur_vecs_1 <- cov_diff_eig_1$rotation[, global$remove_cPCA_dims, drop = FALSE]
 }
 # how to compare differences between cur_vecs and cur_vecs_1 ??????
 
 
-TCGA_my_mat = rbind(dat$TCGA_mat, dat$RTPT_tumor_mat)
-CCLE_my_mat = rbind(dat$CCLE_mat, dat$RTPT_CL_mat)
+# TCGA_my_mat = rbind(dat$TCGA_mat, dat$RTPT_tumor_mat)
+# CCLE_my_mat = rbind(dat$CCLE_mat, dat$RTPT_CL_mat)
 rownames(cur_vecs) <- colnames(dat$TCGA_mat)
-rownames(cur_vecs_1) <- colnames(TCGA_my_mat)
+# rownames(cur_vecs_1) <- colnames(TCGA_my_mat)
 
 TCGA_cor <- resid(lm(t(dat$TCGA_mat) ~ 0 + cur_vecs)) %>% t()
 CCLE_cor <- resid(lm(t(dat$CCLE_mat) ~ 0 + cur_vecs)) %>% t()
-TCGA_my_cor <- resid(lm(t(TCGA_my_mat) ~ 0 + cur_vecs_1)) %>% t()
-CCLE_my_cor <- resid(lm(t(CCLE_my_mat) ~ 0 + cur_vecs_1)) %>% t()
+# TCGA_my_cor <- resid(lm(t(TCGA_my_mat) ~ 0 + cur_vecs_1)) %>% t()
+# CCLE_my_cor <- resid(lm(t(CCLE_my_mat) ~ 0 + cur_vecs_1)) %>% t()
 
 mnn_res   <- run_MNN(CCLE_cor, TCGA_cor,        k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set)
-mnn_res_1 <- run_MNN(CCLE_my_cor, TCGA_my_cor,  k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set_1)
+# mnn_res_1 <- run_MNN(CCLE_my_cor, TCGA_my_cor,  k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set_1)
 # detected tied distances to neighbors, see ?'BiocNeighbors-ties'  ##### bug??????
 
 combined_mat    <- rbind(mnn_res$corrected, CCLE_cor)
-combined_my_mat <- rbind(mnn_res_1$corrected, CCLE_my_cor)
+# combined_my_mat <- rbind(mnn_res_1$corrected, CCLE_my_cor)
 comb_obj <- create_Seurat_object(combined_mat, comb_ann)
 comb_obj <- cluster_data(comb_obj)
 # Warning: The following arguments are not used: reduction
-comb_my_obj <- create_Seurat_object(combined_my_mat, comb_ann)
+# comb_my_obj <- create_Seurat_object(combined_my_mat, comb_ann)
 comb_my_obj <- cluster_data(comb_my_obj)
 
 # fig2：
 alignment =  Seurat::Embeddings(comb_obj, reduction = 'umap') %>% as.data.frame() %>% set_colnames(c('UMAP_1', 'UMAP_2')) %>% 
     rownames_to_column(var = 'sampleID') %>% left_join(comb_ann, by = 'sampleID')
-alignment2 = Seurat::Embeddings(comb_my_obj, reduction = 'umap') %>% as.data.frame() %>% set_colnames(c('UMAP_1', 'UMAP_2')) %>% 
-    rownames_to_column(var = 'sampleID') %>% left_join(comb_ann, by = 'sampleID')
+# alignment2 = Seurat::Embeddings(comb_my_obj, reduction = 'umap') %>% as.data.frame() %>% set_colnames(c('UMAP_1', 'UMAP_2')) %>%
+#     rownames_to_column(var = 'sampleID') %>% left_join(comb_ann, by = 'sampleID')
 
 source(here::here('src', 'Figure2.R'))
 fig_plot = Celligner_alignment_plot(alignment)
-ggsave("Fig2.raw.umap.png")
+ggsave("Fig2.raw.umap.png", plot = fig_plot)
 
-Seurat::DimPlot(comb_obj, reduction = 'umap',group.by = "orig.ident",colos=tissue_colors)
-png("dimplot.png")
+# DimPlot(comb_obj, reduction = 'umap',group.by = "orig.ident",tissue_colors)
 
-selected_data = alignment2[which(alignment2$type=='rootpath'),]
+
+selected_data <- alignment2[which(alignment2$type=='rootpath'),]
 selected_data <- selected_data[!duplicated(selected_data$sampleID),]
-fig_plot = Celligner_alignment_customized_plot(alignment2, selected_data)
-ggsave("Fig2.all_comb.umap.png")
+fig_plot2 = Celligner_alignment_customized_plot(alignment2, selected_data)
+ggsave("Fig2.all_comb.umap.png", plot = fig_plot2)
 # save.image("main.Rdata")
 ##########################
 # 来自于某blog
@@ -292,6 +376,24 @@ ggsave("Fig2.all_comb.umap.png")
 #     guides(colour = guide_legend(override.aes = list(size=5)))
 
 
+### 为了调试UMAP图，临时代码
+# ggplot2::ggplot(uncorrected_alignment, ggplot2::aes(UMAP_1, UMAP_2)) +
+#   ggplot2::geom_point(data = filter(uncorrected_alignment, type=='tumor'), alpha=0.6, size=0.5, pch=21, color='white', aes(fill=type)) +
+#   ggplot2::geom_point(data = filter(uncorrected_alignment, type=='CL'), alpha=0.6, size=0.6, pch=3, aes(color=type), stroke=0.5) +
+#   ggplot2::scale_color_manual(values=c(CL="#F8766D")) +
+#   ggplot2::scale_fill_manual(values=c(tumor="#00BFC4")) +
+#   ggplot2::xlab('UMAP 1') + ggplot2::ylab("UMAP 2") +
+#   ggplot2::theme_classic() +
+#   ggplot2::theme(legend.position='bottom', text = ggplot2::element_text(size=8),
+#                  axis.text = ggplot2::element_text(size=6),
+#                  axis.title = ggplot2::element_text(size=8),
+#                  axis.ticks.length = unit(4,"lines"),
+#                  legend.margin =ggplot2::margin(0,0,0,0),
+#                  legend.box.margin=ggplot2::margin(-10,-30,-10,-30),
+#                  axis.line = ggplot2::element_line(size = .9, color = "red", arrow=arrow(),linetype = 2, lineend = seq_along(3), linewidth = 2)
+#                  )
+
+
 
 
 # figure 3a
@@ -306,8 +408,9 @@ write.table(t(tumor_CL_my_cor) %>% as.data.frame() %>% rownames_to_column("ccle_
     file="tumor_CL_my_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
 # select Rootpath tumor and root path cell line.
 rootpath_tumor_cor = tumor_CL_my_cor[rownames(RootPath_CL_file),rownames(RootPath_Tumor_file)]
-write.table(t(rootpath_rumor_cor) &>& as.data.frame() %>% rownames_to_column("ccle_name"),
+write.table(t(rootpath_rumor_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"),
   file="tumor_CL_select.transit.csv", sep=",", row.names= FALSE, quote =FALSE)
+
 # fig3
 get_cell_line_tumor_class <- function(tumor_CL_cor, alignment) {
   cl_tumor_classes <- apply(tumor_CL_cor, 2, function(x) cell_line_tumor_class(x, tumor_CL_cor, alignment)) %>% as.character()
