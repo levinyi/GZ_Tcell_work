@@ -1,11 +1,12 @@
+setwd("/cygene/work/00.test/pipeline/Tumor_CL_pipeline")
 library(here)
+here()
 library(magrittr)
 library(tidyverse)
 source(here::here('src', 'Celligner_helpers.R'))
 source(here::here('src', 'analysis_helpers.R'))
 source(here::here('src', 'global_params.R'))
 
-# setwd("/cygene/work/00.test/pipeline/Tumor_CL_pipeline")
 
 
 load_data <- function(data_dir, tumor_file = 'database/TCGA_mat.tsv', cell_line_file = 'database/CCLE_mat.csv', 
