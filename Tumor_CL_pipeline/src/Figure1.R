@@ -30,7 +30,7 @@ plot_uncorrected_data <- function(CCLE_mat, TCGA_mat, comb_ann) {
           axis.title = ggplot2::element_text(size=8),
           legend.margin =ggplot2::margin(0,0,0,0), 
           legend.box.margin=ggplot2::margin(-10,-30,-10,-30),
-          axis.line = ggplot2::element_line(size = .3))
+          axis.line = ggplot2::element_line(linewidth = .3))
   return(uncorrected_combined_type_plot)
 }
 

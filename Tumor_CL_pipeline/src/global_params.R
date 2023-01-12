@@ -67,8 +67,8 @@ heatmap_params <- list(
   column_font_size = 6,
   font_face = "plain",
   square_border_color = "white",
-  color_palette = grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(11, 'YlOrRd')), space='Lab'),
-  color_vector = c('#e3e3e3', rev(grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(11, 'YlOrRd')), space='Lab')(100)))
+  color_palette = grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(9, 'YlOrRd')), space='Lab'),
+  color_vector = c('#e3e3e3', rev(grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(9, 'YlOrRd')), space='Lab')(100)))
 )
 
 EMT_genes <- c("ZEB1", "LIX1L", "VIM", "AXL", 'MMP2', "ANTXR2", "C3ORF21", "FN1", "NRP1", "TGFB1",

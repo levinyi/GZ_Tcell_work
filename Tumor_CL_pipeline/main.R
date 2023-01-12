@@ -1,6 +1,6 @@
-setwd("/cygene/work/00.test/pipeline/Tumor_CL_pipeline")
+# setwd("/cygene/work/00.test/pipeline/Tumor_CL_pipeline") # for rstudio
 library(here)
-here()
+here::i_am("main.R")
 library(magrittr)
 library(tidyverse)
 source(here::here('src', 'Celligner_helpers.R'))
@@ -12,7 +12,6 @@ source(here::here('src', 'global_params.R'))
 load_data <- function(data_dir, tumor_file = 'database/TCGA_mat.tsv', cell_line_file = 'database/CCLE_mat.csv', 
                       annotation_file = 'database/Celligner_info.csv', hgnc_file = "database/hgnc_complete_set_7.24.2018.txt") {
   hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
-  
   
   TCGA_mat <-  readr::read_tsv(file.path(data_dir, tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Gene') %>% as.matrix() %>% t()
   
@@ -65,7 +64,7 @@ load_data <- function(data_dir, tumor_file = 'database/TCGA_mat.tsv', cell_line_
 
 load_my_data <- function(data_dir, hgnc_file = "database/hgnc_complete_set_7.24.2018.txt",
     RootPath_Tumor_file = "database/RootPath.Tumor.tpm.20210801.23.txt", RootPath_Tumor_info_file = "database/RootPath.Tumor.Info.20210801.23.csv",
-    RootPath_CL_file = "database/RootPath.CellLine.tpm.20210308.2.txt", RootPath_CL_info_file = "database/RootPath.CellLine.Info.20210308.2.csv"){
+    RootPath_CL_file = "database/RootPath.CellLine.tpm.20210308.2.txt", RootPath_CL_info_file = "database/RootPath.CellLine.Info.20210308.2.csv") {
     
     hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
     RTPT_tumor_mat = data.table::fread(file.path(data_dir, RootPath_Tumor_file)) %>% as.data.frame() %>% tibble::column_to_rownames('Geneid') %>% as.matrix() %>% t()
@@ -231,7 +230,7 @@ data_dir = "./"
 # dat = load_data(data_dir, RootPath_Tumor_file=my_Tumor_file, RootPath_Tumor_info_file=my_info_file)
 dat = load_data(data_dir)
 ############################## start load my data
-my_dat = load_my_data(data_dir)
+# my_dat = load_my_data(data_dir)
 
 # 有了dat之后就可以画图了：
 ####### for fig1 
@@ -243,20 +242,21 @@ comb_ann <- rbind(
   dat$CCLE_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>%
     dplyr::mutate(type = 'CL')
 )
-
+source(here::here('src','Figure1.R'))
 uncorrected_combined_type_plot = plot_uncorrected_data(dat$CCLE_mat, dat$TCGA_mat,comb_ann)
+uncorrected_combined_type_plot
 ggsave("Fig1.uncorrected_repeating.png", plot= uncorrected_combined_type_plot)
 
-# add rootpath data Fig1:
-comb_ann <- rbind(
-  dat$TCGA_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'tumor'),
-  dat$CCLE_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'CL'),
-  dat$RTPT_tumor_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath'),
-  dat$RTPT_CL_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath')
-)
-
-uncorrected_combined_type_plot_my_data = plot_uncorrected_customized_data(dat$CCLE_mat, dat$TCGA_mat, comb_ann, dat$RTPT_tumor_mat, dat$RTPT_CL_mat)
-ggsave("Fig1.uncorrected_combined_type_plot.with.my.tumor.png", plot=uncorrected_combined_type_plot_my_data)
+########################
+# add my data Fig1:
+# comb_ann <- rbind(
+#   dat$TCGA_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'tumor'),
+#   dat$CCLE_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'CL'),
+#   dat$RTPT_tumor_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath'),
+#   dat$RTPT_CL_ann %>% dplyr::select(sampleID, lineage, subtype, `Primary/Metastasis`) %>% dplyr::mutate(type = 'rootpath')
+# )
+# uncorrected_combined_type_plot_my_data = plot_uncorrected_customized_data(dat$CCLE_mat, dat$TCGA_mat, comb_ann, dat$RTPT_tumor_mat, dat$RTPT_CL_mat)
+# ggsave("Fig1.uncorrected_combined_type_plot.with.my.tumor.png", plot=uncorrected_combined_type_plot_my_data)
 ##################################################################################
 # Fig2:
 # type 是写到meta.data中
@@ -273,11 +273,15 @@ CCLE_obj <- cluster_data(CCLE_obj)
 tumor_DE_genes <- find_differentially_expressed_genes(TCGA_obj)
 # tumor_DE_genes_1 <- find_differentially_expressed_genes(TCGA_my_obj)
 CL_DE_genes   <- find_differentially_expressed_genes(CCLE_obj)
+# Warning message:
+# Zero sample variances detected, have been offset away from zero 
+############## bug?
+
 # CL_DE_genes_1 <- find_differentially_expressed_genes(CCLE_my_obj)
 
 gene_stats   <- calc_gene_stats(dat$TCGA_mat, dat$CCLE_mat)
-
 # gene_stats_1 <- calc_gene_stats(rbind(dat$TCGA_mat,dat$RTPT_tumor_mat), rbind(dat$CCLE_mat,dat$RTPT_CL_mat))
+
 ##########
 DE_genes <- full_join(tumor_DE_genes, CL_DE_genes, by = 'Gene', suffix = c('_tumor', '_CL')) %>%
     mutate(tumor_rank = dplyr::dense_rank(-gene_stat_tumor),
@@ -319,7 +323,7 @@ CCLE_cor <- resid(lm(t(dat$CCLE_mat) ~ 0 + cur_vecs)) %>% t()
 # TCGA_my_cor <- resid(lm(t(TCGA_my_mat) ~ 0 + cur_vecs_1)) %>% t()
 # CCLE_my_cor <- resid(lm(t(CCLE_my_mat) ~ 0 + cur_vecs_1)) %>% t()
 
-mnn_res   <- run_MNN(CCLE_cor, TCGA_cor,        k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set)
+mnn_res   <- run_MNN(CCLE_cor, TCGA_cor, k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set)
 # mnn_res_1 <- run_MNN(CCLE_my_cor, TCGA_my_cor,  k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, subset_genes = DE_gene_set_1)
 # detected tied distances to neighbors, see ?'BiocNeighbors-ties'  ##### bug??????
 
@@ -329,7 +333,7 @@ comb_obj <- create_Seurat_object(combined_mat, comb_ann)
 comb_obj <- cluster_data(comb_obj)
 # Warning: The following arguments are not used: reduction
 # comb_my_obj <- create_Seurat_object(combined_my_mat, comb_ann)
-comb_my_obj <- cluster_data(comb_my_obj)
+# comb_my_obj <- cluster_data(comb_my_obj)
 
 # fig2：
 alignment =  Seurat::Embeddings(comb_obj, reduction = 'umap') %>% as.data.frame() %>% set_colnames(c('UMAP_1', 'UMAP_2')) %>% 
@@ -339,15 +343,16 @@ alignment =  Seurat::Embeddings(comb_obj, reduction = 'umap') %>% as.data.frame(
 
 source(here::here('src', 'Figure2.R'))
 fig_plot = Celligner_alignment_plot(alignment)
+fig_plot
 ggsave("Fig2.raw.umap.png", plot = fig_plot)
 
 # DimPlot(comb_obj, reduction = 'umap',group.by = "orig.ident",tissue_colors)
 
 
-selected_data <- alignment2[which(alignment2$type=='rootpath'),]
-selected_data <- selected_data[!duplicated(selected_data$sampleID),]
-fig_plot2 = Celligner_alignment_customized_plot(alignment2, selected_data)
-ggsave("Fig2.all_comb.umap.png", plot = fig_plot2)
+# selected_data <- alignment2[which(alignment2$type=='rootpath'),]
+# selected_data <- selected_data[!duplicated(selected_data$sampleID),]
+# fig_plot2 = Celligner_alignment_customized_plot(alignment2, selected_data)
+# ggsave("Fig2.all_comb.umap.png", plot = fig_plot2)
 # save.image("main.Rdata")
 ##########################
 # 来自于某blog
@@ -400,29 +405,24 @@ ggsave("Fig2.all_comb.umap.png", plot = fig_plot2)
 # figure 3a
 
 Celligner_aligned_data = Seurat::GetAssayData(comb_obj) %>% as.matrix() %>% t()
-Celligner_aligned_my_data = Seurat::GetAssayData(comb_my_obj) %>% as.matrix() %>% t()
+# Celligner_aligned_my_data = Seurat::GetAssayData(comb_my_obj) %>% as.matrix() %>% t()
 tumor_CL_cor = calc_tumor_CL_cor(Celligner_aligned_data, comb_ann)
-tumor_CL_my_cor = calc_tumor_CL_cor(Celligner_aligned_my_data, comb_ann)
+# tumor_CL_my_cor = calc_tumor_CL_cor(Celligner_aligned_my_data, comb_ann)
 write.table(t(tumor_CL_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"), 
     file="tumor_CL_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
-write.table(t(tumor_CL_my_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"), 
-    file="tumor_CL_my_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
+# write.table(t(tumor_CL_my_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"), 
+    # file="tumor_CL_my_cor.transit.csv", sep=",", row.names = FALSE, quote = FALSE)
 # select Rootpath tumor and root path cell line.
-rootpath_tumor_cor = tumor_CL_my_cor[rownames(RootPath_CL_file),rownames(RootPath_Tumor_file)]
-write.table(t(rootpath_rumor_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"),
-  file="tumor_CL_select.transit.csv", sep=",", row.names= FALSE, quote =FALSE)
+# rootpath_tumor_cor = tumor_CL_my_cor[rownames(RootPath_CL_file),rownames(RootPath_Tumor_file)]
+# write.table(t(rootpath_rumor_cor) %>% as.data.frame() %>% rownames_to_column("ccle_name"),
+  # file="tumor_CL_select.transit.csv", sep=",", row.names= FALSE, quote =FALSE)
 
 # fig3
-get_cell_line_tumor_class <- function(tumor_CL_cor, alignment) {
-  cl_tumor_classes <- apply(tumor_CL_cor, 2, function(x) cell_line_tumor_class(x, tumor_CL_cor, alignment)) %>% as.character()
-  names(cl_tumor_classes) <- colnames(tumor_CL_cor)
-  return(cl_tumor_classes)
-}
 source(here::here('src', 'Figure3.R'))
 cl_tumor_classes = get_cell_line_tumor_class(tumor_CL_cor, alignment)
 cell_line_tumor_class_plot(cl_tumor_classes, alignment, tumor_CL_cor, "Fig3a.myheatmap.png")
-cl_tumor_classes2 = get_cell_line_tumor_class(tumor_CL_my_cor, alignment2)
-cell_line_tumor_class_plot(cl_tumor_classes2, alignment2, tumor_CL_my_cor, "Fig3a.myheatmap.my.png")
+# cl_tumor_classes2 = get_cell_line_tumor_class(tumor_CL_my_cor, alignment2)
+# cell_line_tumor_class_plot(cl_tumor_classes2, alignment2, tumor_CL_my_cor, "Fig3a.myheatmap.my.png")
 # Fig 3a end
 
 # Fig 3b start
@@ -432,3 +432,52 @@ ggsave("Fig3b.tumor_dist_spread.png")
 fig3b_plot = cell_line_tumor_distance_distribution(alignment2, tumor_CL_my_cor)
 ggsave("Fig3b.tumor_dist_spread.my.png")
 #save.image("main.Rdata")
+
+#########################################
+######################################### for cell line 
+# ACH-000556,SIHA_CERVIX
+# ACH-001086,HELA_CERVIX
+# ACH-001333,C33A_CERVIX
+# ACH-001341,DOTC24510_CERVIX
+# ACH-001335,C4II_CERVIX
+# ACH-001336,CASKI_CERVIX,
+#
+# ACH-000505,RKN_SOFT_TISSUE,
+# ACH-000939,SKUT1_SOFT_TISSUE
+# ACH-000145,SKLMS1_SOFT_TISSUE
+cell_line = c("ACH-000556","ACH-001086","ACH-001333","ACH-001341","ACH-001335","ACH-001336",
+              "ACH-000505","ACH-000939","ACH-000145")
+
+hgnc_file = "database/hgnc_complete_set_7.24.2018.txt"
+hgnc.complete.set <- data.table::fread(file.path(data_dir, hgnc_file)) %>% as.data.frame()
+
+ccle_matrix <- t(dat$CCLE_mat)
+rownames(ccle_matrix) <- hgnc.complete.set$symbol[match(rownames(ccle_matrix), hgnc.complete.set$ensembl_gene_id)]
+ccle_matrix[1:5,1:5]
+# 修改列名SampleID为CCLEname
+annotation_file = 'database/Celligner_info.csv'
+ann <- data.table::fread(file.path(data_dir, annotation_file)) %>% as.data.frame()
+colnames(ccle_matrix) <- ann$sampleID_CCLE_Name[match(colnames(ccle_matrix),ann$sampleID)]
+
+tumor_tpm_matrix = read.table("/cygene2/work/IIT-WES-RNAseq/merged.TPM.txt",header = T) %>% column_to_rownames("Gene")
+tumor_tpm_matrix[1:4,1:4]
+dim(tumor_tpm_matrix)
+common_gene = intersect(rownames(tumor_tpm_matrix), rownames(ccle_matrix))
+length(common_gene)
+ccle_matrix <- ccle_matrix[common_gene,]
+tumor_tpm_matrix <- tumor_tpm_matrix[common_gene,]
+tumor_tpm_matrix <- log2(tumor_tpm_matrix+1)
+dim(ccle_matrix)
+dim(tumor_tpm_matrix)
+ccle_matrix[1:5,1:4]
+tumor_tpm_matrix[1:5,1:4]
+
+merged_tpm_matrix <- cbind(tumor_tpm_matrix,ccle_matrix)
+merged_tpm_matrix[1:5,1:10]
+##### correlation
+cor_merged_df = round(cor(merged_tpm_matrix, method = "spearman"),3)
+write.table(cor_merged_df,"/cygene2/work/IIT-WES-RNAseq/merged_correlation.table.xls", row.names = T, col.names=T, sep="\t", quote = F, )
+
+
+library(ggcorrplot)
+ggcorrplot(cor_merged_df, method="circle", lab=T)
