@@ -59,7 +59,7 @@ def main():
 
     with open(shell_name,"w") as f:
         # align
-        f.write("{STAR} --runThreadN 10 --genomeDir {STAR_index} --readFilesCommand zcat --readFilesIn {RNA_fastqs}  --outFileNamePrefix {sample_name}.RNA. --outSAMtype BAM SortedByCoordinate \n".format(**config_dict))
+        f.write("{STAR} --runThreadN 10 --genomeDir {STAR_index} --readFilesCommand zcat --readFilesIn {RNA_fastqs}  --outFileNamePrefix {sample_name}.RNA. --quantMode GeneCounts --outSAMtype BAM SortedByCoordinate \n".format(**config_dict))
         f.write("{samtools} index {sample_name}.RNA.Aligned.sortedByCoord.out.bam\n".format(**config_dict))
 
         f.write("{featureCounts} -O -T 20 -t exon -g gene_name -p -a {gtf_file} -o {sample_name}.RNAseq.exon.gene_name.counts.txt  {sample_name}.RNA.Aligned.sortedByCoord.out.bam \n".format(**config_dict))
