@@ -10,6 +10,7 @@ def usage():
     print("""
         python {} <xls> <tpm file>
     Update:
+        20230116    fix mpileup count error bug.
         20220818    fix format bug.
         20220725    re-write the function to print NAN to empty.
         20210410    add parmaters.
@@ -31,20 +32,26 @@ def deal_mpileup(RNAseq_mpileup_file):
         for line in f:
             line = line.rstrip("\n")
             chrom, pos, mapped_base, reads_count, mapping_info, mapping_qul = line.split("\t")
-            match_mut = re.search(r'[ATCG]', mapping_info.upper())
-            wildtype = mapping_info.upper().count(".") + mapping_info.upper().count(",") + mapping_info.upper().count("$")
+            # remove ^and qualitybase. and remove $. or <<><<<>>><><>
+            mapping_info = re.sub(r'\^\S', '', mapping_info)
+            mapping_info = re.sub(r'\$',   '', mapping_info)
+            mapping_info = re.sub(r'>+|<+','', mapping_info)
+
             if '+' in mapping_info:
                 ins_type = mapping_info.upper().count("+")
+                mutatype = ins_type
             else:
                 ins_type = 0
+
             if '*' in mapping_info:
                 del_type = mapping_info.upper().count("*")
+                mutatype = del_type
             else:
                 del_type = 0
-            if match_mut:
-                mutatype = mapping_info.upper().count(match_mut.group())
-            else:
-                mutatype = 0
+            
+            wildtype = mapping_info.upper().count(".") + mapping_info.upper().count(",")
+            mutatype = len(mapping_info) - ins_type - del_type - wildtype
+            
             addtwodimdict(a_dict, pos, 'W', wildtype)
             addtwodimdict(a_dict, pos, 'M', mutatype)
             addtwodimdict(a_dict, pos, 'I', ins_type)
@@ -61,7 +68,7 @@ def main():
     output_file = open(os.path.basename(xls_file).rstrip("xls")+'RNA_Depth.xls', "w")
     output_file2 = open(os.path.basename(xls_file).rstrip("xls")+'RNA_Depth.Error.Position.txt', "w")
     output_file2.write("## Position not in mpileup file. please check!\n")
-    output_file2.write("Hugo_Symbol\tChromosome\tStart_Position\tTPM\n")
+    output_file2.write("Hugo_Symbol\tChromosome\tStart_Position\t\End_Position\tflag\tTPM\n")
     data = pd.read_table(xls_file, sep="\t", dtype=str)
     header = list(data.columns.values)
     header.extend(["MutatedReads(RNA)", "Wild-typeReads(RNA)"])
@@ -80,7 +87,7 @@ def main():
         Variant_Type = str(row['Variant_Type'])
         if Position_start in mpileup_dict:
             RNA_wild_reads = int(mpileup_dict[Position_start].get("W", 0))
-            if Variant_Type == 'SNP':
+            if Variant_Type == 'SNP' or Variant_Type == 'DNP':
                 RNA_muta_reads = int(mpileup_dict[Position_start].get("M", 0))
             elif Variant_Type == 'DEL':
                 RNA_muta_reads = int(mpileup_dict[Position_start].get("D", 0))

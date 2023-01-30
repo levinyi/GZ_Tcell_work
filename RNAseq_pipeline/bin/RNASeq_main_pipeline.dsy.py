@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import configparser
+import logging
 
 
 def _argparse():
@@ -36,6 +37,7 @@ def main():
         'sample_name'  : cf.get("Config", "sample_name"),
         'RNA_fastqs' : cf.get("Config", "RNA_fastqs"),
         'scripts_dir': cf.get('Config', 'scripts_dir'),
+        
         # alignment
         'STAR': cf.get('Config', "STAR"),
         'STAR_index': cf.get('Config', "STAR_index"),
@@ -44,20 +46,19 @@ def main():
         # expression
         'featureCounts': cf.get('Config', "featureCounts"),
     }
-    #make directories:
+    # make directories:
     project_dir = os.path.abspath(".") + '/' + config_dict['project_name']
     make_dir(project_dir)
     print("# Create work directory")
 
     # generate shell
     shell_name = project_dir + '/work.' + config_dict['project_name'] + '.RNASeq.sh'
-    # only open a file so use try:finally to close.
 
-    with open(shell_name,"w") as f:
+    with open(shell_name, "w") as f:
         # align
         f.write("{STAR} --runThreadN 20 --genomeDir {STAR_index} --readFilesCommand zcat --readFilesIn {RNA_fastqs}  --outFileNamePrefix {sample_name}.RNA. --quantMode GeneCounts --outSAMtype BAM SortedByCoordinate \n".format(**config_dict))
         f.write("{samtools} index {sample_name}.RNA.Aligned.sortedByCoord.out.bam\n".format(**config_dict))
-        f.write("{samtools depth -@ 20 -b {sample_name}.snp.checked.bed -a {sample_name}.RNA.Aligned.sortedByCoord.out.bam -o {sample_name}.RNAseq.snp.checked.depth.txt\n}".format(**config_dict))
+        f.write("{samtools} depth -@ 20 -b {sample_name}.snp.checked.bed -a {sample_name}.RNA.Aligned.sortedByCoord.out.bam -o {sample_name}.RNAseq.snp.checked.depth.txt\n".format(**config_dict))
         f.write("{samtools} mpileup -ABQ0 -l {sample_name}.snp.checked.bed -f {ref_fasta} {sample_name}.RNA.Aligned.sortedByCoord.out.bam -aa -o {sample_name}.RNAseq.mpileup.txt\n".format(**config_dict))
 
         f.write("{featureCounts} -O -T 20 -t exon -g gene_name -p -a {gtf_file} -o {sample_name}.RNAseq.exon.gene_name.counts.txt  {sample_name}.RNA.Aligned.sortedByCoord.out.bam \n".format(**config_dict))
