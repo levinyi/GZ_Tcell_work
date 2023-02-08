@@ -98,3 +98,5 @@ yost_fp <- multi_feature_plot(srt_obj=srt_obj, feature_list = yost_markers,
                               ggplot_mods=c(rootpath_jet_scaling())
 )
 ggsave(filename = paste(output_dir, "GEX_UMAP_YostFP.png",sep="/"),plot = yost_fp, width = 18, height = 12)
+
+saveRDS(srt_obj, file = paste0(output_dir, "/integrated_seurat.rds"))
