@@ -266,6 +266,8 @@ def main():
             -o Sequenza-analysis/{sample_name}.seqz.gz\n'''.format(**config_dict))
         f.write('''sequenza-utils seqz_binning --seqz Sequenza-analysis/{sample_name}.seqz.gz --window 50 -o Sequenza-analysis/{sample_name}.small.seqz.gz\n'''.format(**config_dict))
         f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scripts/sequenca_analysis_wes.R Sequenza-analysis/{sample_name}.small.seqz.gz Sequenza-analysis/{sample_name}\n'''.format(**config_dict))
+        ##### scarHRD
+        f.write('''Rscript /cygene/work/00.test/pipeline/sequenza/scarHRD/scar_score.R Sequenza-analysis/{sample_name}.small.seqz.gz Sequenza-analysis\n'''.format(**config_dict))
         ##############################################
         #### HLA : OptiType
         ##############################################
