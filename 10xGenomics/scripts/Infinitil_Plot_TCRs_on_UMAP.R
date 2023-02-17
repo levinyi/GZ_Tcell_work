@@ -6,18 +6,23 @@
 library(Seurat)
 library(ggplot2)
 library(magrittr)
+library(tibble)
 
 args = commandArgs(T)
 
 seurat_rds = args[1] # "integrated_seurat.rds"
-srt_obj = readRDS(seurat_rds)
+# srt_obj = readRDS(seurat_rds)
 
 tcr_file = args[2]
-tcr_id = read.table(tcr_file, header=F)
-tcr_id = tcr_id$V1
-# extract barcode
-highlighted_barcode <- rownames(srt_obj@meta.data[srt_obj@meta.data$clonotype_id %in% tcr_id,])
-print(head(highlighted_barcode))
+tcr_id = read.table(tcr_file, header=T)
+# add metadata
+tcr_table = tcr_id %>% column_to_rownames("barcode")
+srt_obj <- Seurat::AddMetaData(srt_obj, tcr_table)
+print(srt_obj)
+
+# For p1, plot highlight cells by dimplot
+# highlighted_barcode <- rownames(srt_obj@meta.data[srt_obj@meta.data$clonotype_id %in% tcr_id,])
+highlighted_barcode <- tcr_table$barcode
 ## 
 p <- DimPlot(srt_obj, cells.highlight = highlighted_barcode)
 p <- p + scale_color_manual(
@@ -30,19 +35,14 @@ ggsave("Plot.Selected.TCRs.on.UMAP.png",plot=p, device="png",width=6.2, height=5
 
 #########################################
 # for individual color
-data = FetchData(srt_obj,vars=c("UMAP_1", "UMAP_2", "clonotype_id"))
-# umap_coords <- as.data.frame(srt_obj@reductions$umap@cell.embeddings)
+data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2", "clonotype_ID"))
 
 # add column to store tcr info.
-data$tcr_clonotype <- "others"
-for (each in tcr_id) {
-	data$tcr_clonotype[which(data$clonotype_id == each)] <- each
-}
+data$plot <- ifelse(is.na(data$clonotype_ID), "others", data$clonotype_ID)
 
-print(head(data))
 # split selected data and Unselected data. give ggplot2 two layers.
-selected_data = data %>% dplyr::filter(tcr_clonotype != "others")
-unselect_data = data %>% dplyr::filter(tcr_clonotype == "others")
+selected_data = data %>% dplyr::filter(plot != "others")
+unselect_data = data %>% dplyr::filter(plot == "others")
 
 # ggplot2
 p2 <- ggplot(unselect_data, aes(x=UMAP_1,y=UMAP_2)) +
@@ -51,18 +51,21 @@ p2 <- ggplot(unselect_data, aes(x=UMAP_1,y=UMAP_2)) +
 	theme_classic() + theme(legend.title=element_blank())
 
 # convert group1_clonotype80 to clonotype80: 
-short_name = c()
-for (each in tcr_id) {
-	if (!startsWith(each, "clonotype")){
-		print(paste("this clonotype is not starts with clonotype", each, sep=":"))
-		name = substring(each, 8)
-		short_name = c(short_name, name)
-	}
-}
-print(short_name)
-p2 <- p2 + scale_color_discrete(breaks=tcr_id, labels=short_name)
+###short_name = c()
+###for (each in tcr_id) {
+###	if (!startsWith(each, "clonotype")){
+###		print(paste("this clonotype is not starts with clonotype", each, sep=":"))
+###		name = substring(each, 8)
+###		short_name = c(short_name, name)
+###	}
+###}
+###print(short_name)
+###p2 <- p2 + scale_color_discrete(breaks=tcr_id, labels=short_name)
 ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.pdf", plot=p2, device="pdf", width=7.5,height=5)
 ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.png", plot=p2, device="png", width=7.5,height=5)
+
+##############################################
+# for counts plot
+src("Infinitil_Screening_analysis.R")
+plot_spots(srt_obj, features="counts", save_path=save_path)
 print("done")
-# library(ggrepel)
-# p+ geom_text_repel(data = selected_data)

@@ -146,6 +146,7 @@ data$order[data$definition=="TRUE"] <- 1
 print(data[1:5,])
 data = data %>% arrange(desc(order))
 print(data[1:5,])
+
 plot <- ggplot(data,aes(x=UMAP_1,y=UMAP_2, color=definition))  + 
 	geom_point(size=2.5, alpha=0.9)+
 	scale_color_manual(values=c("FALSE"="#3D3D55","TRUE"="#FF00F1","NA"="grey"),breaks=c("TRUE","FALSE","NA"))+
