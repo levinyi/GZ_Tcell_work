@@ -11,44 +11,98 @@ library(tibble)
 args = commandArgs(T)
 
 seurat_rds = args[1] # "integrated_seurat.rds"
-# srt_obj = readRDS(seurat_rds)
+# seurat_rds = "/cygene2/pipeline/10X/data/CR511_Post_infusion/analysis/integrated_seurat.rds"
+srt_obj = readRDS(seurat_rds)
 
 tcr_file = args[2]
-tcr_id = read.table(tcr_file, header=T)
+# tcr_file = "/cygene2/pipeline/10X/data/CR511_Post_infusion/CR511P02T_EntrySeq/endoTCR.bc.counts.txt"
+df = read.table(tcr_file, header=T)
+
+# check if there are duplicated values in the barcode column.
+if (any(duplicated(df[,"barcode"]))){
+    # if there are duplicated values, remove them and keep other columns
+    df <- df[!duplicated(df[,"barcode"]),]
+    rownames(df) <- NULL
+}
+tcr_table = df %>% tibble::column_to_rownames("barcode")
+head(tcr_table)
 # add metadata
-tcr_table = tcr_id %>% column_to_rownames("barcode")
 srt_obj <- Seurat::AddMetaData(srt_obj, tcr_table)
-print(srt_obj)
 
 # For p1, plot highlight cells by dimplot
 # highlighted_barcode <- rownames(srt_obj@meta.data[srt_obj@meta.data$clonotype_id %in% tcr_id,])
-highlighted_barcode <- tcr_table$barcode
+highlighted_barcode <- rownames(tcr_table)
 ## 
-p <- DimPlot(srt_obj, cells.highlight = highlighted_barcode)
+p <- DimPlot(srt_obj, cells.highlight = highlighted_barcode, split.by = "orig.ident")
 p <- p + scale_color_manual(
 		values=c("grey50","red"),
 		breaks=c("Unselected","Group_1"),
 		labels=c("Others","Selected")
 	)
-ggsave("Plot.Selected.TCRs.on.UMAP.pdf",plot=p, device="pdf",width=6.2, height=5)
-ggsave("Plot.Selected.TCRs.on.UMAP.png",plot=p, device="png",width=6.2, height=5)
+p
+ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.pdf",plot=p, device="pdf",width=15, height=5)
+ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.png",plot=p, device="png",width=15, height=5)
+
+
+# # for individual color and split sample
+p_test <- DimPlot(srt_obj, group.by = "clonotype_ID", split.by = "orig.ident") + theme(plot.title = element_blank())
+ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.DimPlot.pdf",plot=p_test, device="pdf",width=15, height=5)
+ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.DimPlot.png",plot=p_test, device="png",width=15, height=5)
+
 
 #########################################
-# for individual color
-data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2", "clonotype_ID"))
+# for individual color and split sample
+data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2", "orig.ident", "clonotype_ID"))
 
-# add column to store tcr info.
-data$plot <- ifelse(is.na(data$clonotype_ID), "others", data$clonotype_ID)
+split_df <- split(data, data$orig.ident)
+plot_list <- lapply(seq_along(split_df), function(i) {
+    x = split_df[[i]]
+    name= (names(split_df[i]))
+    data_list = split(x, is.na(x$clonotype_ID))
+    ggplot(data_list$`TRUE`, aes(x=UMAP_1, y=UMAP_2)) +
+        geom_point(size=0.5,color="grey") +
+        geom_point(data=data_list$`FALSE`, aes(x=UMAP_1, y=UMAP_2, color=clonotype_ID),size=1) +
+        theme_classic() + theme(legend.title=element_blank(),legend.position = "none") +
+        ylab("") +
+        ggtitle(name) +
+        theme(
+            plot.title = element_text(hjust = 0.5),
+            axis.ticks.y = element_blank(),
+            axis.line.y = element_blank(),
+            axis.text.y = element_blank())
+})
 
-# split selected data and Unselected data. give ggplot2 two layers.
-selected_data = data %>% dplyr::filter(plot != "others")
-unselect_data = data %>% dplyr::filter(plot == "others")
+# 修改最后一张图的图例
+plot_list[[length(plot_list)]] <- plot_list[[length(plot_list)]] + 
+    theme(legend.position = "right")
+# 修改第一张图的图例
+plot_list[[1]] <- plot_list[[1]] +theme(
+    axis.ticks.y = element_line(),
+    axis.line.y = element_line(),
+    axis.text.y = element_text(),
+    axis.title.y = element_text(),
+) + ylab("UMP_2")
+combined_plot <- Reduce(`+`, plot_list)
+combined_plot
 
-# ggplot2
-p2 <- ggplot(unselect_data, aes(x=UMAP_1,y=UMAP_2)) +
-	geom_point(size=0.7, alpha=1, color="grey") +
-	geom_point(data=selected_data, aes(x=UMAP_1,y=UMAP_2, color=tcr_clonotype),size=1) +
-	theme_classic() + theme(legend.title=element_blank())
+ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.pdf", plot=combined_plot, device="pdf", width=15,height=5)
+ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.png", plot=combined_plot, device="png", width=15,height=5)
+
+
+######################################################################################
+# head(split_df)
+# data$plot <- ifelse(is.na(data$clonotype_ID), "others", data$clonotype_ID)
+# 
+# # split selected data and Unselected data. give ggplot2 two layers.
+# selected_data = data %>% dplyr::filter(plot != "others")
+# unselect_data = data %>% dplyr::filter(plot == "others")
+# 
+# # ggplot2
+# p2 <- ggplot(unselect_data, aes(x=UMAP_1,y=UMAP_2)) +
+# 	geom_point(size=0.7, alpha=1, color="grey") +
+# 	geom_point(data=selected_data, aes(x=UMAP_1,y=UMAP_2, color=clonotype_ID),size=1) +
+# 	theme_classic() + theme(legend.title=element_blank())
+# p2
 
 # convert group1_clonotype80 to clonotype80: 
 ###short_name = c()
@@ -61,11 +115,11 @@ p2 <- ggplot(unselect_data, aes(x=UMAP_1,y=UMAP_2)) +
 ###}
 ###print(short_name)
 ###p2 <- p2 + scale_color_discrete(breaks=tcr_id, labels=short_name)
-ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.pdf", plot=p2, device="pdf", width=7.5,height=5)
-ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.png", plot=p2, device="png", width=7.5,height=5)
-
-##############################################
-# for counts plot
-src("Infinitil_Screening_analysis.R")
-plot_spots(srt_obj, features="counts", save_path=save_path)
-print("done")
+# ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.pdf", plot=p2, device="pdf", width=7.5,height=5)
+# ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.png", plot=p2, device="png", width=7.5,height=5)
+# 
+# ##############################################
+# # for counts plot
+# src("Infinitil_Screening_analysis.R")
+# plot_spots(srt_obj, features="counts", save_path=save_path)
+# print("done")
