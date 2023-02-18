@@ -123,3 +123,101 @@ ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.png", plot=combined_plot, d
 # src("Infinitil_Screening_analysis.R")
 # plot_spots(srt_obj, features="counts", save_path=save_path)
 # print("done")
+
+#########################################################
+#########################################################Data to Drag
+FeaturePlot(srt_obj, features = "counts",split.by = "orig.ident")
+RP_GRADIENT <- c(ROOTPATH_COLOURS["navy"],
+                 ROOTPATH_COLOURS["yellow"],
+                 ROOTPATH_COLOURS["violet"])
+ggplot_mods <- c(rootpath_jet_scaling())
+plot_spots <- function(srt_obj, features, save_path){
+    plot_list <- Seurat::FeaturePlot(object = srt_obj,
+                                features = features, order = TRUE,
+                                split.by = "orig.ident",
+                                combine = F)
+    # plot_list <- lapply(X=plot_list, FUN = function(x){
+    #     x <- x + rootpath_jet_scaling(RP_GRADIENT, log=TRUE)
+    # })
+    # plot = Reduce(`+`, plot_list)
+    # return(plot)
+    plot_list <- lapply(X = plot_list,FUN = function(x) {
+        for (mod in ggplot_mods) {
+            x <- x + mod
+        }
+        return(x)
+    })
+    plot <- Reduce(`+`, plot_list)
+    return(plot)
+}
+plot = plot_spots(srt_obj, features="counts")
+plot
+ggsave("Plot.BarcodeCounts.on.UMAP.sep.cor.by.sample.pdf", plot=plot, device="pdf", width=15,height=5)
+ggsave("Plot.BarcodeCounts.on.UMAP.sep.cor.by.sample.png", plot=plot, device="png", width=15,height=5)
+
+##################################################################
+### method 2 by ggplot2
+
+data = FetchData(srt_obj, vars=c("UMAP_1","UMAP_2","counts","orig.ident"))
+head(data)
+split_df <- split(data, data$orig.ident)
+# color
+# size = counts
+RP_DS_JET <- c(ROOTPATH_COLOURS["navy"], ROOTPATH_COLOURS["blue"],
+               ROOTPATH_COLOURS["skyblue"], ROOTPATH_COLOURS["yellow"],
+               ROOTPATH_COLOURS["orange"], ROOTPATH_COLOURS["red"])
+
+ROOTPATH_COLOURS <- list("black" = "#3E3D57", "violet" = "#FF00F1",
+                         "orange" = "#FF996A", "yellow" = "#FFEC00",
+                         "green" = "#00F300", "navy" = "#3565AA",
+                         "blue" = "#0069FF", "purple" = "#7D2DFD",
+                         "red" = "#FC5B68", "skyblue" = "#5FB3D3")
+
+rootpath_jet_scaling <- function(jet_colors = RP_DS_JET,
+                                 value_range = NULL,
+                                 null_color = ROOTPATH_COLOURS["black"],
+                                 log = FALSE
+) {
+    transformation = "identity"
+    if (log) {
+        transformation <- "log"
+    }
+    new_scale <- ggplot2::scale_color_gradientn(colours = jet_colors,
+                                                limits = value_range,
+                                                na.value = null_color,
+                                                trans = transformation
+    )
+    return(new_scale)
+}
+
+
+ggplot_mods <- c(rootpath_jet_scaling())
+ggplot_mods <- c(rootpath_jet_scaling(value_range = c(0, 0.25)))
+ggplot_mods
+
+plot_list <- lapply(seq_along(split_df), function(i){
+    x = split_df[[i]]
+    name = names(split_df[i])
+    # print(name)
+    data_list <- split(x, is.na(x$counts))
+    ggplot(data_list$`TRUE`,aes(UMAP_1,UMAP_2)) + geom_point(color="grey",size=0.5) +
+        geom_point(data=data_list$`FALSE`, aes(UMAP_1,UMAP_2),size=data_list$`FALSE`$counts) +
+        theme_classic() + theme(legend.title = element_blank(), legend.position = "none") +
+        ylab("") + ggtitle(name)+ theme(
+            plot.title = element_text(hjust = 0.5),
+            axis.ticks.y = element_blank(),
+            axis.line.y = element_blank(),
+            axis.text.y = element_blank()
+        ) + ggplot_mods
+})
+# add legend
+plot_list[[length(plot_list)]] <- plot_list[[length(plot_list)]] + theme(legend.position = "right")
+# 
+plot_list[[1]] <- plot_list[[1]] + theme(
+    axis.ticks.y = element_line(),
+    axis.line.y = element_line(),
+    axis.text.y = element_text(),
+    axis.title.y= element_text(),
+) + ylab("UMAP_2")
+combined_plot <- Reduce(`+`, plot_list)
+combined_plot
