@@ -52,41 +52,49 @@ ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.DimPlot.png",plot=p_test, device="p
 
 #########################################
 # for individual color and split sample
-data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2", "orig.ident", "clonotype_ID"))
+data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2", "orig.ident", "clonotype_ID","counts"))
 
 split_df <- split(data, data$orig.ident)
+
 plot_list <- lapply(seq_along(split_df), function(i) {
     x = split_df[[i]]
     name= (names(split_df[i]))
     data_list = split(x, is.na(x$clonotype_ID))
-    ggplot(data_list$`TRUE`, aes(x=UMAP_1, y=UMAP_2)) +
+    p<- ggplot(data_list$`TRUE`, aes(x=UMAP_1, y=UMAP_2)) +
         geom_point(size=0.5,color="grey") +
-        geom_point(data=data_list$`FALSE`, aes(x=UMAP_1, y=UMAP_2, color=clonotype_ID),size=1) +
-        theme_classic() + theme(legend.title=element_blank(),legend.position = "none") +
-        ylab("") +
+        geom_point(data=data_list$`FALSE`, aes(x=UMAP_1, y=UMAP_2, color=clonotype_ID),size=log(data_list$`FALSE`$counts)) +
+        theme_classic() +
+        theme(legend.title=element_blank()) +
+        # ylab("") +
         ggtitle(name) +
         theme(
             plot.title = element_text(hjust = 0.5),
-            axis.ticks.y = element_blank(),
-            axis.line.y = element_blank(),
-            axis.text.y = element_blank())
+            # axis.ticks.y = element_blank(),
+            # axis.line.y = element_blank(),
+            # axis.text.y = element_blank()
+            )
+    ggsave(paste(name,"Plot.Selected.TCRs.on.UMAP.png",sep = "."), plot=p, device="png", width=4.5,height=3.5)
 })
 
-# 修改最后一张图的图例
-plot_list[[length(plot_list)]] <- plot_list[[length(plot_list)]] + 
-    theme(legend.position = "right")
-# 修改第一张图的图例
-plot_list[[1]] <- plot_list[[1]] +theme(
-    axis.ticks.y = element_line(),
-    axis.line.y = element_line(),
-    axis.text.y = element_text(),
-    axis.title.y = element_text(),
-) + ylab("UMP_2")
+# # 修改最后一张图的图例
+# plot_list[[length(plot_list)]] <- plot_list[[length(plot_list)]] + 
+#     theme(legend.position = "right")
+# # 修改第一张图的图例
+# plot_list[[1]] <- plot_list[[1]] +theme(
+#     axis.ticks.y = element_line(),
+#     axis.line.y = element_line(),
+#     axis.text.y = element_text(),
+#     axis.title.y = element_text(),
+# ) + ylab("UMP_2")
 combined_plot <- Reduce(`+`, plot_list)
 combined_plot
 
 ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.pdf", plot=combined_plot, device="pdf", width=15,height=5)
 ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.png", plot=combined_plot, device="png", width=15,height=5)
+
+
+
+########## for 
 
 
 ######################################################################################
@@ -126,6 +134,34 @@ ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.png", plot=combined_plot, d
 
 #########################################################
 #########################################################Data to Drag
+RP_DS_JET <- c(ROOTPATH_COLOURS["navy"], ROOTPATH_COLOURS["blue"],
+               ROOTPATH_COLOURS["skyblue"], ROOTPATH_COLOURS["yellow"],
+               ROOTPATH_COLOURS["orange"], ROOTPATH_COLOURS["red"])
+
+ROOTPATH_COLOURS <- list("black" = "#3E3D57", "violet" = "#FF00F1",
+                         "orange" = "#FF996A", "yellow" = "#FFEC00",
+                         "green" = "#00F300", "navy" = "#3565AA",
+                         "blue" = "#0069FF", "purple" = "#7D2DFD",
+                         "red" = "#FC5B68", "skyblue" = "#5FB3D3")
+
+rootpath_jet_scaling <- function(jet_colors = RP_DS_JET,
+                                 value_range = NULL,
+                                 null_color = ROOTPATH_COLOURS["black"],
+                                 log = FALSE
+) {
+    transformation = "identity"
+    if (log) {
+        transformation <- "log"
+    }
+    new_scale <- ggplot2::scale_color_gradientn(colours = jet_colors,
+                                                limits = value_range,
+                                                na.value = null_color,
+                                                trans = transformation
+    )
+    return(new_scale)
+}
+
+##########
 FeaturePlot(srt_obj, features = "counts",split.by = "orig.ident")
 RP_GRADIENT <- c(ROOTPATH_COLOURS["navy"],
                  ROOTPATH_COLOURS["yellow"],
@@ -161,39 +197,11 @@ ggsave("Plot.BarcodeCounts.on.UMAP.sep.cor.by.sample.png", plot=plot, device="pn
 data = FetchData(srt_obj, vars=c("UMAP_1","UMAP_2","counts","orig.ident"))
 head(data)
 split_df <- split(data, data$orig.ident)
-# color
-# size = counts
-RP_DS_JET <- c(ROOTPATH_COLOURS["navy"], ROOTPATH_COLOURS["blue"],
-               ROOTPATH_COLOURS["skyblue"], ROOTPATH_COLOURS["yellow"],
-               ROOTPATH_COLOURS["orange"], ROOTPATH_COLOURS["red"])
-
-ROOTPATH_COLOURS <- list("black" = "#3E3D57", "violet" = "#FF00F1",
-                         "orange" = "#FF996A", "yellow" = "#FFEC00",
-                         "green" = "#00F300", "navy" = "#3565AA",
-                         "blue" = "#0069FF", "purple" = "#7D2DFD",
-                         "red" = "#FC5B68", "skyblue" = "#5FB3D3")
-
-rootpath_jet_scaling <- function(jet_colors = RP_DS_JET,
-                                 value_range = NULL,
-                                 null_color = ROOTPATH_COLOURS["black"],
-                                 log = FALSE
-) {
-    transformation = "identity"
-    if (log) {
-        transformation <- "log"
-    }
-    new_scale <- ggplot2::scale_color_gradientn(colours = jet_colors,
-                                                limits = value_range,
-                                                na.value = null_color,
-                                                trans = transformation
-    )
-    return(new_scale)
-}
-
 
 ggplot_mods <- c(rootpath_jet_scaling())
 ggplot_mods <- c(rootpath_jet_scaling(value_range = c(0, 0.25)))
 ggplot_mods
+
 
 plot_list <- lapply(seq_along(split_df), function(i){
     x = split_df[[i]]
@@ -201,8 +209,9 @@ plot_list <- lapply(seq_along(split_df), function(i){
     # print(name)
     data_list <- split(x, is.na(x$counts))
     ggplot(data_list$`TRUE`,aes(UMAP_1,UMAP_2)) + geom_point(color="grey",size=0.5) +
-        geom_point(data=data_list$`FALSE`, aes(UMAP_1,UMAP_2),size=data_list$`FALSE`$counts) +
-        theme_classic() + theme(legend.title = element_blank(), legend.position = "none") +
+        geom_point(data=data_list$`FALSE`, aes(UMAP_1,UMAP_2, color=counts),size=1) +
+        theme_classic() + 
+        # theme(legend.title = element_blank(), legend.position = "none") +
         ylab("") + ggtitle(name)+ theme(
             plot.title = element_text(hjust = 0.5),
             axis.ticks.y = element_blank(),
@@ -221,3 +230,5 @@ plot_list[[1]] <- plot_list[[1]] + theme(
 ) + ylab("UMAP_2")
 combined_plot <- Reduce(`+`, plot_list)
 combined_plot
+ggsave("Plot.BarcodeCounts.on.UMAP.sep.cor.by.sample.2.pdf", plot=combined_plot, device="pdf", width=15,height=5)
+ggsave("Plot.BarcodeCounts.on.UMAP.sep.cor.by.sample.2.png", plot=combined_plot, device="png", width=15,height=5)
