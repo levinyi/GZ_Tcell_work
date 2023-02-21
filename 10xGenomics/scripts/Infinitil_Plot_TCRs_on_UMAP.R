@@ -11,11 +11,11 @@ library(tibble)
 args = commandArgs(T)
 
 seurat_rds = args[1] # "integrated_seurat.rds"
-# seurat_rds = "/cygene2/pipeline/10X/data/CR511_Post_infusion/analysis/integrated_seurat.rds"
+seurat_rds = "/cygene2/pipeline/10X/data/CR511_Post_infusion/analysis/integrated_seurat.rds"
 srt_obj = readRDS(seurat_rds)
 
 tcr_file = args[2]
-# tcr_file = "/cygene2/pipeline/10X/data/CR511_Post_infusion/CR511P02T_EntrySeq/endoTCR.bc.counts.txt"
+tcr_file = "/cygene2/pipeline/10X/data/CR511_Post_infusion/CR511P02T_EntrySeq/endoTCR.bc.counts.txt"
 df = read.table(tcr_file, header=T)
 
 # check if there are duplicated values in the barcode column.
@@ -46,6 +46,7 @@ ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.png",plot=p, device="png",width=15,
 
 # # for individual color and split sample
 p_test <- DimPlot(srt_obj, group.by = "clonotype_ID", split.by = "orig.ident") + theme(plot.title = element_blank())
+
 ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.DimPlot.pdf",plot=p_test, device="pdf",width=15, height=5)
 ggsave("Plot.Selected.TCRs.on.UMAP.by.sample.DimPlot.png",plot=p_test, device="png",width=15, height=5)
 
@@ -60,7 +61,7 @@ plot_list <- lapply(seq_along(split_df), function(i) {
     x = split_df[[i]]
     name= (names(split_df[i]))
     data_list = split(x, is.na(x$clonotype_ID))
-    p<- ggplot(data_list$`TRUE`, aes(x=UMAP_1, y=UMAP_2)) +
+    ggplot(data_list$`TRUE`, aes(x=UMAP_1, y=UMAP_2)) +
         geom_point(size=0.5,color="grey") +
         geom_point(data=data_list$`FALSE`, aes(x=UMAP_1, y=UMAP_2, color=clonotype_ID),size=log(data_list$`FALSE`$counts)) +
         theme_classic() +
@@ -73,9 +74,12 @@ plot_list <- lapply(seq_along(split_df), function(i) {
             # axis.line.y = element_blank(),
             # axis.text.y = element_blank()
             )
-    ggsave(paste(name,"Plot.Selected.TCRs.on.UMAP.png",sep = "."), plot=p, device="png", width=4.5,height=3.5)
+    # ggsave(paste(name,"Plot.Selected.TCRs.on.UMAP.png",sep = "."), plot=p, device="png", width=4.5,height=3.5)
 })
-
+plot_list[[1]]
+plot_list[[2]]
+plot_list[[3]]
+ggsave("CR511P02T-G507E6.Plot.Selected.TCRs.on.UMAP.png", plot=plot_list[[1]], device="png", width=5.8,height=3.5)
 # # 修改最后一张图的图例
 # plot_list[[length(plot_list)]] <- plot_list[[length(plot_list)]] + 
 #     theme(legend.position = "right")
@@ -95,8 +99,12 @@ ggsave("Plot.Selected.TCRs.on.UMAP.sep.cor.by.sample.png", plot=combined_plot, d
 
 
 ########## for 
+f = c("CD3D","CD8A","CD4","FOXP3","CCR7","CD200","EOMES","KLRD1","IFNG","HAVCR2","NCAM1","CD14")
 
 
+p = FeaturePlot(srt_obj, features = f)
+p
+ggsave("12genes.featurePlot.png",plot=p, device="png", width=16,height=12)
 ######################################################################################
 # head(split_df)
 # data$plot <- ifelse(is.na(data$clonotype_ID), "others", data$clonotype_ID)
