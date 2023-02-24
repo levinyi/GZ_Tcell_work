@@ -2,12 +2,13 @@ import sys
 sys.path.append("/cygene/script/python_packages")
 import edit_distance
 
+
 def main():
     barcode_dict = {}
     with open(sys.argv[1], "r") as f:
         for line in f:
             line = line.rstrip("\n")
-            a,b = line.split("\t")
+            a, b = line.split("\t")
             barcode_dict[a] = int(b)
 
     merged_dict = {}
@@ -30,5 +31,7 @@ def main():
         for barcode in merged_dict:
             f2.write("{}\t{}\n".format(barcode, merged_dict[barcode]))
         # f.write("Total_Reads\t{}\n".format(total_reads))
+
+
 if __name__ == '__main__':
     main()
