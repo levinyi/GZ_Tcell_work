@@ -11,24 +11,24 @@ library(tibble)
 args = commandArgs(T)
 
 seurat_rds = args[1] # "integrated_seurat.rds"
-seurat_rds = "/cygene2/pipeline/10X/data/CR511_Post_infusion/analysis/integrated_seurat.rds"
+# seurat_rds = "/cygene2/pipeline/10X/data/CR511_Post_infusion/analysis/integrated_seurat.rds"
 srt_obj = readRDS(seurat_rds)
 
 tcr_file = args[2]
-tcr_file = "/cygene2/pipeline/10X/data/CR511_Post_infusion/CR511P02T_EntrySeq/endoTCR.bc.counts.txt"
+# tcr_file = "/cygene2/pipeline/10X/data/CR511_Post_infusion/CR511P02T_EntrySeq/endoTCR.bc.counts.txt"
 df = read.table(tcr_file, header=T)
 
 # check if there are duplicated values in the barcode column.
-if (any(duplicated(df[,"barcode"]))){
-    # if there are duplicated values, remove them and keep other columns
-    df <- df[!duplicated(df[,"barcode"]),]
-    rownames(df) <- NULL
-}
-tcr_table = df %>% tibble::column_to_rownames("barcode")
-head(tcr_table)
+#if (any(duplicated(df[,"barcode"]))){
+#    # if there are duplicated values, remove them and keep other columns
+#    df <- df[!duplicated(df[,"barcode"]),]
+#    rownames(df) <- NULL
+#}
+# tcr_table = df %>% tibble::column_to_rownames("barcode")
+# head(tcr_table)
 # add metadata
-srt_obj <- Seurat::AddMetaData(srt_obj, tcr_table)
-
+# srt_obj <- Seurat::AddMetaData(srt_obj, tcr_table)
+tcr_id
 # For p1, plot highlight cells by dimplot
 # highlighted_barcode <- rownames(srt_obj@meta.data[srt_obj@meta.data$clonotype_id %in% tcr_id,])
 highlighted_barcode <- rownames(tcr_table)
