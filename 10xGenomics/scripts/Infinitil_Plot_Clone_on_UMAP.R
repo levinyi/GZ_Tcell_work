@@ -10,16 +10,18 @@ library(tibble)
 
 # args = commandArgs(T)
 # setwd("/cygene2/pipeline/10X/data/SA501001-TIL01/analysis/")
-setwd("/cygene2/pipeline/10X/data/SA501001-TIL02/analysis/")
+# setwd("/cygene2/pipeline/10X/data/SA501001-TIL02/analysis/")
+setwd("/cygene2/pipeline/10X/data/CV501002/subsetTcells_re_analysis/analysis_w_BatchCor/")
 
 # seurat_rds = args[1] # "integrated_seurat.rds"
 # seurat_rds = "/cygene2/pipeline/10X/data/SA501001-TIL01/analysis/integrated_seurat.rds"
-seurat_rds = "/cygene2/pipeline/10X/data/SA501001-TIL02/analysis/integrated_seurat.rds"
+seurat_rds = "/cygene2/pipeline/10X/data/CV501002/subsetTcells_re_analysis/analysis_w_BatchCor/integrated_seurat.rds"
 
 srt_obj = readRDS(seurat_rds)
 # tcr_file = args[2]
 # tcr_file = "/cygene2/pipeline/10X/data/SA501001-TIL01/analysis/SA511-TIL01_CD8_selected_TCR_PrintToUMAP.txt"
-tcr_file = "/cygene2/pipeline/10X/data/SA501001-TIL02/analysis/SA511-TIL02_tumor_reactive_TCRs.txt"
+# tcr_file = "/cygene2/pipeline/10X/data/SA501001-TIL02/analysis/SA511-TIL02_tumor_reactive_TCRs.txt"
+tcr_file = "/cygene2/pipeline/10X/data/CV501002/subsetTcells_re_analysis/analysis_w_BatchCor/selected_TCR_printToUmap.txt"
 df = read.table(tcr_file, header=F)
 tcr_id = df$V1
 tcr_id
@@ -33,11 +35,7 @@ p1 = DimPlot(srt_obj, cells.highlight = highlighted_barcode)+
     )
 p1
 # ggsave("SA511-TIL01_tumor_reactive_TCRs.UMAPs.png", p1, device="png", width=6, height = 5)
-ggsave("SA511-TIL02_tumor_reactive_TCRs.UMAPs.png", p1, device="png", width=6, height = 5)
-
-
-
-
+ggsave("Selected_TCRs_PrintToUMAP.png", p1, device="png", width=6, height = 5)
 
 
 #########################################
@@ -46,29 +44,41 @@ data = FetchData(srt_obj, vars=c("UMAP_1", "UMAP_2","clonotype_id"))
 
 data$plot <- ifelse(!data$clonotype_id %in% tcr_id, "others", data$clonotype_id)
 data$plot <- ifelse(grepl("group", data$plot), substring(data$plot,8), data$plot)
+
 ######### deal with clonotype name for TIL02 only
+# 修改图例：
 # special = c("clonotype1163","clonotype329")
-# data$plot <- ifelse(data$plot %in% special, paste0(data$plot,"*"), data$plot)
+data$plot <- ifelse(data$plot == "clonotype181", paste0(data$plot,"(against Hela,SiHA)"), data$plot)
+data$plot <- ifelse(data$plot == "clonotype49", paste0(data$plot,"(against Hela, SiHA)"), data$plot)
+data$plot <- ifelse(data$plot == "clonotype138", paste0(data$plot,"(against Hela)"), data$plot)
+
 #########
 library(ggrepel)
 data_list = split(data, data$plot != 'others')
 p2 = ggplot(data = data_list$`FALSE`,aes(x=UMAP_1,y=UMAP_2)) + geom_point(size=0.7,alpha=1, color='grey') +
     geom_point(data = data_list$`TRUE`, aes(x=UMAP_1,y=UMAP_2, color=plot),
                size=1.5) + 
-    geom_text_repel(data=data_list$`TRUE`,
-                    label=data_list$`TRUE`$plot,
-                    size = 2.5,
-                    max.overlaps = length(rownames(data_list$`TRUE`)),
-                    )+
+    # geom_text_repel(data=data_list$`TRUE`,
+    #                 label=data_list$`TRUE`$plot,
+    #                 size = 2.5,
+    #                 max.overlaps = length(rownames(data_list$`TRUE`)),
+    #                 )+
     theme_classic() + 
     theme(
-        legend.title = element_blank()
+        legend.title = element_blank(),
+        legend.position = "bottom"
+    )+
+    guides(
+        color = guide_legend(
+            ncol = 2
+        )
     )
 p2
 # ggsave('SA511-TIL01_validated_CD4_TCR_plot_to_UMAPs.png',p2, device = "png",width = 6, height = 5)
-ggsave('SA511-TIL02_tumor_reactive_TCR_plot_w.text.png',p2, device = "png",width = 6, height = 5)
-ggsave('SA511-TIL02_tumor_reactive_TCR_plot_w.partial.text.png',p2, device = "png",width = 6, height = 5)
-ggsave('SA511-TIL02_tumor_reactive_TCR_plot_wo.text.png',p2, device = "png",width = 6, height = 5)
+ggsave('Selected_TCRs_PrintToUMAP.w.color.png',p2, device = "png",width = 6, height = 6)
+# ggsave('SA511-TIL02_tumor_reactive_TCR_plot_w.text.png',p2, device = "png",width = 6, height = 5)
+# ggsave('SA511-TIL02_tumor_reactive_TCR_plot_w.partial.text.png',p2, device = "png",width = 6, height = 5)
+# ggsave('SA511-TIL02_tumor_reactive_TCR_plot_wo.text.png',p2, device = "png",width = 6, height = 5)
 
 ############################################################
 
