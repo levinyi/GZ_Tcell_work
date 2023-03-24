@@ -52,5 +52,6 @@ for key1, value1 in noGex_cdr3_dict.items():
 
 # 输出表格
 # print("noGex_cdr3_key\tnoGex_cdr3_value\tGex_cdr3_key\tGex_cdr3_value")
-for match in matches:
-    print("\t".join(match))
+with open("VDJ_pair_no_GEX.xls", "w") as f:
+    for match in matches:
+        f.write("{}\n".format("\t".join(match)))
